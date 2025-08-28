@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BSA Fee Planner V2 – Benchmarks + Scenarios</title>
+<style>
+  :root { --bg:#f7f7f8; --card:#ffffff; --ink:#1d2939; --muted:#667085; --line:#e5e7eb; --ok:#16a34a; --warn:#ca8a04; --bad:#dc2626; }
+  * { box-sizing: border-box; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+  body { margin:0; background:var(--bg); color:var(--ink); }
+  header { padding:20px 24px; border-bottom:1px solid var(--line); background:var(--card); position:sticky; top:0; z-index:10; }
+  h1 { margin:0; font-size:20px; }
+  .container { max-width:1400px; margin:24px auto; padding:0 16px; }
+  .grid { display:grid; grid-template-columns: repeat(12, 1fr); gap:16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; }
+  .col-3 { grid-column: span 3; } .col-4 { grid-column: span 4; } .col-5 { grid-column: span 5; } .col-6 { grid-column: span 6; } .col-7 { grid-column: span 7; } .col-12 { grid-column: span 12; }
+  label { font-size:12px; color:var(--muted); display:block; margin-bottom:6px; }
+  input, select, textarea { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); }
+  input[type="number"] { text-align:right; }
+  .row { display:flex; gap:10px; align-items:center; }
+  .row > * { flex:1; }
+  table { width:100%; border-collapse:collapse; }
+  th, td { border-top:1px solid var(--line); padding:10px 8px; font-size:14px; }
+  th { text-align:left; color:var(--muted); font-weight:600; }
+  tfoot td { border-top:2px solid var(--line); font-weight:700; }
+  .pill { display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid var(--line); color:var(--muted); }
+  .badge { display:inline-block; padding:6px 10px; border-radius:999px; font-size:12px; color:#fff; }
+  .ok { background:var(--ok); } .warn { background:var(--warn); } .bad { background:var(--bad); }
+  .muted { color:var(--muted); font-size:13px; }
+  .section-title { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+  .actions { display:flex; gap:10px; flex-wrap:wrap; }
+  button { padding:10px 12px; border:1px solid var(--line); background:#fff; border-radius:10px; cursor:pointer; }
+  button.primary { background:#111827; color:#fff; border-color:#111827; }
+  .twocol { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+  @media (max-width: 1100px){ .twocol { grid-template-columns: 1fr; } }
+  .subtle { color:#475569; font-size:12px; }
+</style>
+</head>
+<body>
+<header><h1>BSA Fee Planner V2 – Benchmarks + Scenarios</h1></header>
+<div class="container">
+  <div class="grid">
+    <div class="card col-7">
+      <div class="section-title">
+        <h3 style="margin:0">Load Benchmarks</h3>
+        <span class="pill">CSV from your benchmark tables</span>
+      </div>
+      <p class="muted">Prefer “Segment + Type” CSV. Others are optional fallbacks. Expected headers include:
+        <span class="mono">Market Segment, Project Type, New / Renovation, count, median, p25, p75</span>.</p>
+      <div class="row">
+        <div>
+          <label>Upload CSV – Segment + Type</label>
+          <input type="file" id="csvSegType" accept=".csv">
+        </div>
+        <div>
+          <label>Upload CSV – Segment only</label>
+          <input type="file" id="csvSeg" accept=".csv">
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <div>
+          <label>Upload CSV – Project Type only</label>
+          <input type="file" id="csvType" accept=".csv">
+        </div>
+        <div>
+          <label>Upload CSV – Segment + New/Renov</label>
+          <input type="file" id="csvSegNewRen" accept=".csv">
+        </div>
+      </div>
+      <div style="margin-top:12px" class="actions">
+        <button id="useSample">Load sample data</button>
+        <button id="clearData">Clear data</button>
+      </div>
+      <div style="margin-top:12px">
+        <small id="dataStatus" class="muted">No benchmark data loaded yet.</small>
+      </div>
+    </div>
+    <div class="card col-5">
+      <div class="section-title">
+        <h3 style="margin:0">Presets</h3>
+        <span class="pill">save and reload scenarios</span>
+      </div>
+      <div class="row">
+        <div><button id="savePreset" class="primary">Save Preset (JSON)</button></div>
+        <div>
+          <label>Load Preset (JSON)</label>
+          <input type="file" id="loadPreset" accept=".json">
+        </div>
+      </div>
+      <small class="muted">Presets include your selections, complexity settings, rates and mix, and phases.</small>
+    </div>
+
+    <div class="card col-12">
+      <div class="section-title">
+        <h3 style="margin:0">Scenarios A and B</h3>
+        <span class="pill">compare side by side</span>
+      </div>
+      <div class="actions" style="margin-bottom:10px">
+        <button id="copyAtoB">Copy A to B</button>
+        <button id="resetAB">Reset both</button>
+        <button id="exportStaffingCSV">Export Staffing CSV</button>
+      </div>
+      <div class="twocol">
+        <!-- Scenario A -->
+        <div class="card">
+          <h3 style="margin:0 0 8px 0">Scenario A</h3>
+          <div class="row">
+            <div>
+              <label>Market Segment</label>
+              <select id="A_segment"></select>
+            </div>
+            <div>
+              <label>Project Type</label>
+              <select id="A_ptype"></select>
+            </div>
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <div>
+              <label>New or Renovation</label>
+              <select id="A_newreno">
+                <option value="">Not specified</option>
+                <option>New</option>
+                <option>Renovation</option>
+              </select>
+            </div>
+            <div>
+              <label>Construction Cost</label>
+              <input id="A_ccost" type="number" step="1000" placeholder="e.g. 20000000">
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            <div>
+              <label>Delivery Method</label>
+              <select id="A_delivery">
+                <option value="1.00">Design-Bid-Build (1.00)</option>
+                <option value="1.03">CMAR (1.03)</option>
+                <option value="0.95">Design-Build (0.95)</option>
+                <option value="1.05">IPD (1.05)</option>
+              </select>
+              <small class="subtle">Multiplier applied to fee percent baseline.</small>
+            </div>
+            <div>
+              <label>Complexity</label>
+              <input id="A_complexity" type="range" min="-10" max="20" value="0">
+              <small class="subtle">Adjusts fee percent by -10 to +20 percent of itself.</small>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            <div>
+              <label>Baseline Fee percent (from benchmarks)</label>
+              <input id="A_baselinePct" type="number" step="0.0001" readonly>
+            </div>
+            <div>
+              <label>Override Fee percent (optional)</label>
+              <input id="A_overridePct" type="number" step="0.0001" placeholder="leave blank to use adjusted baseline">
+            </div>
+          </div>
+
+          <div style="margin-top:12px">
+            <div id="A_validationBadge"></div>
+            <small id="A_validationNote" class="muted"></small>
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            <div>
+              <label>Total Fee ($)</label>
+              <input id="A_totalFee" type="number" step="1000" readonly>
+            </div>
+            <div>
+              <label>Labor Share of Fee percent</label>
+              <input id="A_laborShare" type="number" step="1" value="85">
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            <div class="card col-12" style="padding:12px">
+              <div class="section-title">
+                <strong>Phase Allocation</strong>
+                <button id="A_resetPhases">Reset Phases</button>
+              </div>
+              <table id="A_phaseTable">
+                <thead><tr><th>Phase</th><th>percent of Fee</th><th>Fee $</th></tr></thead>
+                <tbody></tbody>
+                <tfoot><tr><td>Total</td><td id="A_phasePctTotal">0%</td><td id="A_phaseFeeTotal">$0</td></tr></tfoot>
+              </table>
+            </div>
+          </div>
+
+          <div class="card col-12" style="padding:12px; margin-top:10px">
+            <div class="section-title">
+              <strong>Staff Mix and Hours</strong>
+              <div class="actions"><button id="A_addRole">Add Role</button><button id="A_resetRoles">Reset Roles</button></div>
+            </div>
+            <table id="A_roleTable">
+              <thead><tr><th>Role</th><th>Bill Rate ($ per hr)</th><th>Mix percent of Labor $</th><th>Role Fee $</th><th>Hours</th></tr></thead>
+              <tbody></tbody>
+              <tfoot>
+                <tr><td colspan="3">Labor Fee Subtotal</td><td id="A_laborFeeSubtotal">$0</td><td id="A_hoursSubtotal">0</td></tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- Scenario B -->
+        <div class="card">
+          <h3 style="margin:0 0 8px 0">Scenario B</h3>
+          <div class="row">
+            <div>
+              <label>Market Segment</label>
+              <select id="B_segment"></select>
+            </div>
+            <div>
+              <label>Project Type</label>
+              <select id="B_ptype"></select>
+            </div>
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <div>
+              <label>New or Renovation</label>
+              <select id="B_newreno">
+                <option value="">Not specified</option>
+                <option>New</option>
+                <option>Renovation</option>
+              </select>
+            </div>
+            <div>
+              <label>Construction Cost</label>
+              <input id="B_ccost" type="number" step="1000" placeholder="e.g. 20000000">
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            <div>
+              <label>Delivery Method</label>
+              <select id="B_delivery">
+                <option value="1.00">Design-Bid-Build (1.00)</option>
+                <option value="1.03">CMAR (1.03)</option>
+                <option value="0.95">Design-Build (0.95)</option>
+                <option value="1.05">IPD (1.05)</option>
+              </select>
+            </div>
+            <div>
+              <label>Complexity</label>
+              <input id="B_complexity" type="range" min="-10" max="20" value="0">
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            <div>
+              <label>Baseline Fee percent (from benchmarks)</label>
+              <input id="B_baselinePct" type="number" step="0.0001" readonly>
+            </div>
+            <div>
+              <label>Override Fee percent (optional)</label>
+              <input id="B_overridePct" type="number" step="0.0001" placeholder="leave blank to use adjusted baseline">
+            </div>
+          </div>
+
+          <div style="margin-top:12px">
+            <div id="B_validationBadge"></div>
+            <small id="B_validationNote" class="muted"></small>
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            <div>
+              <label>Total Fee ($)</label>
+              <input id="B_totalFee" type="number" step="1000" readonly>
+            </div>
+            <div>
+              <label>Labor Share of Fee percent</label>
+              <input id="B_laborShare" type="number" step="1" value="85">
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            <div class="card col-12" style="padding:12px">
+              <div class="section-title">
+                <strong>Phase Allocation</strong>
+                <button id="B_resetPhases">Reset Phases</button>
+              </div>
+              <table id="B_phaseTable">
+                <thead><tr><th>Phase</th><th>percent of Fee</th><th>Fee $</th></tr></thead>
+                <tbody></tbody>
+                <tfoot><tr><td>Total</td><td id="B_phasePctTotal">0%</td><td id="B_phaseFeeTotal">$0</td></tr></tfoot>
+              </table>
+            </div>
+          </div>
+
+          <div class="card col-12" style="padding:12px; margin-top:10px">
+            <div class="section-title">
+              <strong>Staff Mix and Hours</strong>
+              <div class="actions"><button id="B_addRole">Add Role</button><button id="B_resetRoles">Reset Roles</button></div>
+            </div>
+            <table id="B_roleTable">
+              <thead><tr><th>Role</th><th>Bill Rate ($ per hr)</th><th>Mix percent of Labor $</th><th>Role Fee $</th><th>Hours</th></tr></thead>
+              <tbody></tbody>
+              <tfoot>
+                <tr><td colspan="3">Labor Fee Subtotal</td><td id="B_laborFeeSubtotal">$0</td><td id="B_hoursSubtotal">0</td></tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card col-12">
+      <div class="section-title">
+        <h3 style="margin:0">Benchmark Match Details</h3>
+        <span class="pill">transparency</span>
+      </div>
+      <div id="matchDetails" class="muted"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Utilities */
+const fmtMoney = v => isFinite(v) ? v.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0}) : '';
+const fmtPct = v => isFinite(v) ? (v*100).toFixed(2)+'%' : '';
+const val = id => document.getElementById(id).value;
+const setVal = (id, v) => { document.getElementById(id).value = v; };
+
+function parseCSV(text) {
+  const rows = []; let i=0, cur='', inQ=false, row=[];
+  function push(){ row.push(cur); cur=''; }
+  function endRow(){ rows.push(row); row=[]; }
+  while (i < text.length){
+    const ch = text[i];
+    if (inQ){
+      if (ch === '"'){ if (text[i+1] === '"'){ cur+='"'; i++; } else inQ=false; }
+      else cur += ch;
+    } else {
+      if (ch === '"') inQ=true;
+      else if (ch === ',') push();
+      else if (ch === '\n') { push(); endRow(); }
+      else if (ch !== '\r') cur += ch;
+    }
+    i++;
+  }
+  if (cur.length || row.length){ push(); endRow(); }
+  const header = rows.shift().map(h=>h.trim());
+  return rows.filter(r=>r.some(x=>x && x.trim().length)).map(r=>{
+    const o={}; header.forEach((h,idx)=> o[h]= (r[idx]??'').trim() ); return o;
+  });
+}
+
+/* Data Structures */
+const state = {
+  segType: [], segOnly: [], typeOnly: [], segNewRen: [],
+  index: { segType:new Map(), seg:new Map(), type:new Map(), segNewRen:new Map() },
+  segments: new Set(), types: new Set(), newRen: new Set(),
+};
+
+function normalizeRow(o){
+  const map = {};
+  for (const k in o) {
+    const key = k.toLowerCase();
+    if (key.includes('market') && key.includes('segment')) map.segment = o[k];
+    else if (key.includes('project') && key.includes('type')) map.ptype = o[k];
+    else if ((key.includes('new') && key.includes('renov')) || key.includes('new / renovation')) map.newreno = o[k];
+    else if (key==='count' || key.includes('count')) map.count = Number(o[k]||'');
+    else if (key.startsWith('median')) map.median = Number(o[k]||'');
+    else if (key.startsWith('p25') || key.includes('25')) map.p25 = Number(o[k]||'');
+    else if (key.startsWith('p75') || key.includes('75')) map.p75 = Number(o[k]||'');
+  }
+  const fix = x => (x>1.0 ? x/100 : x);
+  if (isFinite(map.median)) map.median = fix(map.median);
+  if (isFinite(map.p25)) map.p25 = fix(map.p25);
+  if (isFinite(map.p75)) map.p75 = fix(map.p75);
+  return map;
+}
+
+function ingest(table, kind){
+  const dest = [];
+  table.forEach(r=>{
+    const n = normalizeRow(r);
+    if (!isFinite(n.median)) return;
+    dest.push(n);
+    if (n.segment) state.segments.add(n.segment);
+    if (n.ptype) state.types.add(n.ptype);
+    if (n.newreno) state.newRen.add(n.newreno);
+  });
+  state[kind] = dest;
+}
+
+function buildIndex(){
+  state.index = { segType:new Map(), seg:new Map(), type:new Map(), segNewRen:new Map() };
+  state.segType.forEach(r=> state.index.segType.set(`${r.segment}||${r.ptype}`, r));
+  state.segOnly.forEach(r=> state.index.seg.set(r.segment, r));
+  state.typeOnly.forEach(r=> state.index.type.set(r.ptype, r));
+  state.segNewRen.forEach(r=> state.index.segNewRen.set(`${r.segment}||${r.newreno}`, r));
+  refreshSelectors();
+}
+
+function refreshSelectors(){
+  const selIds = ['A_segment','B_segment','A_ptype','B_ptype'];
+  selIds.forEach(id=>{
+    const el = document.getElementById(id);
+    const list = id.includes('segment') ? [...state.segments] : [...state.types];
+    const cur = el.value;
+    el.innerHTML = `<option value=""></option>` + list.sort().map(s=>`<option>${s}</option>`).join('');
+    if (list.includes(cur)) el.value = cur;
+  });
+}
+
+/* Matching and Scoring */
+function bestMatch(segment, ptype, newreno){
+  let src=null, note='';
+  if (segment && ptype && state.index.segType.has(`${segment}||${ptype}`)) {
+    src = state.index.segType.get(`${segment}||${ptype}`); note='Matched Segment + Type';
+  } else if (segment && newreno && state.index.segNewRen.has(`${segment}||${newreno}`)) {
+    src = state.index.segNewRen.get(`${segment}||${newreno}`); note='Matched Segment + New/Renov';
+  } else if (segment && state.index.seg.has(segment)) {
+    src = state.index.seg.get(segment); note='Matched Segment';
+  } else if (ptype && state.index.type.has(ptype)) {
+    src = state.index.type.get(ptype); note='Matched Type';
+  }
+  return { src, note };
+}
+
+function setBadge(prefix, pct, src){
+  const badge = document.getElementById(`${prefix}_validationBadge`);
+  const note = document.getElementById(`${prefix}_validationNote`);
+  badge.innerHTML = ''; note.textContent = '';
+  if (!src || !isFinite(pct)) return;
+  const p25 = src.p25 ?? src.median*0.85;
+  const p75 = src.p75 ?? src.median*1.15;
+  let cls='bad', label='Outside historical range';
+  if (pct >= p25 && pct <= p75) { cls='ok'; label='Within IQR, typical'; }
+  else {
+    const near = 0.10 * (p75 - p25 || src.median || 0.1);
+    if (Math.abs(pct - (pct < p25 ? p25 : p75)) <= near) { cls='warn'; label='Near boundary'; }
+  }
+  badge.innerHTML = `<span class="badge ${cls}">${label}</span>`;
+  const parts = [];
+  if (isFinite(src.median)) parts.push(`median ${fmtPct(src.median)}`);
+  if (isFinite(p25) && isFinite(p75)) parts.push(`IQR ${fmtPct(p25)} – ${fmtPct(p75)}`);
+  if (isFinite(src.count)) parts.push(`${src.count} historical projects`);
+  note.textContent = parts.join(' • ');
+}
+
+/* Calculations */
+function adjustedBaseline(baseline, deliveryMult, complexityPct){
+  if (!isFinite(baseline)) return NaN;
+  const compFactor = 1 + (complexityPct/100);
+  return baseline * deliveryMult * compFactor;
+}
+
+function recompute(prefix){
+  const seg = val(`${prefix}_segment`), typ = val(`${prefix}_ptype`), nr = val(`${prefix}_newreno`);
+  const ccost = Number(val(`${prefix}_ccost`)||0);
+  const delivery = Number(val(`${prefix}_delivery`)||1.0);
+  const complexity = Number(val(`${prefix}_complexity`)||0);
+
+  const { src, note } = bestMatch(seg, typ, nr);
+  const baseline = src ? src.median : NaN;
+  setVal(`${prefix}_baselinePct`, isFinite(baseline) ? baseline : '');
+
+  const adj = adjustedBaseline(baseline, delivery, complexity);
+  const override = val(`${prefix}_overridePct`) ? Number(val(`${prefix}_overridePct`)) : null;
+  const pct = override ?? adj;
+
+  const totalFee = isFinite(pct) && isFinite(ccost) ? pct * ccost : NaN;
+  setVal(`${prefix}_totalFee`, isFinite(totalFee) ? Math.round(totalFee) : '');
+
+  setBadge(prefix, pct, src);
+  appendMatch(prefix, seg, typ, nr, src, note, adj);
+
+  recomputePhases(prefix);
+  recomputeRoles(prefix);
+}
+
+function appendMatch(prefix, seg, typ, nr, src, note, adj){
+  const el = document.getElementById('matchDetails');
+  if (!src){ el.innerHTML = `<div>No benchmark match yet. Load data and select inputs.</div>`; return; }
+  const html = `
+    <div style="margin:4px 0">
+      <b>${prefix}</b> • ${note} • Segment: ${seg||'—'} • Type: ${typ||'—'} • New/Ren: ${nr||'—'}
+      • <b>Adj Baseline:</b> ${isFinite(adj)?fmtPct(adj):'—'}
+      • <b>Median:</b> ${fmtPct(src.median)} ${isFinite(src.p25)&&isFinite(src.p75)?' • <b>IQR:</b> '+fmtPct(src.p25)+' – '+fmtPct(src.p75):''}
+      ${isFinite(src.count)?' • <b>N:</b> '+src.count:''}
+    </div>`;
+  const other = el.innerHTML;
+  if (!other.includes('<b>A</b>')) el.innerHTML = html;
+  else if (!other.includes('<b>B</b>')) el.innerHTML = other + html;
+  else el.innerHTML = html;
+}
+
+function recomputePhases(prefix){
+  const totalFee = Number(val(`${prefix}_totalFee`)||0);
+  const rows = [...document.querySelectorAll(`#${prefix}_phaseTable tbody tr`)];
+  let pctSum = 0, feeSum = 0;
+  rows.forEach(tr=>{
+    const pct = Number(tr.querySelector('input').value||0)/100;
+    pctSum += pct;
+    const v = totalFee * pct;
+    tr.querySelector('.feeCell').textContent = fmtMoney(v);
+    feeSum += v;
+  });
+  document.getElementById(`${prefix}_phasePctTotal`).textContent = (pctSum*100).toFixed(1)+'%';
+  document.getElementById(`${prefix}_phaseFeeTotal`).textContent = fmtMoney(feeSum);
+}
+
+function recomputeRoles(prefix){
+  const totalFee = Number(val(`${prefix}_totalFee`)||0);
+  const laborSharePct = Number(val(`${prefix}_laborShare`)||0) / 100;
+  const laborFee = totalFee * laborSharePct;
+
+  const rows = [...document.querySelectorAll(`#${prefix}_roleTable tbody tr`)];
+  let feeSum = 0, hoursSum = 0;
+  rows.forEach(tr=>{
+    const rate = Number(tr.querySelector('.rate').value||0);
+    const mix = Number(tr.querySelector('.mix').value||0)/100;
+    const roleFee = laborFee * mix;
+    const hours = rate>0 ? roleFee / rate : 0;
+    tr.querySelector('.roleFee').textContent = fmtMoney(roleFee);
+    tr.querySelector('.hours').textContent = isFinite(hours) ? Math.round(hours).toLocaleString() : '0';
+    feeSum += roleFee; hoursSum += hours;
+  });
+  document.getElementById(`${prefix}_laborFeeSubtotal`).textContent = fmtMoney(feeSum);
+  document.getElementById(`${prefix}_hoursSubtotal`).textContent = isFinite(hoursSum)? Math.round(hoursSum).toLocaleString() : '0';
+}
+
+/* UI Builders */
+function buildPhaseTable(prefix){
+  const defaults = [
+    ['Programming', 5],
+    ['Schematic Design', 15],
+    ['Design Development', 25],
+    ['Construction Documents', 35],
+    ['Bidding/Permitting', 5],
+    ['Construction Administration', 15],
+  ];
+  const tb = document.querySelector(`#${prefix}_phaseTable tbody`);
+  tb.innerHTML='';
+  defaults.forEach(([name,pct])=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${name}</td><td><input type="number" step="0.1" value="${pct}"></td><td class="feeCell">$0</td>`;
+    tr.querySelector('input').addEventListener('input', ()=>recomputePhases(prefix));
+    tb.appendChild(tr);
+  });
+  recomputePhases(prefix);
+}
+
+function buildRoleTable(prefix){
+  const defaults = [
+    ['Principal', 275, 5],
+    ['Project Manager', 200, 10],
+    ['Architect/Designer', 155, 55],
+    ['Interiors', 150, 10],
+    ['Engineering', 165, 20],
+  ];
+  const tb = document.querySelector(`#${prefix}_roleTable tbody`);
+  tb.innerHTML='';
+  defaults.forEach(([name,rate,mix])=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td contenteditable="true">${name}</td>
+      <td><input class="rate" type="number" step="1" value="${rate}"></td>
+      <td><input class="mix" type="number" step="0.5" value="${mix}"></td>
+      <td class="roleFee">$0</td>
+      <td class="hours">0</td>`;
+    tr.querySelector('.rate').addEventListener('input', ()=>recomputeRoles(prefix));
+    tr.querySelector('.mix').addEventListener('input', ()=>recomputeRoles(prefix));
+    tb.appendChild(tr);
+  });
+  recomputeRoles(prefix);
+}
+
+/* Presets */
+function gatherPreset(){
+  const ids = ['A','B'];
+  const preset = { tablesLoaded: {
+    segType: state.segType.length, segOnly: state.segOnly.length, typeOnly: state.typeOnly.length, segNewRen: state.segNewRen.length
+  }};
+  ids.forEach(p=>{
+    preset[p] = {
+      segment: val(`${p}_segment`), ptype: val(`${p}_ptype`), newreno: val(`${p}_newreno`),
+      ccost: val(`${p}_ccost`), delivery: val(`${p}_delivery`), complexity: val(`${p}_complexity`),
+      overridePct: val(`${p}_overridePct`), laborShare: val(`${p}_laborShare`),
+      phases: [...document.querySelectorAll(`#${p}_phaseTable tbody tr`)].map(tr=>({name: tr.children[0].textContent.trim(), pct: tr.querySelector('input').value})),
+      roles: [...document.querySelectorAll(`#${p}_roleTable tbody tr`)].map(tr=>({name: tr.children[0].textContent.trim(), rate: tr.querySelector('.rate').value, mix: tr.querySelector('.mix').value}))
+    };
+  });
+  return preset;
+}
+
+function applyPreset(preset){
+  ['A','B'].forEach(p=>{
+    if (!preset[p]) return;
+    setVal(`${p}_segment`, preset[p].segment||'');
+    setVal(`${p}_ptype`, preset[p].ptype||'');
+    setVal(`${p}_newreno`, preset[p].newreno||'');
+    setVal(`${p}_ccost`, preset[p].ccost||'');
+    setVal(`${p}_delivery`, preset[p].delivery||'1.00');
+    setVal(`${p}_complexity`, preset[p].complexity||'0');
+    setVal(`${p}_overridePct`, preset[p].overridePct||'');
+    setVal(`${p}_laborShare`, preset[p].laborShare||'85');
+    if (preset[p].phases){
+      const tb = document.querySelector(`#${p}_phaseTable tbody`);
+      tb.innerHTML='';
+      preset[p].phases.forEach(row=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${row.name}</td><td><input type="number" step="0.1" value="${row.pct}"></td><td class="feeCell">$0</td>`;
+        tr.querySelector('input').addEventListener('input', ()=>recomputePhases(p));
+        tb.appendChild(tr);
+      });
+    }
+    if (preset[p].roles){
+      const tb = document.querySelector(`#${p}_roleTable tbody`);
+      tb.innerHTML='';
+      preset[p].roles.forEach(r=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td contenteditable="true">${r.name}</td>
+          <td><input class="rate" type="number" step="1" value="${r.rate}"></td>
+          <td><input class="mix" type="number" step="0.5" value="${r.mix}"></td>
+          <td class="roleFee">$0</td><td class="hours">0</td>`;
+        tr.querySelector('.rate').addEventListener('input', ()=>recomputeRoles(p));
+        tr.querySelector('.mix').addEventListener('input', ()=>recomputeRoles(p));
+        tb.appendChild(tr);
+      });
+    }
+    recompute(p);
+  });
+}
+
+function download(filename, text){
+  const a=document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], {type:'application/json'}));
+  a.download = filename;
+  a.click();
+}
+
+document.getElementById('savePreset').addEventListener('click', ()=>{
+  const preset = gatherPreset();
+  download('bsa-fee-planner-preset.json', JSON.stringify(preset, null, 2));
+});
+document.getElementById('loadPreset').addEventListener('change', e=>{
+  const f = e.target.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try { const preset = JSON.parse(reader.result); applyPreset(preset); }
+    catch(err){ alert('Invalid preset JSON'); }
+  };
+  reader.readAsText(f);
+});
+
+/* Export CSV */
+document.getElementById('exportStaffingCSV').addEventListener('click', ()=>{
+  function gather(prefix){
+    const seg = val(`${prefix}_segment`), typ = val(`${prefix}_ptype`), nr = val(`${prefix}_newreno`);
+    const totalFee = val(`${prefix}_totalFee`);
+    const laborShare = val(`${prefix}_laborShare`);
+    const rows = [...document.querySelectorAll(`#${prefix}_roleTable tbody tr`)];
+    return rows.map(tr=>({
+      Scenario: prefix,
+      Segment: seg, Type: typ, NewRen: nr,
+      TotalFee: totalFee, LaborSharePct: laborShare,
+      Role: tr.children[0].textContent.trim(),
+      Rate: tr.querySelector('.rate').value,
+      MixPct: tr.querySelector('.mix').value,
+      RoleFee: tr.querySelector('.roleFee').textContent.replace(/[$,]/g,''),
+      Hours: tr.querySelector('.hours').textContent.replace(/,/g,'')
+    }));
+  }
+  const data = [...gather('A'), ...gather('B')];
+  if (!data.length){ alert('No staffing to export.'); return; }
+  const header = Object.keys(data[0]);
+  const csv = [header.join(',')].concat(data.map(r=>header.map(h=>r[h]).join(','))).join('\n');
+  const a=document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = 'bsa-fee-planner-staffing.csv';
+  a.click();
+});
+
+/* Event Wiring */
+function handleFile(inputEl, kind){
+  const file = inputEl.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const rows = parseCSV(reader.result);
+      ingest(rows, kind);
+      buildIndex();
+      document.getElementById('dataStatus').textContent = `Loaded ${rows.length} rows into ${kind}.`;
+      ['A','B'].forEach(recompute);
+    } catch(e){
+      document.getElementById('dataStatus').textContent = `Error parsing ${file.name}: ${e}`;
+    }
+  };
+  reader.readAsText(file);
+}
+
+document.getElementById('csvSegType').addEventListener('change', e=>handleFile(e.target,'segType'));
+document.getElementById('csvSeg').addEventListener('change', e=>handleFile(e.target,'segOnly'));
+document.getElementById('csvType').addEventListener('change', e=>handleFile(e.target,'typeOnly'));
+document.getElementById('csvSegNewRen').addEventListener('change', e=>handleFile(e.target,'segNewRen'));
+
+document.getElementById('useSample').addEventListener('click', ()=>{
+  const segType = parseCSV(`Market Segment,Project Type,New / Renovation,count,median,p25,p75
+Healing,Healing - Oncology,New,14,0.085,0.075,0.100
+Healing,Healing - Surgery,Renovation,18,0.095,0.085,0.110
+Healing,Healing - Cardiovascular,Renovation,10,0.102,0.090,0.120
+Learning,Learning - Classroom,New,9,0.075,0.065,0.090
+Discovery,Discovery - Lab,Renovation,12,0.115,0.100,0.130
+`);
+  ingest(segType,'segType'); buildIndex();
+  document.getElementById('dataStatus').textContent = 'Loaded sample data. Replace with your CSV exports when ready.';
+  ['A','B'].forEach(recompute);
+});
+
+document.getElementById('clearData').addEventListener('click', ()=>{
+  state.segType=[]; state.segOnly=[]; state.typeOnly=[]; state.segNewRen=[];
+  state.index = { segType:new Map(), seg:new Map(), type:new Map(), segNewRen:new Map() };
+  state.segments.clear(); state.types.clear(); state.newRen.clear();
+  refreshSelectors();
+  document.getElementById('dataStatus').textContent = 'Data cleared.';
+  document.getElementById('matchDetails').textContent = '';
+  ['A','B'].forEach(p=>{
+    setVal(`${p}_baselinePct`, '');
+    setVal(`${p}_totalFee`, '');
+    document.getElementById(`${p}_validationBadge`).innerHTML='';
+    document.getElementById(`${p}_validationNote`).textContent='';
+  });
+});
+
+['A','B'].forEach(p=>{
+  ['segment','ptype','newreno','ccost','overridePct','laborShare','delivery','complexity'].forEach(suffix=>{
+    document.getElementById(`${p}_${suffix}`).addEventListener('input', ()=>recompute(p));
+  });
+  document.getElementById(`${p}_resetPhases`).addEventListener('click', ()=>buildPhaseTable(p));
+  document.getElementById(`${p}_resetRoles`).addEventListener('click', ()=>buildRoleTable(p));
+  document.getElementById(`${p}_addRole`).addEventListener('click', ()=>{
+    const tb=document.querySelector(`#${p}_roleTable tbody`);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td contenteditable="true">New Role</td>
+      <td><input class="rate" type="number" step="1" value="150"></td>
+      <td><input class="mix" type="number" step="0.5" value="5"></td>
+      <td class="roleFee">$0</td><td class="hours">0</td>`;
+    tr.querySelector('.rate').addEventListener('input', ()=>recomputeRoles(p));
+    tr.querySelector('.mix').addEventListener('input', ()=>recomputeRoles(p));
+    tb.appendChild(tr);
+    recomputeRoles(p);
+  });
+});
+
+document.getElementById('copyAtoB').addEventListener('click', ()=>{
+  const fields = ['segment','ptype','newreno','ccost','delivery','complexity','overridePct','laborShare'];
+  fields.forEach(f=> setVal(`B_${f}`, val(`A_${f}`)) );
+  const srcRows = [...document.querySelectorAll('#A_phaseTable tbody tr')];
+  const tb = document.querySelector('#B_phaseTable tbody'); tb.innerHTML='';
+  srcRows.forEach(tr=>{
+    const name = tr.children[0].textContent.trim();
+    const pct = tr.querySelector('input').value;
+    const row=document.createElement('tr');
+    row.innerHTML=`<td>${name}</td><td><input type="number" step="0.1" value="${pct}"></td><td class="feeCell">$0</td>`;
+    row.querySelector('input').addEventListener('input', ()=>recomputePhases('B'));
+    tb.appendChild(row);
+  });
+  const srcRoles = [...document.querySelectorAll('#A_roleTable tbody tr')];
+  const tb2 = document.querySelector('#B_roleTable tbody'); tb2.innerHTML='';
+  srcRoles.forEach(tr=>{
+    const name = tr.children[0].textContent.trim();
+    const rate = tr.querySelector('.rate').value;
+    const mix = tr.querySelector('.mix').value;
+    const row=document.createElement('tr');
+    row.innerHTML=`<td contenteditable="true">${name}</td>
+      <td><input class="rate" type="number" step="1" value="${rate}"></td>
+      <td><input class="mix" type="number" step="0.5" value="${mix}"></td>
+      <td class="roleFee">$0</td><td class="hours">0</td>`;
+    row.querySelector('.rate').addEventListener('input', ()=>recomputeRoles('B'));
+    row.querySelector('.mix').addEventListener('input', ()=>recomputeRoles('B'));
+    tb2.appendChild(row);
+  });
+  recompute('B');
+});
+
+document.getElementById('resetAB').addEventListener('click', ()=>{
+  ['A','B'].forEach(p=>{
+    ['segment','ptype','newreno','ccost','delivery','complexity','overridePct','laborShare'].forEach(s=> setVal(`${p}_${s}`, s==='delivery'?'1.00': s==='complexity'?'0':''));
+    buildPhaseTable(p); buildRoleTable(p); recompute(p);
+  });
+});
+
+/* Bootstrap */
+['A','B'].forEach(p=>{ buildPhaseTable(p); buildRoleTable(p); });
+refreshSelectors();
+</script>
+</body>
+</html>
