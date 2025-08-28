@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Design Bloom — Bubbles, Collision, Safe Rings</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{--bg:#0f1115;--panel:#171923;--line:#2a2f3a;--ink:#e6e8ee;--muted:#a2a7b4}
+  *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  html,body{height:100%;margin:0}
+  body{display:grid;grid-template-columns:360px 1fr;background:var(--bg);color:var(--ink)}
+  aside{background:var(--panel);border-right:1px solid var(--line);padding:12px;overflow:auto}
+  h2{margin:0 0 8px 0;font-size:18px}
+  button{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#1f2430;color:#fff;cursor:pointer}
+  button.ghost{background:transparent}
+  input[type="text"],input[type="color"]{width:100%;padding:8px;border:1px solid var(--line);border-radius:10px;background:#0f1115;color:#fff}
+  .small{font-size:12px;color:var(--muted);margin-bottom:4px}
+  .section{padding:10px;border:1px solid var(--line);border-radius:10px;margin-bottom:10px;background:#12141b}
+  .row{display:flex;gap:8px;align-items:center;margin:6px 0}
+  .row > *{flex:1}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .muted{color:var(--muted)}
+  main{position:relative;height:100vh}
+  svg{width:100%;height:100%;background:#0f1115}
+  /* allow multi-line SVG labels */
+  svg text, svg tspan { white-space: pre; }
+</style>
+</head>
+<body>
+  <aside>
+    <h2>Design Bloom</h2>
+    <div class="section">
+      <div class="row">
+        <div style="flex:1">
+          <div class="small">Center title</div>
+          <input id="title" type="text" placeholder="Project Name">
+        </div>
+        <div>
+          <div class="small">Quick actions</div>
+          <div class="chips">
+            <button id="sample">Sample</button>
+            <button id="clear" class="ghost">Clear</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="small">Lenses</div>
+      <div id="lensList"></div>
+      <div class="chips" style="margin-top:8px">
+        <button id="addLens">+ Add lens</button>
+      </div>
+    </div>
+  </aside>
+
+  <main>
+    <svg viewBox="0 0 900 640" preserveAspectRatio="xMidYMid meet">
+      <g id="root"></g>
+    </svg>
+  </main>
+
+<script>
+/* ---------- State ---------- */
+let model = {
+  title: 'Project Name',
+  lenses: []
+};
+
+/* ---------- DOM refs ---------- */
+const root = document.getElementById('root');
+const titleInput = document.getElementById('title');
+const lensList = document.getElementById('lensList');
+
+titleInput.addEventListener('input', e => { model.title = e.target.value; draw(); });
+
+document.getElementById('addLens').addEventListener('click', ()=>{
+  model.lenses.push({name:'New Lens', color: randColor(), drivers:[]});
+  renderEditor(); draw();
+});
+document.getElementById('clear').addEventListener('click', ()=>{
+  model = { title: 'Project Name', lenses: [] };
+  renderEditor(); draw();
+});
+document.getElementById('sample').addEventListener('click', loadSample);
+
+/* ---------- Editor UI ---------- */
+function renderEditor(){
+  lensList.innerHTML = '';
+  model.lenses.forEach((L, i)=>{
+    const wrap = div('section');
+
+    const row1 = div('row');
+    const name = inputText(L.name);
+    const color = inputColor(L.color);
+    const del = button('Delete','ghost');
+    row1.appendChild(name); row1.appendChild(color); row1.appendChild(del);
+    wrap.appendChild(row1);
+
+    const row2 = div('row');
+    const addDrv = button('+ Add driver');
+    row2.appendChild(addDrv);
+    wrap.appendChild(row2);
+
+    const drvWrap = div(); wrap.appendChild(drvWrap);
+
+    name.addEventListener('input', e=>{model.lenses[i].name = e.target.value; draw();});
+    color.addEventListener('input', e=>{model.lenses[i].color = e.target.value; draw();});
+    del.addEventListener('click', ()=>{ model.lenses.splice(i,1); renderEditor(); draw(); });
+
+    addDrv.addEventListener('click', ()=>{
+      model.lenses[i].drivers = model.lenses[i].drivers || [];
+      model.lenses[i].drivers.push({name:'Driver', words:[]}); renderEditor(); draw();
+    });
+
+    (L.drivers||[]).forEach((d, di)=>{
+      const dBlock = div('section'); dBlock.style.background='#0f1115';
+      const r1 = div('row');
+      const dn = inputText(d.name);
+      const addW = button('+ Add word');
+      const delD = button('Delete','ghost');
+      r1.appendChild(dn); r1.appendChild(addW); r1.appendChild(delD);
+      dBlock.appendChild(r1);
+
+      const wWrap = div(); dBlock.appendChild(wWrap);
+
+      dn.addEventListener('input', e=>{model.lenses[i].drivers[di].name = e.target.value; draw();});
+      addW.addEventListener('click', ()=>{
+        model.lenses[i].drivers[di].words = model.lenses[i].drivers[di].words || [];
+        model.lenses[i].drivers[di].words.push({name:'Word'}); renderEditor(); draw();
+      });
+      delD.addEventListener('click', ()=>{
+        model.lenses[i].drivers.splice(di,1); renderEditor(); draw();
+      });
+
+      (d.words||[]).forEach((w, wi)=>{
+        const r = div('row');
+        const wn = inputText(w.name);
+        const delW = button('Delete','ghost');
+        r.appendChild(wn); r.appendChild(delW);
+        wWrap.appendChild(r);
+        wn.addEventListener('input', e=>{model.lenses[i].drivers[di].words[wi].name = e.target.value; draw();});
+        delW.addEventListener('click', ()=>{
+          model.lenses[i].drivers[di].words.splice(wi,1); renderEditor(); draw();
+        });
+      });
+
+      drvWrap.appendChild(dBlock);
+    });
+
+    lensList.appendChild(wrap);
+  });
+
+  titleInput.value = model.title;
+}
+function div(cls){ const el=document.createElement('div'); if(cls) el.className=cls; return el; }
+function button(txt,cls){ const el=document.createElement('button'); el.textContent=txt; if(cls) el.className=cls; return el; }
+function inputText(v){ const el=document.createElement('input'); el.type='text'; el.value=v||''; return el; }
+function inputColor(v){ const el=document.createElement('input'); el.type='color'; el.value=v||'#66ccff'; return el; }
+
+/* ---------- SVG helpers ---------- */
+function doc(n, attrs){ const el = document.createElementNS('http://www.w3.org/2000/svg', n); for(const k in (attrs||{})) el.setAttribute(k, attrs[k]); return el; }
+function circle(cx, cy, r, fill){ return doc('circle', { cx, cy, r, fill }); }
+function line(x1,y1,x2,y2, color){ return doc('line', { x1, y1, x2, y2, stroke: color, 'stroke-width': 2, 'stroke-linecap':'round' }); }
+function text(x,y,str,size,color){ const t=doc('text',{x,y,fill:color,'font-size':size,'text-anchor':'middle','font-weight':'700'}); t.textContent=str; return t; }
+function lighten(hex, amt){ const c = hexToRgb(hex); if(!c) return hex; const hsl = rgbToHsl(c.r,c.g,c.b); hsl.l = clamp(hsl.l + amt/100, 0, 1); const rgb = hslToRgb(hsl.h,hsl.s,hsl.l); return rgbToHex(rgb.r,rgb.g,rgb.b); }
+function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+function randColor(){ const hues=[200,210,330,45,160,280]; const h=hues[Math.floor(Math.random()*hues.length)]; return hslToHex(h, 70, 55); }
+function hexToRgb(hex){ const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex); return m?{r:parseInt(m[1],16),g:parseInt(m[2],16),b:parseInt(m[3],16)}:null; }
+function rgbToHex(r,g,b){ return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join(''); }
+function rgbToHsl(r,g,b){ r/=255; g/=255; b/=255; const max=Math.max(r,g,b),min=Math.min(r,g,b); let h,s,l=(max+min)/2; if(max===min){h=s=0;} else { const d=max-min; s=l>0.5? d/(2-max-min): d/(max+min); switch(max){ case r:h=(g-b)/d+(g<b?6:0); break; case g:h=(b-r)/d+2; break; case b:h=(r-g)/d+4; break; } h/=6; } return {h,s,l}; }
+function hslToRgb(h,s,l){ let r,g,b; if(s===0){ r=g=b=l; } else { const hue2rgb=(p,q,t)=>{ if(t<0) t+=1; if(t>1) t-=1; if(t<1/6) return p+(q-p)*6*t; if(t<1/2) return q; if(t<2/3) return p+(q-p)*(2/3-t)*6; return p; }; const q=l<0.5? l*(1+s): l+s-l*s; const p=2*l-q; r=hue2rgb(p,q,h+1/3); g=hue2rgb(p,q,h); b=hue2rgb(p,q,h-1/3); } return {r:Math.round(r*255),g:Math.round(g*255),b:Math.round(b*255)}; }
+function hslToHex(h, s, l){ return rgbToHex(...Object.values(hslToRgb(h/360, s/100, l/100))); }
+
+/* ---------- Text wrapping + bubble ---------- */
+function measureApprox(text, size){
+  const avg = 0.55;
+  return (text || '').length * size * avg;
+}
+function wrapWords(text, size, maxWidth, maxLines){
+  const words = (text || '').split(/\s+/).filter(Boolean);
+  const lines = [];
+  let cur = '';
+  for (let i = 0; i < words.length; i++){
+    const w = words[i];
+    const tryLine = cur ? cur + ' ' + w : w;
+    if (measureApprox(tryLine, size) <= maxWidth || !cur){
+      cur = tryLine;
+    } else {
+      lines.push(cur);
+      cur = w;
+      if (lines.length === maxLines - 1){
+        const rest = [w, ...words.slice(i+1)].join(' ');
+        let capped = rest;
+        while (measureApprox(capped + ' …', size) > maxWidth && capped.includes(' ')){
+          capped = capped.replace(/\s+\S+$/, '');
+        }
+        const needEllipsis = measureApprox(rest, size) > measureApprox(capped, size);
+        lines.push(capped + (needEllipsis ? ' …' : ''));
+        return lines;
+      }
+    }
+  }
+  if (cur) lines.push(cur);
+  return lines.slice(0, maxLines);
+}
+function bubble(x, y, label, opts){
+  const { size=12, fill='#000', circleColor='#ccc', maxLines=2, pad=6, lineGap=1.15, targetLineWidth=null } = opts || {};
+  const maxW = targetLineWidth || size * 8.5;
+  const lines = wrapWords(label, size, maxW, maxLines);
+
+  const textHeight = size * lines.length * lineGap;
+  const widest = Math.max(...lines.map(l => measureApprox(l, size)), 1);
+  const halfW = widest / 2;
+  const halfH = textHeight / 2;
+  const r = Math.ceil(Math.sqrt(halfW*halfW + halfH*halfH) + pad);
+
+  const g = doc('g', {});
+  g.appendChild(circle(x, y, r, circleColor));
+
+  const t = doc('text', { x, y: y - (textHeight - size)/2 + size*0.35, fill, 'font-size': size, 'text-anchor':'middle', 'font-weight':'600' });
+  lines.forEach((line, i)=>{
+    const ts = doc('tspan', { x, dy: i ? size*lineGap : 0 });
+    ts.textContent = line;
+    t.appendChild(ts);
+  });
+  g.appendChild(t);
+  return g;
+}
+// metrics without drawing
+function bubbleMetrics(label, { size=12, maxLines=2, pad=6, lineGap=1.15, targetLineWidth=null } = {}){
+  const maxW = targetLineWidth || size * 8.5;
+  const lines = wrapWords(label, size, maxW, maxLines);
+  const textHeight = size * lines.length * lineGap;
+  const widest = Math.max(...lines.map(l => measureApprox(l, size)), 1);
+  const halfW = widest / 2, halfH = textHeight / 2;
+  const r = Math.ceil(Math.sqrt(halfW*halfW + halfH*halfH) + pad);
+  return { r, lines, size };
+}
+
+/* ---------- Ring collision relaxation ---------- */
+function relaxRing(nodes, R, gap=6, iterations=20){
+  for(let k=0;k<iterations;k++){
+    let moved = false;
+    for(let i=0;i<nodes.length;i++){
+      for(let j=i+1;j<nodes.length;j++){
+        const ni = nodes[i], nj = nodes[j];
+        const dAng = normalizeAngle(nj.angle - ni.angle);
+        const dist = 2*R*Math.sin(Math.abs(dAng)/2);
+        const need = ni.r + nj.r + gap;
+        if(dist < need){
+          const push = 0.5 * (need - dist) / R;
+          const dir = dAng >= 0 ? 1 : -1;
+          ni.angle -= push * dir;
+          nj.angle += push * dir;
+          moved = true;
+        }
+      }
+    }
+    if(!moved) break;
+  }
+  return nodes;
+}
+function normalizeAngle(a){
+  while(a > Math.PI) a -= 2*Math.PI;
+  while(a < -Math.PI) a += 2*Math.PI;
+  return a;
+}
+
+/* ---------- Draw ---------- */
+function draw(){
+  while(root.firstChild) root.removeChild(root.firstChild);
+
+  // draw edges first (behind), nodes after (on top)
+  const gEdges = doc('g', { id:'edges' });
+  const gNodes = doc('g', { id:'nodes' });
+  root.appendChild(gEdges);
+  root.appendChild(gNodes);
+
+  // canvas center
+  const cx = 450, cy = 320;
+
+  // center title
+  gNodes.appendChild(text(cx, cy, model.title || 'Project Name', 26, '#fff'));
+
+  const lenses = model.lenses || [];
+  if(!lenses.length) return;
+
+  // LENS ring
+  const LENS_R = 190;
+  let lensNodes = lenses.map((L, i)=>{
+    // seed around a wide arc above center
+    const ang = -Math.PI/2 + (i / Math.max(1, lenses.length)) * (Math.PI*1.8);
+    const m = bubbleMetrics(L.name, { size: 12, maxLines: 2, pad: 8 });
+    return { angle: ang, r: m.r, _m: m, data:L };
+  });
+
+  // scale lens labels if overcrowded
+  const lensCirc = 2*Math.PI*LENS_R;
+  const totalLensWidth = lensNodes.reduce((s,n)=> s + 2*n.r, 0);
+  let scaleLens = 1;
+  if(totalLensWidth + lenses.length*10 > lensCirc){
+    scaleLens = Math.max(0.8, (lensCirc - lenses.length*10) / totalLensWidth);
+    lensNodes.forEach(n=>{
+      const m2 = bubbleMetrics(n.data.name, { size: 12*scaleLens, maxLines: 2, pad: 8 });
+      n.r = m2.r; n._m = m2;
+    });
+  }
+
+  relaxRing(lensNodes, LENS_R, 10, 28);
+
+  // draw each lens and its rings
+  lensNodes.forEach((ln)=>{
+    const L = ln.data;
+    const lx = cx + Math.cos(ln.angle)*LENS_R;
+    const ly = cy + Math.sin(ln.angle)*LENS_R;
+
+    // edge center -> lens
+    gEdges.appendChild(line(cx, cy, lx, ly, L.color));
+
+    // lens bubble
+    gNodes.appendChild(bubble(lx, ly, L.name, {
+      size: ln._m.size,
+      circleColor: L.color,
+      fill: '#000',
+      maxLines: 2,
+      pad: 8
+    }));
+
+    // DRIVERS ring around lens
+    const drivers = L.drivers || [];
+    if(!drivers.length) return;
+
+    const R_DRV = 110; // base
+    let drvNodes = drivers.map((d, i)=>{
+      const ang = ln.angle + (i - (drivers.length-1)/2) * 0.52; // seed
+      const m = bubbleMetrics(d.name, { size: 11, maxLines: 2, pad: 6 });
+      return { angle: ang, r: m.r, _m: m, data:d };
+    });
+
+    // pick largest driver radius, make a safe ring so none touch the lens
+    const maxDrvR = drvNodes.length ? Math.max(...drvNodes.map(n => n.r)) : 0;
+    const R_DRV_SAFE = Math.max(R_DRV, ln._m.r + maxDrvR + 10);
+
+    // scale if crowded on safe ring
+    const drvCirc = 2 * Math.PI * R_DRV_SAFE;
+    let drvTotal = drvNodes.reduce((s,n)=> s + 2*n.r, 0);
+    let scaleDrivers = 1;
+    if(drvTotal + drvNodes.length*8 > drvCirc){
+      scaleDrivers = Math.max(0.75, (drvCirc - drvNodes.length*8) / drvTotal);
+      drvNodes.forEach(n=>{
+        const m2 = bubbleMetrics(n.data.name, { size: 11*scaleDrivers, maxLines: 2, pad: 6 });
+        n.r = m2.r; n._m = m2;
+      });
+      drvTotal = drvNodes.reduce((s,n)=> s + 2*n.r, 0);
+    }
+
+    relaxRing(drvNodes, R_DRV_SAFE, 10, 28);
+
+    drvNodes.forEach(dn=>{
+      const dx = lx + Math.cos(dn.angle)*R_DRV_SAFE;
+      const dy = ly + Math.sin(dn.angle)*R_DRV_SAFE;
+
+      // edge lens -> driver
+      gEdges.appendChild(line(lx, ly, dx, dy, lighten(L.color, 8)));
+
+      // driver bubble
+      gNodes.appendChild(bubble(dx, dy, dn.data.name, {
+        size: dn._m.size,
+        circleColor: lighten(L.color,10),
+        fill:'#000',
+        maxLines: 2,
+        pad: 6
+      }));
+
+      // WORDS ring around driver
+      const words = dn.data.words || [];
+      if(!words.length) return;
+
+      const R_WRD = 86; // base
+      let wrdNodes = words.map((w, wi)=>{
+        const ang = dn.angle + (wi - (words.length-1)/2) * 0.55;
+        const m = bubbleMetrics(w.name, { size: 10, maxLines: 2, pad: 5 });
+        return { angle: ang, r: m.r, _m: m, data:w };
+      });
+
+      // safe ring against driver
+      const maxWordR = wrdNodes.length ? Math.max(...wrdNodes.map(n => n.r)) : 0;
+      const R_WRD_SAFE = Math.max(R_WRD, dn._m.r + maxWordR + 10);
+
+      // scale if crowded on safe ring
+      const wrdCirc = 2 * Math.PI * R_WRD_SAFE;
+      let wrdTotal = wrdNodes.reduce((s,n)=> s + 2*n.r, 0);
+      let scaleWords = 1;
+      if(wrdTotal + wrdNodes.length*8 > wrdCirc){
+        scaleWords = Math.max(0.7, (wrdCirc - wrdNodes.length*8) / wrdTotal);
+        wrdNodes.forEach(n=>{
+          const m2 = bubbleMetrics(n.data.name, { size: 10*scaleWords, maxLines: 2, pad: 5 });
+          n.r = m2.r; n._m = m2;
+        });
+        wrdTotal = wrdNodes.reduce((s,n)=> s + 2*n.r, 0);
+      }
+
+      relaxRing(wrdNodes, R_WRD_SAFE, 10, 26);
+
+      wrdNodes.forEach(wn=>{
+        const wx = dx + Math.cos(wn.angle)*R_WRD_SAFE;
+        const wy = dy + Math.sin(wn.angle)*R_WRD_SAFE;
+
+        // edge driver -> word
+        gEdges.appendChild(line(dx, dy, wx, wy, lighten(L.color, 26)));
+
+        // word bubble
+        gNodes.appendChild(bubble(wx, wy, wn.data.name, {
+          size: wn._m.size,
+          circleColor: lighten(L.color,30),
+          fill:'#000',
+          maxLines: 2,
+          pad: 5
+        }));
+      });
+    });
+  });
+}
+
+/* ---------- Sample data ---------- */
+function loadSample(){
+  model = {
+    title: 'Project Name',
+    lenses: [
+      {
+        name: 'Wellness',
+        color: '#ff78b4',
+        drivers: [
+          { name: 'Reduce Anxiety', words: [
+            {name:'Status Updates'},
+            {name:'Family Rooms'},
+            {name:'Choice of Settings'},
+            {name:'Waiting'},
+            {name:'Private Nooks'}
+          ]},
+          { name: 'Access to Daylight and Views', words: [
+            {name:'Garden Space'},
+            {name:'Quiet, Calm'},
+            {name:'Mindfulness'},
+            {name:'Word'},
+            {name:'Word'}
+          ]},
+          { name: 'Driver', words: [{name:'Word'}] },
+          { name: 'Driver', words: [{name:'Word'}] }
+        ]
+      },
+      {
+        name: 'Community',
+        color: '#ffd166',
+        drivers: [
+          {name:'Public Programs', words:[{name:'Local Art'}, {name:'Café Seating'}, {name:'Word'}]},
+          {name:'Community', words:[{name:'Driver'}, {name:'Driver'}, {name:'Driver'}]}
+        ]
+      },
+      {
+        name: 'Wayfinding',
+        color: '#76c7ff',
+        drivers: [
+          {name:'Clarity', words:[{name:'Simple Paths'}, {name:'Landmarks'}, {name:'Consistent Icons'}]},
+          {name:'Driver', words:[{name:'Driver'},{name:'Driver'},{name:'Driver'}]}
+        ]
+      },
+      { name:'New Lens', color:'#c9a227', drivers:[] }
+    ]
+  };
+  renderEditor(); draw();
+}
+
+/* ---------- Boot ---------- */
+renderEditor();
+draw();
+</script>
+</body>
+</html>
