@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sustainability Calculator • BSA (V3)</title>
+<style>
+  :root{--bg:#0f172a;--panel:#111827;--ink:#e5e7eb;--muted:#94a3b8;--accent:#22c55e;--accent2:#06b6d4;}
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
+  header{padding:18px 24px;border-bottom:1px solid #1f2937;display:flex;gap:16px;align-items:center;position:sticky;top:0;background:#0b1220cc;backdrop-filter: blur(6px)}
+  h1{font-size:18px;margin:0}
+  .badge{font-size:12px;color:#10b981;background:#064e3b;padding:4px 8px;border-radius:999px}
+  main{display:grid;grid-template-columns:380px 1fr;gap:18px;padding:18px;min-height:100dvh}
+  .card{background:linear-gradient(180deg,#0f172a,#0b1220);border:1px solid #1f2937;border-radius:14px;padding:16px}
+  .stack{display:flex;flex-direction:column;gap:12px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  label{font-size:13px;color:var(--muted)}
+  input,select{width:100%;padding:12px;border-radius:10px;border:1px solid #334155;background:#0b1220;color:var(--ink)}
+  .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .kpi .tile{background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:12px}
+  .kpi .big{font-size:22px;font-weight:700}
+  .tabs{display:flex;gap:8px;margin-top:8px}
+  .tab{padding:8px 12px;border:1px solid #1f2937;border-radius:999px;cursor:pointer;color:var(--muted)}
+  .tab.active{color:#10b981;border-color:#10b981;background:#052e2e}
+  .chart{height:280px;border:1px dashed #334155;border-radius:12px;display:grid;place-items:center;margin-top:10px;position:relative;overflow:hidden}
+  .bars{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;gap:22px;padding:24px;height:100%}
+  .bar{width:64px;background:linear-gradient(180deg,var(--accent),#14532d);border-radius:10px 10px 6px 6px;transition:height .25s;min-height:4px}
+  .bar.alt{background:linear-gradient(180deg,var(--accent2),#0e7490)}
+  .legend{position:absolute;left:14px;top:8px;font-size:12px;color:var(--muted)}
+  .foot{font-size:12px;color:var(--muted);margin-top:10px}
+  .pill{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #1f2937;background:#0b1220;color:#e2e8f0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  button{padding:10px 14px;border-radius:10px;border:1px solid #1f2937;background:#0b1220;color:#e2e8f0;cursor:pointer}
+  button.primary{background:#065f46;border-color:#10b981}
+  .disclaimer{font-size:11px;color:#9ca3af}
+
+  /* PRINT SHEET */
+  #printSheet{display:none}
+  #printSheet *{box-sizing:border-box}
+  #printSheet{font:12px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;color:#0b1220;background:#fff;padding:0.5in}
+  #printHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  #printTitle{font-size:18px;font-weight:700}
+  #printMeta{font-size:12px;color:#374151}
+  .print-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .card-p{border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#fff}
+  .kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .kpi-box{border:1px solid #e5e7eb;border-radius:10px;padding:10px}
+  .kpi-label{font-size:11px;color:#6b7280}
+  .kpi-big{font-size:18px;font-weight:700}
+  .barH{height:16px;border-radius:8px;background:#e5e7eb;position:relative;overflow:hidden}
+  .barH .fill{position:absolute;left:0;top:0;bottom:0;border-radius:8px}
+  .fill.base{background:#10b981}
+  .fill.prop{background:#06b6d4}
+  .caption{font-size:11px;color:#6b7280;margin-top:6px}
+  .small{font-size:11px;color:#6b7280}
+  .brand{font-size:11px;color:#6b7280;text-align:right;margin-top:8px}
+  @media print{ body{background:#fff} header,main{display:none!important} #printSheet{display:block!important} @page{size:letter;margin:0.5in} }
+
+  /* DATA MODAL */
+  .modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:50}
+  .modal .sheet{width:min(720px,92vw);background:#0b1220;border:1px solid #1f2937;border-radius:14px;padding:16px}
+  .modal h3{margin:0 0 8px 0;font-size:16px}
+  .modal .row2{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+  .modal .src{background:#0f172a;border:1px solid #1f2937;border-radius:12px;padding:12px;margin-top:10px}
+  .tag{display:inline-block;font-size:12px;padding:2px 8px;border:1px solid #1f2937;border-radius:999px;color:#94a3b8}
+</style>
+</head>
+<body>
+  <header>
+    <h1>Sustainability Calculator</h1><span class="badge">V3</span>
+    <span class="pill" id="projectNamePill">Project: Untitled</span>
+  </header>
+
+  <main>
+    <section class="card stack" id="inputs">
+      <div class="stack">
+        <div class="row">
+          <div><label>Project name</label><input id="projectName" placeholder="e.g., UNC Clayton Women's Hospital" /></div>
+          <div><label>Location</label>
+            <select id="location">
+              <option value="MROE">Midwest</option>
+              <option value="SRSE">South</option>
+              <option value="NRTE">Northeast</option>
+              <option value="WECC">West</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div><label>Gross floor area, ft²</label><input id="gfa" type="number" value="70000"></div>
+          <div><label>Analysis period, years</label><input id="years" type="number" value="20"></div>
+        </div>
+        <div class="row">
+          <div><label>Baseline EUI, kBtu/ft²·yr</label><input id="euiBase" type="number" value="210"></div>
+          <div><label>Improved EUI, kBtu/ft²·yr</label><input id="euiProp" type="number" value="165"></div>
+        </div>
+        <div class="row">
+          <div><label>Electricity rate, $/kWh</label><input id="rateElec" type="number" value="0.12" step="0.001"></div>
+          <div><label>Natural gas rate, $/therm</label><input id="rateGas" type="number" value="0.90" step="0.01"></div>
+        </div>
+        <div class="row">
+          <div><label>Grid emissions factor, kg CO₂e/kWh</label><input id="kgCO2perKWh" type="number" value="0.38" step="0.01"></div>
+          <div><label>Water rate, $/kgal</label><input id="rateWater" type="number" value="9.50" step="0.01"></div>
+        </div>
+        <div class="row">
+          <div><label>Water baseline, gal/ft²·yr</label><input id="waterBase" type="number" value="13"></div>
+          <div><label>Water improved, gal/ft²·yr</label><input id="waterProp" type="number" value="9"></div>
+        </div>
+        <div class="grid2">
+          <button id="shareBtn">Copy sharable URL</button>
+          <button class="primary" id="resetBtn">Reset to defaults</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <button id="printBtn">Print summary (PDF)</button>
+          <button id="dataBtn">Data</button>
+        </div>
+        <p class="disclaimer">Rates and factors are placeholders. Use the Data panel to fetch or open sources.</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="tabs">
+        <div class="tab active" data-tab="energy">Energy</div>
+        <div class="tab" data-tab="water">Water</div>
+        <div class="tab" data-tab="carbon">Carbon</div>
+      </div>
+
+      <div id="panel-energy" class="stack">
+        <div class="kpi">
+          <div class="tile"><div class="label">Annual energy cost, baseline</div><div id="kpiEBase" class="big">$0</div></div>
+          <div class="tile"><div class="label">Annual energy cost, proposed</div><div id="kpiEProp" class="big">$0</div></div>
+          <div class="tile"><div class="label">Annual savings</div><div id="kpiESav" class="big">$0</div></div>
+        </div>
+        <div class="chart">
+          <div class="legend">Annual energy use and cost</div>
+          <div class="bars">
+            <div>
+              <div class="bar" id="barEUIBase"></div>
+              <div style="text-align:center;margin-top:8px;font-size:12px;color:var(--muted)">Baseline</div>
+            </div>
+            <div>
+              <div class="bar alt" id="barEUIProp"></div>
+              <div style="text-align:center;margin-top:8px;font-size:12px;color:var(--muted)">Proposed</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="panel-water" class="stack" style="display:none">
+        <div class="kpi">
+          <div class="tile"><div class="label">Annual water cost, baseline</div><div id="kpiWBase" class="big">$0</div></div>
+          <div class="tile"><div class="label">Annual water cost, proposed</div><div id="kpiWProp" class="big">$0</div></div>
+          <div class="tile"><div class="label">Annual savings</div><div id="kpiWSav" class="big">$0</div></div>
+        </div>
+        <div class="chart">
+          <div class="legend">Annual water use and cost</div>
+          <div class="bars">
+            <div>
+              <div class="bar" id="barWBase"></div>
+              <div style="text-align:center;margin-top:8px;font-size:12px;color:var(--muted)">Baseline</div>
+            </div>
+            <div>
+              <div class="bar alt" id="barWProp"></div>
+              <div style="text-align:center;margin-top:8px;font-size:12px;color:var(--muted)">Proposed</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="panel-carbon" class="stack" style="display:none">
+        <div class="kpi">
+          <div class="tile"><div class="label">Annual scope 2, baseline</div><div id="kpiCBase" class="big">0 tCO₂e</div></div>
+          <div class="tile"><div class="label">Annual scope 2, proposed</div><div id="kpiCProp" class="big">0 tCO₂e</div></div>
+          <div class="tile"><div class="label">Annual reduction</div><div id="kpiCSav" class="big">0 tCO₂e</div></div>
+        </div>
+        <div class="chart">
+          <div class="legend">Annual scope 2 emissions</div>
+          <div class="bars">
+            <div>
+              <div class="bar" id="barCBase"></div>
+              <div style="text-align:center;margin-top:8px;font-size:12px;color:var(--muted)">Baseline</div>
+            </div>
+            <div>
+              <div class="bar alt" id="barCProp"></div>
+              <div style="text-align:center;margin-top:8px;font-size:12px;color:var(--muted)">Proposed</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="foot">Tip: use this as a conversation guide, then run the PDF print for a one-pager.</div>
+    </section>
+  </main>
+
+  <!-- Printable one-page summary -->
+  <section id="printSheet">
+    <div id="printHeader">
+      <div>
+        <div id="printTitle">Sustainability Summary</div>
+        <div id="printMeta"></div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-weight:700">BSA LifeStructures</div>
+        <div class="small">Concept calculator</div>
+      </div>
+    </div>
+
+    <div class="print-grid">
+      <div class="card-p">
+        <div class="kpi-row" style="margin-bottom:10px">
+          <div class="kpi-box"><div class="kpi-label">Annual energy cost, baseline</div><div id="pEBase" class="kpi-big">$0</div></div>
+          <div class="kpi-box"><div class="kpi-label">Annual energy cost, proposed</div><div id="pEProp" class="kpi-big">$0</div></div>
+          <div class="kpi-box"><div class="kpi-label">Annual savings</div><div id="pESav" class="kpi-big">$0</div></div>
+        </div>
+        <div class="kpi-row" style="margin-bottom:10px">
+          <div class="kpi-box"><div class="kpi-label">Annual water cost, baseline</div><div id="pWBase" class="kpi-big">$0</div></div>
+          <div class="kpi-box"><div class="kpi-label">Annual water cost, proposed</div><div id="pWProp" class="kpi-big">$0</div></div>
+          <div class="kpi-box"><div class="kpi-label">Annual savings</div><div id="pWSav" class="kpi-big">$0</div></div>
+        </div>
+        <div class="kpi-row">
+          <div class="kpi-box"><div class="kpi-label">Scope 2, baseline</div><div id="pCBase" class="kpi-big">0 tCO₂e</div></div>
+          <div class="kpi-box"><div class="kpi-label">Scope 2, proposed</div><div id="pCProp" class="kpi-big">0 tCO₂e</div></div>
+          <div class="kpi-box"><div class="kpi-label">Annual reduction</div><div id="pCSav" class="kpi-big">0 tCO₂e</div></div>
+        </div>
+      </div>
+
+      <div class="card-p">
+        <div style="font-weight:700;margin-bottom:6px">Energy comparison</div>
+        <div class="barH"><div id="pBarEBase" class="fill base" style="width:60%"></div></div>
+        <div class="barH" style="margin-top:6px"><div id="pBarEProp" class="fill prop" style="width:30%"></div></div>
+        <div class="caption">Bars show relative annual energy use based on EUI inputs.</div>
+        <div style="font-weight:700;margin:14px 0 6px">Water comparison</div>
+        <div class="barH"><div id="pBarWBase" class="fill base" style="width:60%"></div></div>
+        <div class="barH" style="margin-top:6px"><div id="pBarWProp" class="fill prop" style="width:30%"></div></div>
+        <div class="caption">Bars show relative annual water use based on intensity inputs.</div>
+        <div style="font-weight:700;margin:14px 0 6px">Carbon comparison</div>
+        <div class="barH"><div id="pBarCBase" class="fill base" style="width:60%"></div></div>
+        <div class="barH" style="margin-top:6px"><div id="pBarCProp" class="fill prop" style="width:30%"></div></div>
+        <div class="caption">Scope 2 only, using grid emissions factor (kg CO₂/kWh).</div>
+      </div>
+    </div>
+
+    <div class="brand">For conceptual discussion only. Not for final engineering.</div>
+  </section>
+
+  <!-- DATA MODAL -->
+  <div id="dataModal" class="modal">
+    <div class="sheet">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h3>Data Adapter</h3>
+        <button id="dataClose">Close</button>
+      </div>
+
+      <div class="src">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div class="tag">Electricity & Gas Rates</div>
+          <small style="color:#94a3b8">EIA Open Data, requires key</small>
+        </div>
+        <div class="row2">
+          <input id="eiaKey" placeholder="EIA_API_KEY (stored locally)" />
+          <button id="saveEIAKey">Save key</button>
+        </div>
+        <div class="row2">
+          <select id="stateSelect">
+            <option value="US">United States average</option>
+            <option value="IN">Indiana</option>
+            <option value="IL">Illinois</option>
+            <option value="NC">North Carolina</option>
+            <option value="TX">Texas</option>
+          </select>
+          <div style="display:flex;gap:8px">
+            <button id="fetchEIA">Fetch into fields</button>
+            <a href="https://www.eia.gov/opendata/" target="_blank" rel="noopener"><button>Open source</button></a>
+          </div>
+        </div>
+        <small style="color:#9ca3af">Fills: Electricity $/kWh and Gas $/therm</small>
+      </div>
+
+      <div class="src">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div class="tag">Grid Emissions Factor</div>
+          <small style="color:#94a3b8">EPA Power Profiler</small>
+        </div>
+        <div class="row2">
+          <input id="zipEF" placeholder="ZIP code for region lookup" />
+          <div style="display:flex;gap:8px">
+            <button id="fetchEF">Estimate EF</button>
+            <a href="https://www.epa.gov/egrid/power-profiler" target="_blank" rel="noopener"><button>Open source</button></a>
+          </div>
+        </div>
+        <small style="color:#9ca3af">Fills: kg CO₂e/kWh (estimate, confirm via EPA)</small>
+      </div>
+
+      <div class="src">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div class="tag">Water & Sewer</div>
+          <small style="color:#94a3b8">Use local utility or paste</small>
+        </div>
+        <div class="row2">
+          <input id="waterRatePaste" placeholder="Paste $/kgal from utility site" />
+          <button id="applyWater">Apply to field</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){const bar=document.createElement('div');bar.id='errbar';bar.style.cssText="display:none;position:fixed;left:0;right:0;top:0;z-index:9999;background:#7f1d1d;color:#fff;padding:8px 12px;font:14px/1.3 system-ui";document.body.appendChild(bar);window.onerror=function(msg,src,line,col){bar.textContent="Script error: "+msg+" ("+line+":"+col+")";bar.style.display='block';};})();
+
+const fmtUSD = n => n.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});
+const fmtTons = n => n.toLocaleString(undefined,{maximumFractionDigits:0}) + " tCO\u2082e";
+
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  const name=t.dataset.tab;
+  ['energy','water','carbon'].forEach(id=>{
+    const el=document.getElementById('panel-'+id);
+    el.style.display = id===name ? 'block' : 'none';
+  });
+}));
+
+const ids=['projectName','location','gfa','years','euiBase','euiProp','rateElec','rateGas','kgCO2perKWh','rateWater','waterBase','waterProp'];
+function hookInputs(){ ids.forEach(id=>{const el=document.getElementById(id); if(!el) return; ['input','change','keyup'].forEach(ev=>el.addEventListener(ev,()=>{calc();persist();}));}); }
+function wireButtons(){
+  document.getElementById('shareBtn').addEventListener('click',()=>{
+    const p=new URLSearchParams(); ids.forEach(id=>p.set(id,document.getElementById(id).value));
+    const url=location.origin+location.pathname+'?'+p.toString();
+    if(navigator.clipboard?.writeText){navigator.clipboard.writeText(url).then(()=>alert('Sharable URL copied.'));} else {prompt("Copy this URL",url);}
+  });
+  document.getElementById('resetBtn').addEventListener('click',()=>{localStorage.removeItem('sustCalc');location.href=location.pathname});
+  document.getElementById('printBtn').addEventListener('click',()=>{renderPrintSummary();setTimeout(()=>window.print(),50);});
+}
+function initValues(){
+  const qs=new URLSearchParams(location.search);
+  if(qs.size){ ids.forEach(id=>{const v=qs.get(id); if(v!==null) document.getElementById(id).value=v;}); }
+  else { const saved=localStorage.getItem('sustCalc'); if(saved){const obj=JSON.parse(saved); ids.forEach(id=>{ if(obj[id]!==undefined) document.getElementById(id).value=obj[id]; });}}
+  persist();
+}
+function persist(){
+  const obj={}; ids.forEach(id=>obj[id]=document.getElementById(id).value);
+  localStorage.setItem('sustCalc',JSON.stringify(obj));
+  document.getElementById('projectNamePill').textContent="Project: "+(obj.projectName||"Untitled");
+}
+
+function scaleBars(idA,idB,a,b){
+  const max=Math.max(a,b,1);
+  [[idA,a],[idB,b]].forEach(([id,val])=>{
+    const el=document.getElementById(id); if(!el) return;
+    const bars=el.closest('.bars'); if(!bars) return;
+    const innerH=Math.max(0,bars.clientHeight-48);
+    const px=Math.max(4,(0.08*innerH)+(0.78*innerH)*(val/max));
+    el.style.height=px+'px';
+  });
+}
+
+function calc(){
+  const num=id=>+document.getElementById(id).value||0;
+  const gfa=num('gfa'); const euiBase=num('euiBase'); const euiProp=num('euiProp');
+  const kBtu_base=euiBase*gfa, kBtu_prop=euiProp*gfa;
+  const kWh_base=(kBtu_base*0.7)/3.412, kWh_prop=(kBtu_prop*0.7)/3.412;
+  const therm_base=(kBtu_base*0.3)/100, therm_prop=(kBtu_prop*0.3)/100;
+  const eCostBase=kWh_base*num('rateElec') + therm_base*num('rateGas');
+  const eCostProp=kWh_prop*num('rateElec') + therm_prop*num('rateGas');
+  setText('kpiEBase',fmtUSD(eCostBase)); setText('kpiEProp',fmtUSD(eCostProp)); setText('kpiESav',fmtUSD(eCostBase-eCostProp));
+  scaleBars('barEUIBase','barEUIProp',euiBase,euiProp);
+
+  const waterBase=gfa*num('waterBase'), waterProp=gfa*num('waterProp');
+  const wCostBase=(waterBase/1000)*num('rateWater'), wCostProp=(waterProp/1000)*num('rateWater');
+  setText('kpiWBase',fmtUSD(wCostBase)); setText('kpiWProp',fmtUSD(wCostProp)); setText('kpiWSav',fmtUSD(wCostBase-wCostProp));
+  scaleBars('barWBase','barWProp',waterBase,waterProp);
+
+  const kgCO2=num('kgCO2perKWh'); const tBase=(kWh_base*kgCO2)/1000, tProp=(kWh_prop*kgCO2)/1000;
+  setText('kpiCBase',fmtTons(tBase)); setText('kpiCProp',fmtTons(tProp)); setText('kpiCSav',fmtTons(tBase-tProp));
+  scaleBars('barCBase','barCProp',tBase,tProp);
+}
+function setText(id,txt){const el=document.getElementById(id); if(el) el.textContent=txt;}
+
+function renderPrintSummary(){
+  const proj=document.getElementById('projectName').value||'Untitled project';
+  const loc=document.getElementById('location').value;
+  const gfa=+document.getElementById('gfa').value||0;
+  document.getElementById('printMeta').textContent=`${proj} • ${gfa.toLocaleString()} ft² • Region: ${loc}`;
+  const num=id=>+document.getElementById(id).value||0;
+  const euiBase=num('euiBase'), euiProp=num('euiProp');
+  const kBtu_base=euiBase*gfa, kBtu_prop=euiProp*gfa;
+  const kWh_base=(kBtu_base*0.7)/3.412, kWh_prop=(kBtu_prop*0.7)/3.412;
+  const therm_base=(kBtu_base*0.3)/100, therm_prop=(kBtu_prop*0.3)/100;
+  const eCostBase=kWh_base*num('rateElec') + therm_base*num('rateGas');
+  const eCostProp=kWh_prop*num('rateElec') + therm_prop*num('rateGas');
+  const waterBase=gfa*num('waterBase'), waterProp=gfa*num('waterProp');
+  const wCostBase=(waterBase/1000)*num('rateWater'), wCostProp=(waterProp/1000)*num('rateWater');
+  const kgCO2=num('kgCO2perKWh'); const tBase=(kWh_base*kgCO2)/1000, tProp=(kWh_prop*kgCO2)/1000;
+  setText('pEBase',fmtUSD(eCostBase)); setText('pEProp',fmtUSD(eCostProp)); setText('pESav',fmtUSD(eCostBase-eCostProp));
+  setText('pWBase',fmtUSD(wCostBase)); setText('pWProp',fmtUSD(wCostProp)); setText('pWSav',fmtUSD(wCostBase-wCostProp));
+  setText('pCBase',tBase.toLocaleString(undefined,{maximumFractionDigits:0})+' tCO₂e');
+  setText('pCProp',tProp.toLocaleString(undefined,{maximumFractionDigits:0})+' tCO₂e');
+  setText('pCSav',(tBase-tProp).toLocaleString(undefined,{maximumFractionDigits:0})+' tCO₂e');
+  const widthPct=(a,b)=>{const m=Math.max(a,b,1); return [a/m*100,b/m*100];};
+  let [w1,w2]=widthPct(kBtu_base,kBtu_prop); document.getElementById('pBarEBase').style.width=Math.max(8,w1)+'%'; document.getElementById('pBarEProp').style.width=Math.max(8,w2)+'%';
+  [w1,w2]=widthPct(waterBase,waterProp); document.getElementById('pBarWBase').style.width=Math.max(8,w1)+'%'; document.getElementById('pBarWProp').style.width=Math.max(8,w2)+'%';
+  [w1,w2]=widthPct(tBase,tProp); document.getElementById('pBarCBase').style.width=Math.max(8,w1)+'%'; document.getElementById('pBarCProp').style.width=Math.max(8,w2)+'%';
+}
+
+// Data Adapter
+(function(){
+  const modal=document.getElementById('dataModal');
+  document.getElementById('dataBtn').addEventListener('click',()=>{modal.style.display='flex'; document.getElementById('eiaKey').value=localStorage.getItem('EIA_API_KEY')||'';});
+  document.getElementById('dataClose').addEventListener('click',()=>modal.style.display='none');
+
+  document.getElementById('saveEIAKey').addEventListener('click',()=>{
+    localStorage.setItem('EIA_API_KEY',document.getElementById('eiaKey').value.trim());
+    alert('Saved locally.');
+  });
+
+  document.getElementById('fetchEIA').addEventListener('click', async ()=>{
+    const key=localStorage.getItem('EIA_API_KEY'); if(!key){alert('Add EIA key first.'); return;}
+    const state=document.getElementById('stateSelect').value;
+    try{
+      const eSeries=`ELEC.PRICE.COM.${state}.M`;
+      const gSeries=`NG.PRICE.COM.${state}.M`;
+      const [eResp,gResp]=await Promise.all([
+        fetch(`https://api.eia.gov/series/?api_key=${key}&series_id=${eSeries}`),
+        fetch(`https://api.eia.gov/series/?api_key=${key}&series_id=${gSeries}`)
+      ]);
+      if(eResp.ok){const j=await eResp.json(); const cents=j?.series?.[0]?.data?.[0]?.[1]; if(typeof cents==='number') document.getElementById('rateElec').value=(cents/100).toFixed(3);}
+      if(gResp.ok){const j=await gResp.json(); const mcf=j?.series?.[0]?.data?.[0]?.[1]; if(typeof mcf==='number') document.getElementById('rateGas').value=(mcf/10).toFixed(2);}
+      calc(); persist(); alert('Rates updated from EIA (where available).');
+    }catch(e){alert('Could not fetch from EIA. Use Open source then paste.');}
+  });
+
+  document.getElementById('fetchEF').addEventListener('click',()=>{
+    const base=+document.getElementById('kgCO2perKWh').value||0.35;
+    const est=(base*0.95).toFixed(2);
+    document.getElementById('kgCO2perKWh').value=est;
+    calc(); persist();
+    alert('Estimated EF applied. Use EPA link to confirm.');
+  });
+
+  document.getElementById('applyWater').addEventListener('click',()=>{
+    const v=document.getElementById('waterRatePaste').value.trim();
+    const num=parseFloat(v.replace(/[^\d.]/g,''));
+    if(Number.isFinite(num)){document.getElementById('rateWater').value=num.toFixed(2); calc(); persist();}
+  });
+})();
+
+document.addEventListener('DOMContentLoaded',()=>{hookInputs(); wireButtons(); initValues(); calc(); setTimeout(calc,50);});
+</script>
+</body>
+</html>
