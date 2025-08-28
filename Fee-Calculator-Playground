@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fee Scenario Playground</title>
+  <style>
+    :root{--bg:#0f172a;--card:#111827;--muted:#9ca3af;--text:#f8fafc;--accent:#34d399;--line:#1f2937}
+    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
+    body{margin:0;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--text);padding:24px}
+    .wrap{max-width:980px;margin:0 auto}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+    h1{font-size:24px;margin:0}
+    .card{background:rgba(17,24,39,.7);backdrop-filter: blur(8px);border:1px solid var(--line);
+          border-radius:14px;padding:18px;margin-bottom:16px}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input,select,button{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);
+           background:#0b1324;color:var(--text);outline:none}
+    input:focus,select:focus{border-color:var(--accent)}
+    .grid{display:grid;gap:12px;grid-template-columns:repeat(4,1fr)}
+    .grid-2{grid-template-columns:repeat(2,1fr)}
+    .grid-3{grid-template-columns:repeat(3,1fr)}
+    .right{display:flex;justify-content:flex-end;gap:12px}
+    .btn{cursor:pointer;background:linear-gradient(90deg,#34d399,#22c55e);color:#031018;border:none}
+    .btn:hover{filter:brightness(1.05)}
+    table{width:100%;border-collapse:collapse;margin-top:8px}
+    th,td{border-bottom:1px solid var(--line);padding:10px;text-align:left}
+    th{color:#c7d2fe}
+    .badge{font-size:12px;padding:4px 8px;border:1px solid #264; border-radius:999px;background:#0f2a1a;color:#9febb2}
+    .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px}
+    .summary .box{padding:12px;border:1px solid var(--line);border-radius:12px;background:#0b1324}
+    .big{font-size:22px;font-weight:700}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Fee Scenario Playground</h1>
+    <span class="badge">interactive margins & what-ifs</span>
+  </header>
+
+  <div class="card">
+    <div class="grid grid-4">
+      <div><label>Billing rate ($/hr)</label><input id="rate" type="number" value="165" min="1"></div>
+      <div><label>Overhead (%)</label><input id="oh" type="number" value="150" min="0"></div>
+      <div><label>Target profit (%)</label><input id="profit" type="number" value="12" min="0"></div>
+      <div><label>Contingency (%)</label><input id="cont" type="number" value="5" min="0"></div>
+    </div>
+    <div class="grid grid-4" style="margin-top:12px">
+      <div><label>Programming hours</label><input id="h_prog" type="number" value="120" min="0"></div>
+      <div><label>SD hours</label><input id="h_sd" type="number" value="260" min="0"></div>
+      <div><label>DD hours</label><input id="h_dd" type="number" value="420" min="0"></div>
+      <div><label>CD hours</label><input id="h_cd" type="number" value="680" min="0"></div>
+    </div>
+    <div class="grid grid-4" style="margin-top:12px">
+      <div><label>Permitting hours</label><input id="h_permit" type="number" value="80" min="0"></div>
+      <div><label>Bidding hours</label><input id="h_bid" type="number" value="60" min="0"></div>
+      <div><label>CA hours</label><input id="h_ca" type="number" value="520" min="0"></div>
+      <div><label>Reimbursables ($)</label><input id="reimb" type="number" value="12000" min="0"></div>
+    </div>
+    <div class="right" style="margin-top:12px">
+      <button class="btn" onclick="calc()">Recalculate</button>
+      <button class="btn" onclick="exportCSV()">Export CSV</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <table id="tbl">
+      <thead>
+        <tr><th>Phase</th><th>Hours</th><th>Direct Labor ($)</th><th>Loaded Cost ($)</th><th>With Cont. ($)</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="summary">
+      <div class="box"><div class="big" id="feeNum">$0</div><div>Total Client Fee (incl. reimbursables)</div></div>
+      <div class="box"><div class="big" id="marginNum">0%</div><div>Projected Margin</div></div>
+      <div class="box"><div class="big" id="hoursNum">0</div><div>Total Hours</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const phases = ["Programming","SD","DD","CD","Permitting","Bidding","CA"];
+function val(id){return Number(document.getElementById(id).value || 0);}
+function money(n){return n.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});}
+
+function calc(){
+  const rate=val('rate'), oh=val('oh')/100, pf=val('profit')/100, cont=val('cont')/100;
+  const hrs = {
+    Programming:val('h_prog'), SD:val('h_sd'), DD:val('h_dd'), CD:val('h_cd'),
+    Permitting:val('h_permit'), Bidding:val('h_bid'), CA:val('h_ca')
+  };
+  const reimb = val('reimb');
+  const tbody=document.querySelector('#tbl tbody'); tbody.innerHTML='';
+  let totalHours=0, direct=0, loaded=0, withCont=0;
+
+  phases.forEach(p=>{
+    const h=hrs[p]; totalHours+=h;
+    const dl = h*rate; direct+=dl;
+    const lc = dl*(1+oh); loaded+=lc;
+    const wc = lc*(1+cont); withCont+=wc;
+    const tr=document.createElement('tr');
+    tr.innerHTML = `<td>${p}</td><td>${h.toLocaleString()}</td><td>${money(dl)}</td><td>${money(lc)}</td><td>${money(wc)}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  const targetFee = withCont*(1+pf)+reimb;
+  const projectedMargin = (targetFee - (direct*(1+oh)+reimb)) / targetFee;
+
+  document.getElementById('feeNum').textContent = money(targetFee);
+  document.getElementById('marginNum').textContent = (projectedMargin*100).toFixed(1)+'%';
+  document.getElementById('hoursNum').textContent = totalHours.toLocaleString();
+}
+
+function exportCSV(){
+  const rows=[["Phase","Hours","Direct Labor","Loaded Cost","With Contingency"]];
+  document.querySelectorAll('#tbl tbody tr').forEach(tr=>{
+    const cells=[...tr.children].map(td=>td.innerText.replace(/[$,]/g,''));
+    rows.push(cells);
+  });
+  const csv = rows.map(r=>r.join(',')).join('\r\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='fee_scenario.csv';
+  a.click();
+}
+calc();
+</script>
+</body>
+</html>
