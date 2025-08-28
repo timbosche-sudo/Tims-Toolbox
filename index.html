@@ -1,121 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Tim’s Toolbox</title>
-  <style>
-    :root{
-      --bg:#0f1220; --panel:#171a2b; --ink:#f4f6ff; --muted:#aab3d9; --line:#2a2f50;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      background:var(--bg);
-      color:var(--ink);
-      font:16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-    }
-    .wrap{max-width:980px;margin:48px auto;padding:0 20px}
-    h1{margin:0 0 6px 0}
-    p.lead{margin:0 0 24px 0;color:var(--muted)}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
-    .card{
-      display:block;
-      padding:16px;
-      border-radius:12px;
-      border:1px solid var(--line);
-      background:var(--panel);
-      text-decoration:none;
-      color:var(--ink);
-      transition:transform .1s ease, border-color .1s ease;
-    }
-    .card:hover{transform:translateY(-2px);border-color:#7aa2ff}
-    .card strong{display:block;font-size:18px;margin-bottom:6px}
-    .card small{display:block;color:var(--muted)}
-    .footer{margin-top:28px;color:var(--muted);font-size:14px}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tim’s Toolbox</title>
+<style>
+  :root{--bg:#0f1220;--panel:#171a2b;--ink:#f4f6ff;--muted:#aab3d9;--line:#2a2f50}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1100px;margin:48px auto;padding:0 20px}
+  h1{margin:0 0 6px}
+  p.lead{margin:0 0 24px;color:var(--muted)}
+  /* Tiled cards */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+  .card{
+    display:block;padding:16px;border-radius:12px;border:1px solid var(--line);
+    background:var(--panel);text-decoration:none;color:var(--ink);
+    transition:transform .1s ease,border-color .1s ease,box-shadow .1s ease; min-height:88px
+  }
+  .card:hover{transform:translateY(-2px);border-color:#7aa2ff;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+  .card strong{display:block;font-size:18px;margin-bottom:6px}
+  .card small{display:block;color:var(--muted)}
+  .footer{margin-top:28px;color:var(--muted);font-size:14px}
+</style>
 </head>
 <body>
   <div class="wrap">
     <h1>Tim’s Toolbox</h1>
-    <p class="lead">Pick a tool to open. More will be added as you build out your playground 🚀</p>
+    <p class="lead">Pick a tool to open. Add more cards by copying one and changing the link and labels.</p>
 
     <div class="grid">
-      <!-- Chemistry Tool -->
+      <!-- Chemistry -->
       <a class="card" href="./JCH.html">
         <strong>🧪 Chemistry Tool V4</strong>
-        <small>Explore elements, ions, shells, and chemistry helpers</small>
+        <small>Elements, ions, shells, naming, stoichiometry</small>
       </a>
 
-      <!-- Fee Calculator -->
+      <!-- Fee Playground -->
       <a class="card" href="./FCP.html">
         <strong>📊 Fee Calculator Playground</strong>
         <small>Test fee scenarios, margins, and what-ifs</small>
       </a>
 
-      <!-- Placeholder for a future tool -->
-      <a class="card" href="./design.html">
-        <strong>Space Planning Tool</strong>
-        <small>Vertical Program Stacking Tool</small>
+      <!-- Space Planning -->
+      <a class="card" href="./space-planning.html">
+        <strong>📐 Space Planning Tool</strong>
+        <small>Vertical program stacking</small>
       </a>
-    </div>
 
-      <!-- Placeholder for a future tool -->
-      <a class="card" href="./fee-planner.html">
-        <strong>Fee Planning Calculator</strong>
-        <small>Calculate and compare fees against BSA Benchmarks</small>
+      <!-- Fee Planning Calculator -->
+      <a class="card" href="./fee-planning.html">
+        <strong>💼 Fee Planning Calculator</strong>
+        <small>Compare fees against BSA benchmarks</small>
       </a>
-    </div>
 
-      <!-- Placeholder for a future tool -->
-      <a class="card" href="./bloom.html">
-        <strong>Alignment Bloom Tool</strong>
-        <small>Design Driver Visual Tool</small>
+      <!-- Alignment Bloom -->
+      <a class="card" href="./alignment-bloom.html">
+        <strong>🌸 Alignment Bloom Tool</strong>
+        <small>Design driver visual tool</small>
       </a>
-    </div>
 
-      <!-- Placeholder for a future tool -->
+      <!-- Life Cycle Calculator -->
       <a class="card" href="./life-cycle.html">
-        <strong>Life Cycle Calculator</strong>
-        <small>A tool for Engineers to Engage Clients in Interviews</small>
+        <strong>♻️ Life Cycle Calculator</strong>
+        <small>Engineer interview engagement helper</small>
+      </a>
+
+      <!-- Paint Selector -->
+      <a class="card" href="./paint-selector.html">
+        <strong>🎨 Paint Selector</strong>
+        <small>Sherwin Williams selector tool</small>
+      </a>
+
+      <!-- RFP Checklist -->
+      <a class="card" href="./rfp-checklist.html">
+        <strong>📝 RFP Checklist Creator</strong>
+        <small>Paste RFP text, generate deliverables</small>
+      </a>
+
+      <!-- Sustainability Calculator -->
+      <a class="card" href="./sustainability.html">
+        <strong>🌿 Sustainability Calculator</strong>
+        <small>Interview support for engineers</small>
+      </a>
+
+      <!-- Construction Timeline -->
+      <a class="card" href="./construction-timeline.html">
+        <strong>📅 Construction Timeline Generator</strong>
+        <small>Schedule and milestone planner</small>
+      </a>
+
+      <!-- Work Plan Analysis -->
+      <a class="card" href="./work-plan-analysis.html">
+        <strong>🧭 Work Plan Analysis</strong>
+        <small>Attach a plan and get insights</small>
       </a>
     </div>
 
-      <!-- Placeholder for a future tool -->
-      <a class="card" href="./paint.html">
-        <strong>Paint Selector</strong>
-        <small>Sherwin Willuam Paint Selector Tool</small>
-      </a>
-    </div>
-
-      <!-- Placeholder for a future tool -->
-      <a class="card" href="./rfp.html">
-        <strong>RFP Checklist Creator</strong>
-        <small>Paste your RFP text and create a list of deliverables</small>
-      </a>
-    </div>
-  
-      <!-- Placeholder for a future tool -->
-      <a class="card" href="./sus-calc.html">
-        <strong>Sustainability Calculator</strong>
-        <small>A tool for Engineers to Engage Clients in Interviews</small>
-      </a>
-    </div>
-  
-      <!-- Placeholder for a future tool -->
-      <a class="card" href="./timeline.html">
-        <strong>Construction Timeline Generator</strong>
-        <small>ACreate a Construction Schedule and Milestones to Calendar Invites</small>
-      </a>
-    </div>
-  
-      <!-- Placeholder for a future tool -->
-      <a class="card" href="./work-plan.html">
-        <strong>Work Plan Analysis Tool</strong>
-        <small>Attach Work Plan and Get Insight</small>
-      </a>
-    </div>
-  
     <div class="footer">
       Live on GitHub Pages • <code>timbosche-sudo.github.io/Tims-Toolbox/</code>
     </div>
