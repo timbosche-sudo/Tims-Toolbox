@@ -1,1 +1,680 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Work Plan Coach – V2 (CSV and PDF)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { --bg:#f7f7f8; --card:#fff; --line:#e5e7eb; --ink:#111827; --muted:#6b7280; --ok:#16a34a; --warn:#f59e0b; --bad:#dc2626;}
+  *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  body{margin:0;background:var(--bg);color:var(--ink)}
+  header{background:#fff;border-bottom:1px solid var(--line);padding:14px 18px;position:sticky;top:0;z-index:10}
+  h1{margin:0;font-size:18px}
+  .container{max-width:1280px;margin:18px auto;padding:0 14px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  label{font-size:12px;color:var(--muted)}
+  input,select,button{padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+  button.primary{background:#111827;color:#fff;border-color:#111827;cursor:pointer}
+  .muted{color:var(--muted);font-size:13px}
+  .badge{display:inline-block;padding:4px 10px;border-radius:999px;color:#fff;font-size:12px}
+  .ok{background:var(--ok)} .warn{background:var(--warn)} .bad{background:var(--bad)}
+  table{width:100%;border-collapse:collapse;margin-top:8px}
+  th,td{border-top:1px solid var(--line);padding:8px;font-size:14px;text-align:left}
+  tfoot td{font-weight:700;border-top:2px solid var(--line)}
+  .tabs{display:flex;gap:6px;margin-bottom:8px}
+  .tabs button{padding:8px 10px}
+  .active{border-color:#111827}
+  .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+  .chart{width:100%;height:260px}
+  details summary{cursor:pointer}
+  .pill{display:inline-block;border:1px solid var(--line);padding:4px 8px;border-radius:999px;font-size:12px;color:var(--muted)}
+  .warntext{color:var(--warn)}
+  .badtext{color:var(--bad)}
+  .goodtext{color:var(--ok)}
+  @media print{
+    header,.no-print{display:none !important}
+    .container{max-width:none}
+    .card{border:none}
+    .chart{height:180px}
+    body{background:#fff}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Work Plan Coach – V2</h1>
+</header>
+<div class="container">
 
+  <div class="grid">
+    <div class="card">
+      <div class="tabs">
+        <button id="tabPDF" class="active">PDF</button>
+        <button id="tabCSV">CSV / Excel</button>
+        <span class="pill no-print" id="openHints">Schema Hints</span>
+      </div>
+
+      <div id="pdfPane">
+        <label>Upload Work Plan PDF</label>
+        <input type="file" id="pdfFile" accept="application/pdf">
+        <p class="muted">Understands BSA “Labor Resource Planned and Actuals”. If it struggles, switch to CSV and use Schema Hints.</p>
+      </div>
+
+      <div id="csvPane" style="display:none">
+        <label>Upload CSV export of the work plan grid</label>
+        <input type="file" id="csvFile" accept=".csv, text/csv, application/vnd.ms-excel">
+        <p class="muted">Accepted month formats: “Jan 25”, “Jan-25”, “Jan/2025”, “1/2025”, “2025-01”, Excel serial.</p>
+      </div>
+
+      <details id="hintsPanel" class="no-print" style="margin-top:8px;display:none">
+        <summary>Schema Hints (use only if parsing looks wrong)</summary>
+        <div class="row" style="margin-top:8px">
+          <div>
+            <label>Resource column index (0-based)</label>
+            <input type="number" id="hintRes" min="0" step="1" placeholder="e.g., 0">
+          </div>
+          <div>
+            <label>Planned/Actual column index (0-based)</label>
+            <input type="number" id="hintFlag" min="0" step="1" placeholder="e.g., 2">
+          </div>
+          <div>
+            <label>First month column index (0-based)</label>
+            <input type="number" id="hintMonthStart" min="0" step="1" placeholder="e.g., 5">
+          </div>
+          <div>
+            <label>Header row index that contains months</label>
+            <input type="number" id="hintHeaderRow" min="0" step="1" placeholder="auto">
+          </div>
+        </div>
+        <small class="muted">You can leave any hint blank. Hints override auto-detection for this run.</small>
+      </details>
+
+      <div style="margin-top:10px">
+        <label>Select disciplines included</label>
+        <div class="row">
+          <label><input type="checkbox" class="disc" value="010 Architecture" checked> 010 Architecture</label>
+          <label><input type="checkbox" class="disc" value="020 Engineering" checked> 020 Engineering</label>
+          <label><input type="checkbox" class="disc" value="030 Interiors" checked> 030 Interiors</label>
+          <label><input type="checkbox" class="disc" value="040 Project Delivery" checked> 040 Project Delivery</label>
+          <label><input type="checkbox" class="disc" value="050 Planning" checked> 050 Planning</label>
+          <label><input type="checkbox" class="disc" value="060 Design Leadership" checked> 060 Design Leadership</label>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <button id="analyze" class="primary">Analyze</button>
+        <small id="status" class="muted">No file loaded.</small>
+      </div>
+
+      <div class="row" style="margin-top:8px">
+        <button id="printOnePager" class="no-print">Print One-Pager</button>
+        <button id="loadSample" class="no-print">Load Sample CSV</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 6px 0">What-If Reforecast</h3>
+      <div class="row">
+        <div style="flex:1">
+          <label>Target variance correction, percent of planned hours</label>
+          <input type="number" id="targetPct" value="10" step="1">
+        </div>
+        <div style="flex:1">
+          <label>Per-person cap (hours)</label>
+          <input type="number" id="capPerPerson" value="40" step="5">
+        </div>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <div style="flex:1">
+          <label>Strategy</label>
+          <select id="strategy">
+            <option value="underutilized_first">Use underutilized roles first</option>
+            <option value="discipline_even">Even by selected disciplines</option>
+            <option value="proportional_to_plan">Proportional to planned</option>
+          </select>
+        </div>
+        <div style="flex:1">
+          <label><input type="checkbox" id="samePhase"> Keep adjustments within same phase when possible</label>
+        </div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button id="runWhatIf">Run What-If</button>
+        <button id="exportCSV">Export Reforecast CSV</button>
+      </div>
+      <small class="muted">This suggests hour shifts to move toward the target. It will not modify your source file.</small>
+    </div>
+  </div>
+
+  <div class="card" id="summaryCard" style="margin-top:14px">
+    <h3 style="margin:0 0 6px 0">Summary</h3>
+    <div id="health"></div>
+    <p id="provenance" class="muted"></p>
+    <p id="totals" class="mono"></p>
+    <div id="validations" class="muted"></div>
+    <div class="row">
+      <canvas id="cumChart" class="chart"></canvas>
+      <canvas id="mvarChart" class="chart"></canvas>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top:14px">
+    <div class="card">
+      <h3 style="margin:0 0 6px 0">Top Over / Under</h3>
+      <table id="topTable">
+        <thead><tr><th>Resource</th><th>Phase</th><th>Discipline</th><th>Planned</th><th>Actual</th><th>Variance</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 6px 0">Discipline Breakdown</h3>
+      <table id="discTable">
+        <thead><tr><th>Discipline</th><th>Planned</th><th>Actual</th><th>Variance</th></tr></thead>
+        <tbody></tbody>
+        <tfoot><tr><td>Total</td><td id="dP">0</td><td id="dA">0</td><td id="dV">0</td></tr></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3 style="margin:0 0 6px 0">Phase Health</h3>
+    <table id="phaseTable">
+      <thead><tr><th>Phase</th><th>Planned</th><th>Actual</th><th>Variance</th></tr></thead>
+      <tbody></tbody>
+      <tfoot><tr><td>Total</td><td id="pP">0</td><td id="pA">0</td><td id="pV">0</td></tr></tfoot>
+    </table>
+  </div>
+
+</div>
+
+<!-- PDF.js for PDF parsing -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.js"></script>
+<!-- Chart.js with robust loader + fallback -->
+<script>
+(function ensureChartJS(){
+  function ready(){ window._ChartReady = true; }
+  function inject(src){
+    var s=document.createElement('script'); s.src=src; s.onload=ready; s.onerror=function(){
+      if (!window._triedFallback){ window._triedFallback=true; inject('https://cdn.jsdelivr.net/npm/chart.js'); }
+    }; document.head.appendChild(s);
+  }
+  if (!window.Chart){ inject('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js'); }
+  else { ready(); }
+})();
+</script>
+
+<script>
+/* =============== Helpers =============== */
+const $ = sel => document.querySelector(sel);
+const fmt = n => isFinite(n) ? n.toLocaleString(undefined,{maximumFractionDigits:0}) : '';
+function getSelectedDisciplines(){ return [...document.querySelectorAll('.disc:checked')].map(e=>e.value); }
+function sum(arr){ return arr.reduce((a,b)=>a+(isFinite(b)?b:0),0); }
+const waitForChart = () => new Promise(res=>{
+  if (window._ChartReady && window.Chart) return res();
+  const iv = setInterval(()=>{ if (window._ChartReady && window.Chart){ clearInterval(iv); res(); } }, 50);
+});
+
+/* =============== Tabs & Hints =============== */
+$('#tabPDF').onclick=()=>{ $('#tabPDF').classList.add('active'); $('#tabCSV').classList.remove('active'); $('#pdfPane').style.display='block'; $('#csvPane').style.display='none'; }
+$('#tabCSV').onclick=()=>{ $('#tabCSV').classList.add('active'); $('#tabPDF').classList.remove('active'); $('#csvPane').style.display='block'; $('#pdfPane').style.display='none'; }
+$('#openHints').onclick=()=>{ $('#hintsPanel').style.display = $('#hintsPanel').style.display==='none' ? 'block' : 'none'; }
+
+/* =============== CSV Reader =============== */
+function parseCSV(text){
+  const rows=[]; let r=[''], inQ=false;
+  for (let i=0;i<text.length;i++){
+    const ch=text[i];
+    if (inQ){ if (ch=='"'){ if (text[i+1]=='"'){ r[r.length-1]+='"'; i++; } else inQ=false; } else r[r.length-1]+=ch; }
+    else { if (ch=='"') inQ=true; else if (ch==',') r.push(''); else if (ch=='\n'){ rows.push(r); r=['']; } else if (ch!='\r') r[r.length-1]+=ch; }
+  }
+  if (r.length>1||r[0]) rows.push(r);
+  return rows;
+}
+
+/* Month recognition (many formats + Excel serials) */
+const monthWord = "(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)";
+const monthPatterns = [
+  new RegExp(`^${monthWord}[\\s\\-\\/]\\d{2,4}$`, 'i'),   // Jan 25, Jan-25, Jan/2025
+  /^\d{1,2}[\/\-]\d{4}$/i,                                // 1/2025 or 01-2025
+  /^\d{4}[\/\-]\d{1,2}$/i,                                // 2025-01
+  /^\d{5}$/                                              // Excel serial like 45432
+];
+function looksLikeMonth(s){
+  if (s == null) return false;
+  s = String(s).trim();
+  return monthPatterns.some(rx => rx.test(s));
+}
+
+/* Phase detection from resource names */
+function detectPhase(name){
+  const s = (name||'').toLowerCase();
+  if (/\bprog|programming\b/.test(s)) return 'Programming';
+  if (/\bsd\b/.test(s)) return 'SD';
+  if (/\bdd\b/.test(s)) return 'DD';
+  if (/\bcd\b/.test(s)) return 'CD';
+  if (/\bca\b|construction admin/.test(s)) return 'CA';
+  if (/bid|permit/.test(s)) return 'Bid/Permit';
+  return 'Unspecified';
+}
+
+/* =============== CSV layout detection with optional hints =============== */
+function detectCSVLayout(rows, hints){
+  if (!rows.length) throw new Error("CSV is empty.");
+
+  // header row that looks like months
+  let headerIdx = hints.headerRow ?? 0, bestCount = -1;
+  if (hints.headerRow == null){
+    rows.forEach((r, i)=>{
+      const c = r.filter(looksLikeMonth).length;
+      if (c > bestCount){ bestCount = c; headerIdx = i; }
+    });
+  }
+  const header = rows[headerIdx] || [];
+
+  // month indices
+  let monthIdx = [];
+  if (hints.monthStart != null){
+    const first = hints.monthStart;
+    for (let i=first; i<header.length; i++){ if (looksLikeMonth(header[i])) monthIdx.push(i); }
+  } else {
+    monthIdx = header.map((h,i)=> looksLikeMonth(h) ? i : -1).filter(i=>i>=0);
+  }
+  if (!monthIdx.length) throw new Error("Could not detect month columns.");
+
+  // Planned/Actual flag column
+  let flagCol = hints.flagCol ?? 2, bestHits = -1, maxCols = Math.max(...rows.map(r=>r.length));
+  if (hints.flagCol == null){
+    for (let c=0;c<Math.min(maxCols, 15);c++){
+      let hits=0;
+      for (let r=headerIdx+1;r<rows.length;r++){
+        const v = (rows[r][c]||'').trim();
+        if (v==='Planned' || v==='Actual') hits++;
+      }
+      if (hits > bestHits){ bestHits = hits; flagCol = c; }
+    }
+  }
+
+  // Resource column
+  let resCol = hints.resCol ?? 0;
+  if (hints.resCol == null){
+    for (let c=0;c<Math.min(maxCols, 8);c++){
+      let hits=0;
+      for (let r=0;r<Math.min(rows.length, 80);r++){
+        const v = (rows[r][c]||'').trim();
+        if (/^Resource Name:/i.test(v) || (v && v.split(' ').length>=2 && !looksLikeMonth(v))) hits++;
+      }
+      if (hits > 8){ resCol = c; break; }
+    }
+  }
+
+  // Discipline column (optional)
+  let discCol = -1;
+  for (let c=0;c<Math.min(maxCols, 8);c++){
+    let hits=0;
+    for (let r=0;r<Math.min(rows.length,100);r++){
+      const v=(rows[r][c]||'').trim();
+      if (/^(0\d{2}\s+[A-Za-z])|^Department:/i.test(v)) hits++;
+    }
+    if (hits>=2){ discCol=c; break; }
+  }
+
+  return { headerIdx, header, monthIdx, flagCol, resCol, discCol };
+}
+
+/* =============== Parse CSV into dataset =============== */
+function parseFromCSV(rows, selectedDisc, hints = {}){
+  const layout = detectCSVLayout(rows, hints);
+  const months = layout.monthIdx.map(i => (rows[layout.headerIdx][i]||'').toString().trim());
+  const data = { months, resources:[], disciplines:{}, phases:{}, totals:{planned:0, actual:0}, provenance:{} };
+  data.provenance = { sourceType:'CSV', headerRow: layout.headerIdx, resCol: layout.resCol, flagCol: layout.flagCol, monthStart: layout.monthIdx[0] };
+
+  let currentDisc = 'Unassigned';
+  for (let r=layout.headerIdx+1; r<rows.length; r++){
+    const row = rows[r]; if (!row) continue;
+
+    // discipline header
+    if (layout.discCol>=0){
+      const dv = (row[layout.discCol]||'').trim();
+      if (/^Department:/i.test(dv) || /^(0\d{2}\s+[A-Za-z])/.test(dv)){ currentDisc = dv.replace(/^Department:/i,'').trim(); continue; }
+    }
+
+    const cell = (row[layout.resCol]||'').trim();
+    if (/^Resource Name:/i.test(cell)){
+      const name = cell.split(':').slice(1).join(':').trim();
+      let planned = [], actual = [];
+      for (let j=r+1;j<Math.min(r+6, rows.length); j++){
+        const typ = (rows[j][layout.flagCol]||'').trim();
+        if (typ==='Planned'){ planned = layout.monthIdx.map(i => Number((rows[j][i]||'').toString().replace(/,/g,''))||0); }
+        if (typ==='Actual'){  actual  = layout.monthIdx.map(i => Number((rows[j][i]||'').toString().replace(/,/g,''))||0); }
+      }
+      const include = selectedDisc.includes(currentDisc) || selectedDisc.some(d=> currentDisc.startsWith(d.split(' ')[0]));
+      if ((planned.length||actual.length) && include){
+        const phase = detectPhase(name);
+        data.resources.push({ name, disc: currentDisc, phase, planned, actual });
+        const p=sum(planned), a=sum(actual);
+        if (!data.disciplines[currentDisc]) data.disciplines[currentDisc]={planned:0,actual:0};
+        data.disciplines[currentDisc].planned += p; data.disciplines[currentDisc].actual += a;
+        if (!data.phases[phase]) data.phases[phase]={planned:0,actual:0};
+        data.phases[phase].planned += p; data.phases[phase].actual += a;
+        data.totals.planned += p; data.totals.actual += a;
+      }
+    }
+  }
+  return data;
+}
+
+/* =============== PDF text extraction + parse (lightweight) =============== */
+async function pdfToLines(file){
+  const array = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data: array}).promise;
+  const lines=[];
+  for (let p=1; p<=pdf.numPages; p++){
+    const page = await pdf.getPage(p);
+    const tc = await page.getTextContent();
+    const rows = {};
+    tc.items.forEach(it=>{
+      const y = Math.round(it.transform[5]);
+      rows[y] = rows[y] || [];
+      rows[y].push({x: it.transform[4], s: it.str});
+    });
+    Object.keys(rows).sort((a,b)=>b-a).forEach(y=>{
+      const row = rows[y].sort((a,b)=>a.x-b.x).map(o=>o.s).join(' ').replace(/\s+/g,' ').trim();
+      if (row) lines.push(row);
+    });
+  }
+  lines.reverse();
+  return lines;
+}
+
+const monthReLoose = /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s*[\-\/]?\s*\d{2,4}/gi;
+function parseFromLines(lines, selectedDisc){
+  let months=[];
+  for (const ln of lines){
+    const found = ln.match(monthReLoose);
+    if (found && found.length>=6){ months = found.map(s=>s.replace(/\s+/g,' ').trim()); break; }
+  }
+  if (!months.length) throw new Error('Could not detect month headers in PDF. Try CSV.');
+  const data = { months, resources:[], disciplines:{}, phases:{}, totals:{planned:0, actual:0}, provenance:{sourceType:'PDF'} };
+  let currentDisc = 'Unassigned';
+
+  for (let i=0;i<lines.length;i++){
+    const ln = lines[i];
+    if (/^(0\d{2}\s+[A-Za-z])|^Department:/i.test(ln)){ currentDisc = ln.replace(/^Department:/i,'').trim(); continue; }
+    if (/^Resource Name:/i.test(ln)){
+      const name = ln.split(':').slice(1).join(':').trim();
+      let planned=[], actual=[];
+      for (let j=1;j<=5;j++){
+        const nxt = lines[i+j] || '';
+        if (/^Planned\b/i.test(nxt)){
+          const nums = (nxt.match(/-?\d+\.?\d*/g) || []).map(Number);
+          planned = nums.slice(-months.length);
+        }
+        if (/^Actual\b/i.test(nxt)){
+          const nums = (nxt.match(/-?\d+\.?\d*/g) || []).map(Number);
+          actual = nums.slice(-months.length);
+        }
+      }
+      const include = getSelectedDisciplines().includes(currentDisc) || getSelectedDisciplines().some(d=> currentDisc.startsWith(d.split(' ')[0]));
+      if ((planned.length||actual.length) && include){
+        const phase = detectPhase(name);
+        data.resources.push({name, disc: currentDisc, phase, planned, actual});
+        const p=sum(planned), a=sum(actual);
+        if (!data.disciplines[currentDisc]) data.disciplines[currentDisc]={planned:0,actual:0};
+        data.disciplines[currentDisc].planned += p; data.disciplines[currentDisc].actual += a;
+        if (!data.phases[phase]) data.phases[phase]={planned:0,actual:0};
+        data.phases[phase].planned += p; data.phases[phase].actual += a;
+        data.totals.planned += p; data.totals.actual += a;
+      }
+    }
+  }
+  return data;
+}
+
+/* =============== Analysis + Validation =============== */
+let analysis = null;
+let cumChart=null, mvarChart=null;
+let lastFileName = '';
+
+function computeDerived(data){
+  const n = data.months.length;
+  const monthlyP = new Array(n).fill(0);
+  const monthlyA = new Array(n).fill(0);
+  data.resources.forEach(r=>{
+    for (let i=0;i<n;i++){ monthlyP[i]+= (r.planned[i]||0); monthlyA[i]+= (r.actual[i]||0); }
+  });
+  const cumP = monthlyP.map((_,i)=>sum(monthlyP.slice(0,i+1)));
+  const cumA = monthlyA.map((_,i)=>sum(monthlyA.slice(0,i+1)));
+  const monthlyVar = monthlyA.map((v,i)=>v - monthlyP[i]);
+  const varAbs = data.totals.actual - data.totals.planned;
+  const varPct = data.totals.planned ? varAbs / data.totals.planned : 0;
+  return { monthlyP, monthlyA, cumP, cumA, monthlyVar, varAbs, varPct };
+}
+
+function validations(data){
+  const v = [];
+  const d = computeDerived(data);
+  // non-decreasing planned cumulative
+  for (let i=1;i<d.cumP.length;i++){
+    if (d.cumP[i] + 1e-6 < d.cumP[i-1]) { v.push(`<span class="warntext">Planned cumulative decreases around ${data.months[i]}</span>`); break; }
+  }
+  // totals cross-check: sum of disciplines vs totals
+  let dP=0,dA=0; Object.values(data.disciplines).forEach(x=>{ dP+=x.planned; dA+=x.actual; });
+  const diffP = Math.abs(dP - data.totals.planned), diffA = Math.abs(dA - data.totals.actual);
+  const maxP = Math.max(1, data.totals.planned), maxA = Math.max(1, data.totals.actual);
+  if (diffP/maxP > 0.01 || diffA/maxA > 0.01) v.push(`<span class="warntext">Discipline sums differ from totals by more than 1 percent</span>`);
+  if (!v.length) v.push(`<span class="goodtext">Validation checks passed</span>`);
+  return v.join(' • ');
+}
+
+async function renderSummary(data){
+  const d = computeDerived(data);
+  const badge = d.varPct > 0.05 ? `<span class="badge bad">Off track</span>` :
+                d.varPct < -0.05 ? `<span class="badge warn">Under plan</span>` :
+                `<span class="badge ok">On track</span>`;
+  $('#health').innerHTML = badge;
+  $('#provenance').textContent = `Source: ${lastFileName || '(unsaved)'} • Type: ${data.provenance?.sourceType || 'Unknown'} • Hints: ${JSON.stringify(data.provenance||{})}`;
+  $('#totals').textContent = `Planned: ${fmt(data.totals.planned)}  |  Actual: ${fmt(data.totals.actual)}  |  Variance: ${fmt(d.varAbs)}  (${(d.varPct*100).toFixed(1)}%)`;
+  $('#validations').innerHTML = validations(data);
+
+  // Discipline table
+  const discBody = $('#discTable tbody'); discBody.innerHTML='';
+  let dP=0,dA=0;
+  Object.entries(data.disciplines).forEach(([k,v])=>{
+    dP+=v.planned; dA+=v.actual;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${k}</td><td>${fmt(v.planned)}</td><td>${fmt(v.actual)}</td><td>${fmt(v.actual-v.planned)}</td>`;
+    discBody.appendChild(tr);
+  });
+  $('#dP').textContent=fmt(dP); $('#dA').textContent=fmt(dA); $('#dV').textContent=fmt(dA-dP);
+
+  // Phase table
+  const phBody = $('#phaseTable tbody'); phBody.innerHTML='';
+  let pP=0,pA=0;
+  Object.entries(data.phases).forEach(([k,v])=>{
+    pP+=v.planned; pA+=v.actual;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${k}</td><td>${fmt(v.planned)}</td><td>${fmt(v.actual)}</td><td>${fmt(v.actual-v.planned)}</td>`;
+    phBody.appendChild(tr);
+  });
+  $('#pP').textContent=fmt(pP); $('#pA').textContent=fmt(pA); $('#pV').textContent=fmt(pA-pP);
+
+  // Top over/under
+  const rows = data.resources.map(r=>({name:r.name,disc:r.disc,phase:r.phase, p:sum(r.planned), a:sum(r.actual), v:sum(r.actual)-sum(r.planned)}));
+  rows.sort((a,b)=>Math.abs(b.v)-Math.abs(a.v));
+  const topBody = $('#topTable tbody'); topBody.innerHTML='';
+  rows.slice(0,12).forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML = `<td>${r.name}</td><td>${r.phase}</td><td>${r.disc}</td><td>${fmt(r.p)}</td><td>${fmt(r.a)}</td><td>${fmt(r.v)}</td>`;
+    topBody.appendChild(tr);
+  });
+
+  // Charts, when available
+  await waitForChart();
+  if (window.Chart){
+    if (cumChart) cumChart.destroy();
+    if (mvarChart) mvarChart.destroy();
+    const ctx1 = document.getElementById('cumChart').getContext('2d');
+    const ctx2 = document.getElementById('mvarChart').getContext('2d');
+    cumChart = new Chart(ctx1, {
+      type:'line',
+      data:{ labels:data.months, datasets:[
+        {label:'Planned cum', data:d.cumP},
+        {label:'Actual cum', data:d.cumA}
+      ]},
+      options:{ responsive:true, plugins:{legend:{position:'bottom'}}}
+    });
+    mvarChart = new Chart(ctx2, {
+      type:'bar',
+      data:{ labels:data.months, datasets:[{label:'Monthly variance', data:d.monthlyVar}]},
+      options:{ responsive:true, plugins:{legend:{display:false}}}
+    });
+  }
+}
+
+/* =============== What-If =============== */
+function runWhatIf(){
+  if (!analysis) return;
+  const pct = Number($('#targetPct').value||0)/100;
+  const cap = Number($('#capPerPerson').value||0);
+  const strategy = $('#strategy').value;
+  const stayPhase = $('#samePhase').checked;
+  const selectedDiscs = getSelectedDisciplines();
+  const d = computeDerived(analysis);
+  const targetDelta = Math.abs(pct * analysis.totals.planned); // hours to shift
+
+  // pool limited to selected disciplines
+  let pool = analysis.resources.filter(r=> selectedDiscs.includes(r.disc) || selectedDiscs.some(d=>r.disc.startsWith(d.split(' ')[0])));
+
+  // Compute slack and overage
+  pool = pool.map(r=>({
+    ...r,
+    plannedTotal: sum(r.planned),
+    actualTotal: sum(r.actual),
+    slack: Math.max(0, sum(r.planned)-sum(r.actual)),      // can add hours up to slack
+    over:  Math.max(0, sum(r.actual)-sum(r.planned))       // can pull back overage
+  }));
+
+  // Determine targets: if overburn, pull back from over; if underburn, allocate to slack
+  const need = d.varAbs>0 ? Math.min(d.varAbs, targetDelta) : Math.min(-d.varAbs, targetDelta);
+  let candidates = d.varAbs>0 ? pool.filter(x=>x.over>0) : pool.filter(x=>x.slack>0);
+  if (!candidates.length){ alert('No candidates found for reforecast.'); return; }
+
+  // Weighting
+  let weights = [];
+  if (strategy==='underutilized_first'){
+    const base = d.varAbs>0 ? candidates.map(x=>x.over) : candidates.map(x=>x.slack);
+    const total = sum(base)||1; weights = base.map(v=>v/total);
+  } else if (strategy==='discipline_even'){
+    const groups={};
+    candidates.forEach(x=>{ const k=x.disc; groups[k]=(groups[k]||0)+1; });
+    const denom = candidates.map(x=>groups[x.disc]); const tot = sum(denom)||1;
+    weights = denom.map(v=>1/v); const wsum = sum(weights)||1; weights = weights.map(w=>w/wsum);
+  } else {
+    const base = candidates.map(x=>x.plannedTotal||1); const tot = sum(base)||1;
+    weights = base.map(v=>v/tot);
+  }
+
+  // Optional same-phase bias: boost weight for resources in majority phase
+  if (stayPhase){
+    const phaseTotals={}; analysis.resources.forEach(r=>{ phaseTotals[r.phase]=(phaseTotals[r.phase]||0) + r.planned.reduce((a,b)=>a+(b||0),0); });
+    const topPhase = Object.entries(phaseTotals).sort((a,b)=>b[1]-a[1])[0]?.[0];
+    if (topPhase){
+      const boost = 1.3;
+      candidates.forEach((c,i)=>{ if (c.phase===topPhase) weights[i]*=boost; });
+      const wsum = sum(weights)||1; weights = weights.map(w=>w/wsum);
+    }
+  }
+
+  // Build suggestions
+  let remaining = need;
+  const suggestions = candidates.map((c,i)=>{
+    const raw = Math.round(remaining * weights[i]);
+    const capLim = cap>0 ? Math.min(raw, cap) : raw;
+    const maxFeasible = d.varAbs>0 ? Math.min(capLim, c.over) : Math.min(capLim, c.slack);
+    remaining -= maxFeasible;
+    return { name: c.name, discipline: c.disc, phase: c.phase, adjust: (d.varAbs>0 ? -maxFeasible : maxFeasible) };
+  });
+
+  // Render table
+  const old = document.getElementById('whatifTbl'); if (old) old.remove();
+  let html = `<div id="whatifTbl"><h4>Suggested Adjustments (total ${fmt(need)} hrs target)</h4><table><thead><tr><th>Resource</th><th>Phase</th><th>Discipline</th><th>Adjust Hours</th></tr></thead><tbody>`;
+  suggestions.forEach(s=> html += `<tr><td>${s.name}</td><td>${s.phase}</td><td>${s.discipline}</td><td>${fmt(s.adjust)}</td></tr>`);
+  html += `</tbody></table></div>`;
+  $('#summaryCard').insertAdjacentHTML('beforeend', html);
+  window._whatIf = suggestions;
+}
+
+function exportCSV(){
+  const list = window._whatIf || [];
+  if (!list.length) { alert('Run What-If first.'); return; }
+  const header = ['Resource','Phase','Discipline','Suggested_Adjust_Hours'];
+  const rows = [header.join(',')].concat(list.map(s=>[s.name,s.phase,s.discipline,s.adjust].join(',')));
+  const blob = new Blob([rows.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'workplan_reforecast.csv';
+  a.click();
+}
+
+/* =============== Click handlers =============== */
+$('#analyze').onclick = async ()=>{
+  const discs = getSelectedDisciplines();
+  try{
+    $('#status').textContent = 'Parsing...';
+    let data=null, provenance={};
+    if ($('#tabPDF').classList.contains('active')){
+      const f = $('#pdfFile').files[0]; if (!f) return alert('Please select a PDF.');
+      lastFileName = f.name;
+      const lines = await pdfToLines(f);
+      data = parseFromLines(lines, discs);
+    } else {
+      const f = $('#csvFile').files[0]; if (!f) return alert('Please select a CSV.');
+      lastFileName = f.name;
+      const txt = await f.text();
+      const rows = parseCSV(txt);
+      const hints = {
+        resCol: $('#hintRes').value ? Number($('#hintRes').value) : null,
+        flagCol: $('#hintFlag').value ? Number($('#hintFlag').value) : null,
+        monthStart: $('#hintMonthStart').value ? Number($('#hintMonthStart').value) : null,
+        headerRow: $('#hintHeaderRow').value ? Number($('#hintHeaderRow').value) : null
+      };
+      data = parseFromCSV(rows, discs, hints);
+    }
+    analysis = data;
+    $('#status').textContent = 'Parsed successfully.';
+    renderSummary(analysis);
+  } catch(err){
+    console.error(err);
+    $('#status').textContent = 'Parse failed. Try CSV and set Schema Hints.';
+    alert(err.message || 'Could not parse file.');
+  }
+};
+
+$('#runWhatIf').onclick = runWhatIf;
+$('#exportCSV').onclick = exportCSV;
+
+$('#printOnePager').onclick = ()=> window.print();
+
+$('#loadSample').onclick = ()=>{
+  // Tiny inline sample that mimics BSA layout
+  const sample = `Dept,Resource,Type,Jan 25,Feb 25,Mar 25,Apr 25,May 25
+010 Architecture,Resource Name: Carson James,,,
+,Planned,Planned,120,100,90,80,60
+,Actual,Actual,140,90,95,70,50
+010 Architecture,Resource Name: Claire Reed,,,
+,Planned,Planned,80,90,100,110,120
+,Actual,Actual,60,80,120,115,110
+020 Engineering,Resource Name: MEP Designer,,,
+,Planned,Planned,20,30,40,50,60
+,Actual,Actual,10,15,20,25,30
+Final Totals,,,,,`;
+  const rows = parseCSV(sample);
+  const data = parseFromCSV(rows, getSelectedDisciplines(), {});
+  analysis = data; lastFileName='Sample.csv';
+  $('#status').textContent = 'Loaded sample.';
+  renderSummary(analysis);
+};
+</script>
+</body>
+</html>
