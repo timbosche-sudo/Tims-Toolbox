@@ -1,56 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Tim’s Toolbox</title>
-<style>
-  :root{
-    --bg:#0f1220; --panel:#171a2b; --ink:#f4f6ff; --muted:#aab3d9; --line:#2a2f50;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif}
-  .wrap{max-width:980px;margin:48px auto;padding:0 20px}
-  h1{margin:0 0 6px 0}
-  p.lead{margin:0 0 24px 0;color:var(--muted)}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
-  .card{
-    display:block;padding:16px;border-radius:12px;border:1px solid var(--line);
-    background:var(--panel);text-decoration:none;color:var(--ink);
-    transition:transform .1s ease, border-color .1s ease;
-  }
-  .card:hover{transform:translateY(-2px);border-color:#7aa2ff}
-  .card small{display:block;color:var(--muted);margin-top:6px}
-  .footer{margin-top:28px;color:var(--muted);font-size:14px}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Tim’s Toolbox</title>
+  <style>
+    :root{
+      --bg:#0f1220; --panel:#171a2b; --ink:#f4f6ff; --muted:#aab3d9; --line:#2a2f50;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--ink);
+      font:16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
+    .wrap{max-width:980px;margin:48px auto;padding:0 20px}
+    h1{margin:0 0 6px 0}
+    p.lead{margin:0 0 24px 0;color:var(--muted)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+    .card{
+      display:block;
+      padding:16px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:var(--panel);
+      text-decoration:none;
+      color:var(--ink);
+      transition:transform .1s ease, border-color .1s ease;
+    }
+    .card:hover{transform:translateY(-2px);border-color:#7aa2ff}
+    .card strong{display:block;font-size:18px;margin-bottom:6px}
+    .card small{display:block;color:var(--muted)}
+    .footer{margin-top:28px;color:var(--muted);font-size:14px}
+  </style>
 </head>
 <body>
   <div class="wrap">
     <h1>Tim’s Toolbox</h1>
-    <p class="lead">Pick a tool to open. Add more by uploading an HTML file and adding a card here.</p>
+    <p class="lead">Pick a tool to open. More will be added as you build out your playground 🚀</p>
 
     <div class="grid">
       <!-- Chemistry Tool -->
       <a class="card" href="./JCH.html">
         <strong>🧪 Chemistry Tool V4</strong>
-        <small>Elements, ions, trends, naming, stoichiometry</small>
+        <small>Explore elements, ions, shells, and chemistry helpers</small>
       </a>
 
-      <!-- Fee Calculator Playground -->
+      <!-- Fee Calculator -->
       <a class="card" href="./FCP.html">
         <strong>📊 Fee Calculator Playground</strong>
-        <small>Quick scenarios and what-ifs</small>
+        <small>Test fee scenarios, margins, and what-ifs</small>
       </a>
 
-      <!-- Example placeholder, duplicate and edit to add more tools
-      <a class="card" href="./my-new-tool/index.html">
-        <strong>✨ New Tool</strong>
-        <small>One-line description</small>
+      <!-- Placeholder for a future tool -->
+      <a class="card" href="#">
+        <strong>➕ Add your next tool here</strong>
+        <small>Upload a new .html file and update index.html</small>
       </a>
-      -->
     </div>
 
-    <div class="footer">Live on GitHub Pages • <code>timbosche-sudo.github.io/Tims-Toolbox/</code></div>
+    <div class="footer">
+      Live on GitHub Pages • <code>timbosche-sudo.github.io/Tims-Toolbox/</code>
+    </div>
   </div>
 </body>
 </html>
