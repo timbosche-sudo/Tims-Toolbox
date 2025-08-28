@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Design Studio — V2.3 (Program-only)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{--bg:#f7f7f8;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--card:#fff}
+  *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  body{margin:0;background:var(--bg);color:var(--ink)}
+  header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:12px 16px;z-index:5}
+  h1{margin:0;font-size:18px}
+  .wrap{max-width:1200px;margin:16px auto;padding:0 12px}
+  .grid{display:grid;grid-template-columns:360px 1fr;gap:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+  label{font-size:12px;color:var(--muted)}
+  input,select,button{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+  button.primary{background:#111827;color:#fff;border-color:#111827;cursor:pointer}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+  .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+  .kpi div{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px}
+  .kpi b{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+  canvas{width:100%;height:330px;border:1px solid var(--line);border-radius:10px;background:#fff}
+  .small{font-size:12px;color:var(--muted)}
+  .deptRow{display:grid;grid-template-columns:1fr 100px 80px;gap:6px;align-items:center;margin-bottom:6px}
+  .pill{display:inline-block;border:1px solid var(--line);padding:2px 8px;border-radius:999px;font-size:12px;color:var(--muted);cursor:pointer}
+  /* Legends */
+  .legendBar{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:6px}
+  .legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;margin-top:8px}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#111}
+  .chip{width:14px;height:14px;border:1px solid #999;border-radius:3px;display:inline-block}
+  /* Program table with scroll + sticky header */
+  .tableWrap{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+  #programTbl{width:100%;border-collapse:collapse;margin:0}
+  #programTbl thead th{position:sticky;top:0;background:#fff;z-index:1}
+  #programTbl th,#programTbl td{border-top:1px solid var(--line);padding:6px;font-size:13px;text-align:left}
+  /* Tooltip */
+  #bpTip{position:absolute;pointer-events:none;background:#111;color:#fff;padding:4px 6px;border-radius:6px;font-size:12px;display:none}
+  @media (max-width: 900px){ .grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<header><h1>Design Studio — V2.3 (Program-only)</h1></header>
+<div class="wrap">
+  <div class="grid">
+    <!-- LEFT: inputs + program table -->
+    <div class="card">
+      <div class="row">
+        <div>
+          <label>Upload Program CSV</label><br>
+          <input type="file" id="csv" accept=".csv">
+        </div>
+        <button id="loadSample">Load Sample</button>
+      </div>
+
+      <div style="margin-top:10px" class="row">
+        <div><label>Floorplate width (ft)</label><br><input type="number" id="fpW" value="220" step="10"></div>
+        <div><label>Floorplate depth (ft)</label><br><input type="number" id="fpD" value="180" step="10"></div>
+        <div><label>Floors</label><br><input type="number" id="floors" value="3" min="1" max="20"></div>
+      </div>
+
+      <div style="margin-top:10px" class="row">
+        <div><label>Net to gross (%)</label><br><input type="number" id="ntg" value="30" step="1"></div>
+        <div><label>Circulation factor (%)</label><br><input type="number" id="circ" value="12" step="1"></div>
+        <div><label>Module (ft)</label><br><input type="number" id="module" value="10" step="1"></div>
+      </div>
+
+      <div style="margin-top:10px" class="row">
+        <div><label>Default $/GSF</label><br><input type="number" id="ppgsf" value="550" step="10"></div>
+        <button id="analyze" class="primary">Analyze</button>
+        <span class="pill" id="autoAssign">Auto-assign floors</span>
+      </div>
+
+      <p class="small" style="margin-top:8px">CSV columns: Department, Space, Count, NSF (per space). No extra files needed.</p>
+
+      <div class="tableWrap">
+        <table id="programTbl">
+          <thead><tr><th>Department</th><th>Space</th><th>Count</th><th>NSF/ea</th><th>Total NSF</th></tr></thead>
+          <tbody></tbody>
+          <tfoot><tr><td colspan="4">Total</td><td id="totalNSF">0</td></tr></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- RIGHT: charts + legends -->
+    <div class="card" style="position:relative">
+      <div class="kpi">
+        <div><b>Total NSF</b><span id="kNSF" class="mono">0</span></div>
+        <div><b>GSF (NTG applied)</b><span id="kGSF" class="mono">0</span></div>
+        <div><b>Efficiency (NSF/GSF)</b><span id="kEff" class="mono">0%</span></div>
+        <div><b>Cost (est)</b><span id="kCost" class="mono">$0</span></div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <div style="flex:1">
+          <label>Stacking Diagram</label>
+          <canvas id="stack"></canvas>
+          <div class="legendBar">
+            <span class="small">Legend metric:</span>
+            <label class="small"><input type="radio" name="legendMode" value="NSF" checked> NSF</label>
+            <label class="small"><input type="radio" name="legendMode" value="GSF"> GSF</label>
+          </div>
+          <div id="stackLegend" class="legend" aria-label="Stack legend"></div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px; position:relative">
+        <div style="flex:1">
+          <div class="row" style="justify-content:space-between;align-items:center">
+            <label>Block Plan (coarse)</label>
+            <div class="row"><span class="small">Show floor</span>
+              <select id="blockFloor" title="Which floor to visualize" style="margin-left:6px"></select>
+            </div>
+          </div>
+          <canvas id="block"></canvas>
+          <div id="blockLegend" class="legend" aria-label="Block legend"></div>
+        </div>
+        <div id="bpTip"></div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <button id="exportPNG">Download PNG</button>
+        <button id="exportCSV">Download Summary CSV</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floor assignment -->
+  <div class="card" style="margin-top:12px">
+    <h3 style="margin:0 0 6px 0">Floor Assignment</h3>
+    <div class="row" style="margin-bottom:6px">
+      <span class="small">Pick a floor for each department. “Auto-assign floors” seeds smart defaults, you can override.</span>
+    </div>
+    <div id="assignList"></div>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const program = [];      // rows: {dept,space,count,nsf,total}
+let deptTotals = [];     // [{dept, nsf}]
+let assignment = {};     // {dept: floorNumber}
+let summary = null;
+let legendMode = 'NSF';
+
+const colorMap = {};
+function colorFor(key){
+  if (!colorMap[key]){
+    let h = 0; for (let i=0;i<key.length;i++) h = (h*31 + key.charCodeAt(i)) % 360;
+    colorMap[key] = `hsl(${h},55%,65%)`;
+  }
+  return colorMap[key];
+}
+
+function parseCSV(text){
+  const lines = text.split(/\r?\n/).filter(x=>x.trim().length);
+  const header = lines[0].toLowerCase().includes('department') ? 1 : 0;
+  const rows = [];
+  for (let i=header;i<lines.length;i++){
+    const cols = lines[i].split(',').map(x=>x.trim());
+    if (cols.length < 4) continue;
+    const dept = cols[0]; const space = cols[1];
+    const count = Number(cols[2] || 0); const nsf = Number(cols[3] || 0);
+    if (!dept || !space) continue;
+    rows.push({dept,space,count,nsf,total:count*nsf});
+  }
+  return rows;
+}
+
+function recompute(){
+  const map = {};
+  program.forEach(r=>{ map[r.dept] = (map[r.dept]||0) + r.total; });
+  deptTotals = Object.entries(map).map(([dept,nsf])=>({dept,nsf})).sort((a,b)=>b.nsf-a.nsf);
+
+  const floors = Math.max(1, Number($('#floors').value||1));
+  const list = $('#assignList'); list.innerHTML='';
+  deptTotals.forEach(d=>{
+    const row = document.createElement('div'); row.className='deptRow';
+    const sel = document.createElement('select'); sel.dataset.dept=d.dept;
+    for(let f=1; f<=floors; f++){ const opt=document.createElement('option'); opt.value=f; opt.textContent=`Floor ${f}`; sel.appendChild(opt); }
+    sel.value = assignment[d.dept] || '1';
+    sel.onchange = ()=>{ assignment[d.dept] = Number(sel.value); analyze(); };
+    const lock = document.createElement('input'); lock.type='checkbox'; lock.title='Lock to Floor 1';
+    lock.onchange = ()=>{ assignment[d.dept] = lock.checked ? 1 : Number(sel.value); sel.value = assignment[d.dept]; analyze(); };
+    const keep = document.createElement('button'); keep.textContent='Keep with…'; keep.onclick = ()=>{
+      const other = prompt('Keep with which department? Type exact name.'); if (!other) return;
+      const tgt = assignment[other] || 1; assignment[d.dept] = tgt; sel.value = tgt; analyze();
+    };
+    row.innerHTML = `<div><b>${d.dept}</b> <span class="small">(${d.nsf.toLocaleString()} NSF)</span></div>`;
+    row.appendChild(sel); row.appendChild(lock); row.appendChild(keep);
+    list.appendChild(row);
+  });
+
+  renderProgramTable();
+}
+
+function autoAssign(){
+  const floors = Math.max(1, Number($('#floors').value||1));
+  const byName = n => deptTotals.find(d=>d.dept.toLowerCase().includes(n));
+  deptTotals.forEach((d,i)=> assignment[d.dept] = Math.min(floors, Math.floor(i/3)+1)); // spread
+  if (byName('radiation')) assignment[byName('radiation').dept] = 1;
+  if (byName('diagnostic') || byName('imaging')) assignment[(byName('diagnostic')||byName('imaging')).dept] = 1;
+  if (byName('waiting') || byName('public')) assignment[(byName('waiting')||byName('public')).dept] = 1;
+  const inf = deptTotals.find(d=>/medical oncology|infusion/i.test(d.dept));
+  const rx = deptTotals.find(d=>/pharmacy/i.test(d.dept));
+  if (inf && rx) assignment[rx.dept] = assignment[inf.dept];
+  const exam = deptTotals.find(d=>/clinical exam|clinic/i.test(d.dept));
+  if (exam && floors>1) assignment[exam.dept] = Math.min(2, floors);
+  document.querySelectorAll('#assignList select').forEach(sel=>{
+    const dept = sel.dataset.dept; if (assignment[dept]) sel.value = assignment[dept];
+  });
+  analyze();
+}
+
+function packBlocksForFloor(floorBands, fpW, fpD, module){
+  const blocks = []; let x=0,y=0,shelfH=module;
+  const sorted = [...floorBands].sort((a,b)=>b.area-a.area);
+  sorted.forEach(b=>{
+    let w = Math.max(module, Math.round(Math.sqrt(b.area * (fpW/fpD)) / module) * module);
+    let h = Math.max(module, Math.round((b.area / w) / module) * module);
+    if (x + w > fpW){ x=0; y+=shelfH; shelfH=module; }
+    if (y + h > fpD){ x=0; y=0; }
+    blocks.push({dept:b.dept, x, y, w, h});
+    x += w; shelfH = Math.max(shelfH, h);
+  });
+  return blocks;
+}
+
+function analyze(){
+  const fpW = Number($('#fpW').value||0), fpD = Number($('#fpD').value||0);
+  const floors = Math.max(1, Number($('#floors').value||1));
+  const ntg = Number($('#ntg').value||0)/100, circ = Number($('#circ').value||0)/100;
+  const module = Math.max(1, Number($('#module').value||10));
+  const ppgsf = Number($('#ppgsf').value||0);
+
+  const totalNSF = program.reduce((a,r)=>a+r.total,0);
+  const gsf = Math.round(totalNSF * (1 + ntg + circ));
+  const eff = totalNSF > 0 ? totalNSF / gsf : 0;
+  const fpArea = fpW * fpD;
+
+  const deptMap = {}; program.forEach(r=>{ deptMap[r.dept]=(deptMap[r.dept]||0)+r.total; });
+
+  const floorsArr = Array.from({length: floors}, (_,i)=>({floor:i+1, remaining: fpArea, bands:[]}));
+  Object.entries(deptMap).forEach(([dept,nsf])=>{
+    const gross = nsf * (1 + ntg + circ);
+    const f = (assignment[dept]||1) - 1;
+    floorsArr[f].bands.push({dept, area: Math.round(gross)});
+    floorsArr[f].remaining -= Math.round(gross);
+  });
+
+  // populate floor selector
+  const sel = $('#blockFloor');
+  const prev = sel.value || '';
+  sel.innerHTML = '';
+  for(let f=1; f<=floors; f++){ const opt=document.createElement('option'); opt.value=String(f); opt.textContent=`Floor ${f}`; sel.appendChild(opt); }
+  // default to busiest if not chosen
+  let busiestIndex = 0;
+  for (let i=1;i<floorsArr.length;i++){
+    if (floorsArr[i].bands.reduce((a,b)=>a+b.area,0) >
+        floorsArr[busiestIndex].bands.reduce((a,b)=>a+b.area,0)) busiestIndex = i;
+  }
+  sel.value = prev || String(busiestIndex+1);
+
+  const floorIndex = Number(sel.value)-1;
+  const blocks = packBlocksForFloor(floorsArr[floorIndex].bands, fpW, fpD, module);
+
+  const overflow = floorsArr.reduce((a,f)=> a + Math.max(0, -f.remaining), 0);
+  const unused = floorsArr.reduce((a,f)=> a + Math.max(0, f.remaining), 0);
+  const score = Math.max(0, Math.min(100, 100 - (overflow/fpArea)*50 - (unused/(fpArea*floors))*25 ));
+
+  summary = {fpW,fpD,floors,ntg,circ,module,totalNSF,gsf,eff,cost:gsf*ppgsf,floorsArr,blocks,score,deptMap};
+  render();
+}
+
+function render(){
+  if (!summary) return;
+  $('#kNSF').textContent = summary.totalNSF.toLocaleString();
+  $('#kGSF').textContent = summary.gsf.toLocaleString();
+  $('#kEff').textContent = `${(summary.eff*100).toFixed(1)}%`;
+  $('#kCost').textContent = `$${summary.cost.toLocaleString()}`;
+
+  drawStack(); drawBlock();
+  renderLegend('stackLegend'); renderLegend('blockLegend');
+  $('#totalNSF').textContent = program.reduce((a,r)=>a+r.total,0).toLocaleString();
+}
+
+function sumAreas(bands){ return bands.reduce((a,b)=>a+b.area,0); }
+
+function drawStack(){
+  const c = $('#stack'); const ctx = c.getContext('2d');
+  const W = c.width = c.clientWidth * devicePixelRatio;
+  const H = c.height = c.clientHeight * devicePixelRatio;
+  ctx.clearRect(0,0,W,H); if (!summary) return;
+
+  const margin = 40 * devicePixelRatio;
+  const innerW = W - margin*2, innerH = H - margin*2;
+  const n = summary.floors, rowH = innerH / n;
+
+  ctx.strokeStyle = '#ddd'; ctx.lineWidth = 1 * devicePixelRatio;
+  summary.floorsArr.forEach((fl, i)=>{
+    const y = margin + (n-1-i)*rowH;
+    ctx.fillStyle = '#666'; ctx.font = `${12*devicePixelRatio}px system-ui`;
+    ctx.fillText(`Floor ${fl.floor}`, 6*devicePixelRatio, y + 14*devicePixelRatio);
+
+    let x = margin; const plate = summary.fpW * summary.fpD;
+    fl.bands.sort((a,b)=>b.area-a.area).forEach(b=>{
+      const w = innerW * (b.area/plate);
+      ctx.fillStyle = colorFor(b.dept);
+      ctx.fillRect(x, y+8*devicePixelRatio, w, rowH-16*devicePixelRatio);
+      if (w > 110 * devicePixelRatio){
+        ctx.fillStyle = '#111'; ctx.font = `${11*devicePixelRatio}px system-ui`;
+        ctx.fillText(b.dept, x+6*devicePixelRatio, y + rowH/2);
+      }
+      x += w;
+    });
+    ctx.strokeStyle='#bbb';
+    ctx.strokeRect(margin, y+8*devicePixelRatio, innerW, rowH-16*devicePixelRatio);
+  });
+
+  ctx.fillStyle='#111'; ctx.font = `${12*devicePixelRatio}px system-ui`;
+  ctx.fillText(`Floor Fit Score: ${summary.score.toFixed(0)}/100`, W - 180*devicePixelRatio, margin-10*devicePixelRatio);
+}
+
+function drawBlock(){
+  const c = $('#block'); const ctx = c.getContext('2d');
+  const W = c.width = c.clientWidth * devicePixelRatio;
+  const H = c.height = c.clientHeight * devicePixelRatio;
+  ctx.clearRect(0,0,W,H); if (!summary) return;
+
+  const margin = 30 * devicePixelRatio;
+  const innerW = W - margin*2, innerH = H - margin*2;
+  const sx = innerW / summary.fpW, sy = innerH / summary.fpD;
+
+  ctx.strokeStyle = '#bbb'; ctx.lineWidth = 1*devicePixelRatio;
+  ctx.strokeRect(margin, margin, innerW, innerH);
+
+  ctx.strokeStyle = '#eee';
+  for (let gx=0; gx<=summary.fpW; gx += summary.module){
+    const x = margin + gx*sx; ctx.beginPath(); ctx.moveTo(x, margin); ctx.lineTo(x, margin+innerH); ctx.stroke();
+  }
+  for (let gy=0; gy<=summary.fpD; gy += summary.module){
+    const y = margin + gy*sy; ctx.beginPath(); ctx.moveTo(margin, y); ctx.lineTo(margin+innerW, y); ctx.stroke();
+  }
+
+  summary.blocks.forEach(b=>{
+    const x = margin + b.x*sx, y = margin + b.y*sy, w = b.w*sx, h = b.h*sy;
+    ctx.fillStyle = colorFor(b.dept); ctx.fillRect(x,y,w,h);
+    ctx.strokeStyle = '#777'; ctx.strokeRect(x,y,w,h);
+    if (w > 120*devicePixelRatio && h > 20*devicePixelRatio){
+      ctx.fillStyle = '#111'; ctx.font = `${11*devicePixelRatio}px system-ui`;
+      ctx.fillText(b.dept, x + 4*devicePixelRatio, y + 14*devicePixelRatio);
+    }
+  });
+
+  // annotate which floor is shown
+  ctx.fillStyle='#666'; ctx.font = `${12*devicePixelRatio}px system-ui`;
+  ctx.fillText(`Showing Floor ${$('#blockFloor').value}`, margin, margin - 8*devicePixelRatio);
+}
+
+function renderLegend(containerId){
+  const div = document.getElementById(containerId);
+  div.innerHTML = '';
+  const ntg = Number($('#ntg').value||0)/100, circ = Number($('#circ').value||0)/100;
+  deptTotals.forEach(d=>{
+    const item = document.createElement('div'); item.className = 'legend-item';
+    const chip = document.createElement('span'); chip.className='chip'; chip.style.background = colorFor(d.dept);
+    const nsf = d.nsf, gsf = Math.round(nsf * (1 + ntg + circ));
+    const val = legendMode === 'GSF' ? `${gsf.toLocaleString()} GSF` : `${nsf.toLocaleString()} NSF`;
+    const label = document.createElement('span'); label.textContent = `${d.dept} (${val})`;
+    item.appendChild(chip); item.appendChild(label); div.appendChild(item);
+  });
+}
+
+function renderProgramTable(){
+  const tb = $('#programTbl tbody'); tb.innerHTML='';
+  program.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.dept}</td><td>${r.space}</td><td>${r.count}</td><td>${r.nsf}</td><td>${r.total}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+// ------- Events -------
+$('#csv').addEventListener('change', async e=>{
+  const file = e.target.files[0]; if (!file) return;
+  const txt = await file.text();
+  program.length = 0; parseCSV(txt).forEach(r=>program.push(r));
+  recompute(); autoAssign(); analyze();
+});
+$('#loadSample').onclick = ()=>{
+  const sample = `Department,Space,Count,NSF
+Radiation Oncology,LINAC Vault,2,1600
+Radiation Oncology,LINAC Control,2,120
+Diagnostics / Imaging,PET/CT Room,1,500
+Medical Oncology (Infusion),Open Infusion Bay,24,65
+Pharmacy (USP 797/800),Hazardous Buffer (USP 800),1,180
+Clinical Exam,Exam Room,18,120
+Waiting / Public,Main Lobby/Waiting,1,1200
+Support Space (Shared),General Storage,2,200`;
+  program.length = 0; parseCSV(sample).forEach(r=>program.push(r));
+  recompute(); autoAssign(); analyze();
+};
+$('#analyze').onclick = analyze;
+$('#autoAssign').onclick = autoAssign;
+document.querySelectorAll('input[name="legendMode"]').forEach(r=>{
+  r.addEventListener('change', e=>{ legendMode = e.target.value; render(); });
+});
+$('#blockFloor').addEventListener('change', analyze);
+
+$('#exportPNG').onclick = ()=>{
+  const c1 = $('#stack'), c2 = $('#block');
+  const W = Math.max(c1.width, c2.width);
+  const H = c1.height + c2.height + 20*devicePixelRatio;
+  const out = document.createElement('canvas');
+  out.width = W; out.height = H;
+  const ctx = out.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,W,H);
+  ctx.drawImage(c1, 0, 0);
+  ctx.drawImage(c2, 0, c1.height + 20*devicePixelRatio);
+  const a = document.createElement('a');
+  a.href = out.toDataURL('image/png'); a.download = 'design-v2.3.png'; a.click();
+};
+$('#exportCSV').onclick = ()=>{
+  const rows = ['Department,NSF,AssignedFloor'];
+  deptTotals.forEach(d=> rows.push(`${d.dept},${d.nsf},${assignment[d.dept]||1}`));
+  const blob = new Blob([rows.join('\n')], {type:'text/csv'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='program_floor_assignment.csv'; a.click();
+};
+
+// Block plan tooltip
+const bpTip = document.getElementById('bpTip');
+const blockCanvas = document.getElementById('block');
+blockCanvas.addEventListener('mousemove', (e)=>{
+  if (!summary) return;
+  const rect = blockCanvas.getBoundingClientRect();
+  const px = (e.clientX - rect.left) * devicePixelRatio;
+  const py = (e.clientY - rect.top) * devicePixelRatio;
+
+  const margin = 30 * devicePixelRatio;
+  const sx = (blockCanvas.width - margin*2) / summary.fpW;
+  const sy = (blockCanvas.height - margin*2) / summary.fpD;
+  const fx = (px - margin) / sx;
+  const fy = (py - margin) / sy;
+
+  let hit = null;
+  summary.blocks.forEach(b=>{
+    if (fx>=b.x && fx<=b.x+b.w && fy>=b.y && fy<=b.y+b.h) hit = b;
+  });
+  if (hit){
+    bpTip.style.display = 'block';
+    bpTip.style.left = `${e.clientX + 8}px`;
+    bpTip.style.top = `${e.clientY + 8}px`;
+    const areaGSF = Math.round(hit.w * hit.h); // feet -> GSF proxy on plate
+    bpTip.textContent = `${hit.dept} — ~${areaGSF.toLocaleString()} GSF`;
+  }else{
+    bpTip.style.display = 'none';
+  }
+});
+blockCanvas.addEventListener('mouseleave', ()=> bpTip.style.display='none');
+</script>
+</body>
+</html>
