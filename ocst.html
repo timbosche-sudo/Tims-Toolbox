@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BSA Outpatient Clinic Scenario Tool</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f7f8fa;
+      color: #333;
+    }
+
+    header {
+      background-color: #555555;
+      color: white;
+      padding: 15px 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 20px;
+      margin: 0;
+    }
+
+    .header-buttons button {
+      background-color: #007C78;
+      border: none;
+      padding: 8px 16px;
+      margin-left: 10px;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 14px;
+      transition: background-color 0.2s ease;
+    }
+
+    .header-buttons button:hover {
+      background-color: #005e5b;
+    }
+
+    .scenario {
+      margin: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .inputs-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      padding: 15px 25px;
+      background-color: #fff;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      font-size: 14px;
+    }
+
+    .input-group label {
+      margin-bottom: 4px;
+      font-weight: bold;
+    }
+
+    .input-group input,
+    .input-group select {
+      padding: 6px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    /* Color Controls Panel */
+    .color-controls {
+      display: flex;
+      justify-content: flex-start;
+      gap: 15px;
+      background: #fff;
+      padding: 12px 25px;
+      border-top: 1px solid #ddd;
+      border-bottom: 1px solid #ccc;
+      align-items: center;
+    }
+
+    .color-picker {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .color-picker input {
+      border: none;
+      width: 40px;
+      height: 30px;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .charts-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      padding: 20px;
+    }
+
+    .chart-card {
+      background: white;
+      padding: 12px;
+      border-radius: 10px;
+      box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .chart-card h3 {
+      text-align: center;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    /* PRINT STYLES */
+    @media print {
+      .scenario {
+        page-break-before: always;
+        break-before: page;
+      }
+      .scenario:first-child {
+        page-break-before: auto;
+      }
+      header,
+      .header-buttons {
+        display: none !important;
+      }
+      body::after {
+        content: "Generated using the BSA Intelligence Suite — Conceptual Planning Tool";
+        display: block;
+        text-align: center;
+        margin-top: 30px;
+        font-size: 12px;
+        color: #666;
+      }
+      .charts-row {
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+        padding: 10px;
+      }
+      body {
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+        zoom: 0.95;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>BSA Outpatient Clinic Scenario Tool</h1>
+    <div class="header-buttons">
+      <button id="addScenarioBtn">Add Scenario</button>
+      <button id="saveBtn">Save Scenario</button>
+      <button id="loadBtn">Load Saved Data</button>
+      <button id="printBtn">Print to PDF</button>
+      <button id="resetBtn">Reset</button>
+    </div>
+  </header>
+
+  <!-- Scenarios Container -->
+  <div id="scenariosContainer">
+    <div class="scenario">
+      <section class="inputs-container">
+        <div class="input-group">
+          <label>BSA Benchmark Data (Service Line):</label>
+          <select class="serviceLine"></select>
+        </div>
+        <div class="input-group"><label>Daily Patient Volume:</label><input type="number" class="patientVolume" value="120" /></div>
+        <div class="input-group"><label>Providers:</label><input type="number" class="providers" value="5" /></div>
+        <div class="input-group"><label>Exam:Provider Ratio:</label>
+          <select class="examProviderRatio">
+            <option value="2">2:1</option>
+            <option value="3">3:1</option>
+            <option value="4" selected>4:1</option>
+            <option value="6">6:1</option>
+          </select>
+        </div>
+        <div class="input-group"><label>Avg. Visit Length (mins):</label><input type="number" class="visitLength" value="20" /></div>
+        <div class="input-group"><label>Hours of Operation:</label><input type="number" class="hours" value="8" /></div>
+        <div class="input-group"><label>No-Show Rate (%):</label><input type="number" class="noShow" value="5" /></div>
+        <div class="input-group"><label>Walk-In Volume:</label><input type="number" class="walkIn" value="10" /></div>
+        <div class="input-group"><label>Telehealth Volume (%):</label><input type="number" class="telehealth" value="15" /></div>
+        <div class="input-group"><label>Support Staff:</label><input type="number" class="supportStaff" value="8" /></div>
+        <div class="input-group"><label>Target Wait Time (mins):</label><input type="number" class="targetWait" value="15" /></div>
+        <div class="input-group"><label>Target Utilization (%):</label><input type="number" class="targetUtilization" value="85" /></div>
+        <div class="input-group"><label>Benchmark Throughput (patients/day):</label><input type="number" class="benchmark" value="140" /></div>
+      </section>
+
+      <!-- COLOR CONTROLS -->
+      <div class="color-controls">
+        <div class="color-picker"><label>Primary</label><input type="color" class="primaryColor" value="#007C78"></div>
+        <div class="color-picker"><label>Accent</label><input type="color" class="accentColor" value="#56b1bf"></div>
+        <div class="color-picker"><label>Neutral</label><input type="color" class="lightGray" value="#e5e5e5"></div>
+        <div class="color-picker"><label>Highlight</label><input type="color" class="highlightColor" value="#cc1b2d"></div>
+      </div>
+
+      <!-- CHARTS -->
+      <section class="charts-row">
+        <div class="chart-card"><h3>Exam Rooms Needed</h3><canvas class="roomsChart"></canvas></div>
+        <div class="chart-card"><h3>Estimated Wait Times</h3><canvas class="waitChart"></canvas></div>
+        <div class="chart-card"><h3>Utilization vs Benchmark</h3><canvas class="utilizationChart"></canvas></div>
+      </section>
+      <section class="charts-row">
+        <div class="chart-card"><h3>Required vs Available Rooms</h3><canvas class="requiredRoomsChart"></canvas></div>
+        <div class="chart-card"><h3>No-Show + Telehealth Impact</h3><canvas class="impactChart"></canvas></div>
+        <div class="chart-card"><h3>Daily Throughput vs Target</h3><canvas class="throughputChart"></canvas></div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const benchmarks = {
+      medical: 140, surgical: 120, maternity: 100, cardiology: 160,
+      orthopedics: 150, oncology: 110, neurology: 130, pediatrics: 180,
+      urology: 140, gastroenterology: 125, dermatology: 175, endocrinology: 120,
+      pulmonology: 135, nephrology: 115, rheumatology: 100, otolaryngology: 145,
+      ophthalmology: 155, allergy: 160, geriatrics: 130, rehab: 90,
+      psychiatry: 95, behavioral: 110, sleep: 85, pain: 120,
+      infectious: 100, hematology: 105, obgyn: 150, sportsmed: 170,
+      palliative: 80, urgentcare: 220
+    };
+
+    function initScenario(scenario) {
+      const serviceLineDropdown = scenario.querySelector(".serviceLine");
+      const benchmarkInput = scenario.querySelector(".benchmark");
+
+      Object.keys(benchmarks).forEach(key => {
+        const option = document.createElement("option");
+        option.value = key;
+        option.textContent = key.charAt(0).toUpperCase() + key.slice(1);
+        serviceLineDropdown.appendChild(option);
+      });
+
+      serviceLineDropdown.addEventListener("change", (e) => {
+        benchmarkInput.value = benchmarks[e.target.value];
+        updateCharts(scenario);
+      });
+
+      scenario.querySelectorAll("input, select").forEach(el => {
+        el.addEventListener("input", () => updateCharts(scenario));
+      });
+
+      updateCharts(scenario);
+    }
+
+    function calculateMetrics(scenario) {
+      const pv = Number(scenario.querySelector(".patientVolume").value);
+      const pr = Number(scenario.querySelector(".providers").value);
+      const ratioVal = Number(scenario.querySelector(".examProviderRatio").value);
+      const visit = Number(scenario.querySelector(".visitLength").value);
+      const hrs = Number(scenario.querySelector(".hours").value);
+      const noShowVal = Number(scenario.querySelector(".noShow").value);
+      const walkIns = Number(scenario.querySelector(".walkIn").value);
+      const tele = Number(scenario.querySelector(".telehealth").value);
+      const bench = Number(scenario.querySelector(".benchmark").value);
+
+      const adjustedVolume = pv - pv * (noShowVal / 100) + walkIns;
+      const requiredRooms = Math.ceil(pr * ratioVal);
+      const utilization = Math.min(100, (adjustedVolume * visit) / (requiredRooms * hrs * 60) * 100);
+      const waitTimes = [8, 10, 12, 14, 16].map((h, i) => Math.max(0, (adjustedVolume / requiredRooms) / (i + 1)));
+      const throughput = adjustedVolume - adjustedVolume * (tele / 100);
+
+      return { requiredRooms, utilization, waitTimes, throughput, bench, tele, noShowVal };
+    }
+
+    function updateCharts(scenario) {
+      const { requiredRooms, utilization, waitTimes, throughput, bench, tele, noShowVal } = calculateMetrics(scenario);
+      const baseColors = {
+        primary: scenario.querySelector(".primaryColor").value,
+        accent: scenario.querySelector(".accentColor").value,
+        lightGray: scenario.querySelector(".lightGray").value,
+        highlight: scenario.querySelector(".highlightColor").value
+      };
+
+      function createChart(canvas, type, labels, data, colors, displayLegend = false) {
+        if (canvas.chart) canvas.chart.destroy();
+        canvas.chart = new Chart(canvas, {
+          type,
+          data: { labels, datasets: [{ data, backgroundColor: colors }] },
+          options: { responsive: true, plugins: { legend: { display: displayLegend } } }
+        });
+      }
+
+      createChart(scenario.querySelector(".roomsChart"), "doughnut", ["Required Rooms", "Unused"], [requiredRooms, 30 - requiredRooms], [baseColors.primary, baseColors.lightGray], true);
+      createChart(scenario.querySelector(".waitChart"), "bar", ["8AM", "10AM", "12PM", "2PM", "4PM"], waitTimes, [baseColors.accent]);
+      createChart(scenario.querySelector(".utilizationChart"), "bar", ["Scenario", "Benchmark"], [utilization, bench], [baseColors.primary, baseColors.highlight]);
+      createChart(scenario.querySelector(".requiredRoomsChart"), "bar", ["Required", "Available"], [requiredRooms, requiredRooms + 2], [baseColors.primary, baseColors.lightGray]);
+      createChart(scenario.querySelector(".impactChart"), "bar", ["No-Shows", "Telehealth"], [noShowVal, tele], [baseColors.highlight, baseColors.primary]);
+      createChart(scenario.querySelector(".throughputChart"), "bar", ["Scenario", "Target"], [throughput, bench], [baseColors.primary, baseColors.highlight]);
+    }
+
+    // SAVE ALL SCENARIOS TO LOCAL STORAGE
+    document.getElementById("saveBtn").addEventListener("click", () => {
+      const scenarios = [];
+      document.querySelectorAll(".scenario").forEach(scenario => {
+        const inputs = {};
+        scenario.querySelectorAll("input, select").forEach(el => {
+          inputs[el.className] = el.value;
+        });
+        scenarios.push(inputs);
+      });
+      localStorage.setItem("bsaScenarios", JSON.stringify(scenarios));
+      alert("Scenarios saved successfully!");
+    });
+
+    // LOAD SAVED SCENARIOS FROM LOCAL STORAGE
+    document.getElementById("loadBtn").addEventListener("click", () => {
+      const saved = localStorage.getItem("bsaScenarios");
+      if (!saved) return alert("No saved scenarios found.");
+      const scenarios = JSON.parse(saved);
+
+      const container = document.getElementById("scenariosContainer");
+      container.innerHTML = ""; // Clear existing scenarios
+
+      scenarios.forEach(data => {
+        const firstScenario = document.querySelector(".scenario");
+        const clone = firstScenario.cloneNode(true);
+        container.appendChild(clone);
+
+        clone.querySelectorAll("input, select").forEach(el => {
+          if (data[el.className] !== undefined) {
+            el.value = data[el.className];
+          }
+        });
+
+        initScenario(clone);
+      });
+
+      alert("Scenarios loaded successfully!");
+    });
+
+    document.getElementById("addScenarioBtn").addEventListener("click", () => {
+      const container = document.getElementById("scenariosContainer");
+      const firstScenario = container.querySelector(".scenario");
+      const clone = firstScenario.cloneNode(true);
+      container.appendChild(clone);
+      initScenario(clone);
+    });
+
+    document.getElementById("printBtn").addEventListener("click", () => window.print());
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      document.querySelectorAll(".scenario").forEach(scenario => {
+        scenario.querySelectorAll("input").forEach(el => el.value = el.defaultValue);
+        updateCharts(scenario);
+      });
+    });
+
+    initScenario(document.querySelector(".scenario"));
+  </script>
+</body>
+</html>
