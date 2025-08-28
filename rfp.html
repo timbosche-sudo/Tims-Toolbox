@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RFP Requirement Splitter</title>
+  <style>
+    :root{--bg:#0f172a;--card:#111827;--muted:#9ca3af;--text:#f8fafc;--accent:#a78bfa;--line:#1f2937}
+    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
+    body{margin:0;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--text);padding:24px}
+    .wrap{max-width:980px;margin:0 auto}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+    h1{font-size:24px;margin:0}
+    .card{background:rgba(17,24,39,.7);backdrop-filter: blur(8px);border:1px solid var(--line);
+          border-radius:14px;padding:18px;margin-bottom:16px}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    textarea,input,button{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);
+           background:#0b1324;color:var(--text);outline:none}
+    textarea:focus,input:focus{border-color:var(--accent)}
+    .btn{cursor:pointer;background:linear-gradient(90deg,#a78bfa,#60a5fa);color:#031018;border:none}
+    .btn:hover{filter:brightness(1.05)}
+    table{width:100%;border-collapse:collapse;margin-top:8px}
+    th,td{border-bottom:1px solid var(--line);padding:10px;text-align:left;vertical-align:top}
+    th{color:#c7d2fe}
+    .badge{font-size:12px;padding:4px 8px;border:1px solid #3a2a6b; border-radius:999px;background:#130e2b;color:#c7bdfc}
+    .right{display:flex;justify-content:flex-end;gap:12px}
+    .pill{display:inline-block;padding:4px 8px;background:#1b263a;border:1px solid #23304a;border-radius:999px;font-size:12px;color:#a7c7ff}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>RFP Requirement Splitter</h1>
+    <span class="badge">from wall of text → scoped checklist</span>
+  </header>
+
+  <div class="card">
+    <label>Paste RFP section</label>
+    <textarea id="rfp" rows="8" placeholder="Paste RFP language here..."></textarea>
+    <div class="right" style="margin-top:12px">
+      <button class="btn" onclick="splitter()">Extract Requirements</button>
+      <button class="btn" onclick="download()">Export CSV</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <table id="tbl">
+      <thead>
+        <tr><th>#</th><th>Requirement</th><th>Tag</th><th>Category</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <p class="pill">Heuristic tags: MUST = shall, must, required; SHOULD = should, recommend; COULD = may, optional.</p>
+  </div>
+</div>
+
+<script>
+const cats = [
+  {name:"Scope", keys:["scope","deliver","include","provide","perform","design","document","model","BIM","coordination"]},
+  {name:"Admin", keys:["submit","deadline","due","page","format","attachment","insurance","bond","proposal","fee","price"]},
+  {name:"Team", keys:["experience","qualification","team","staff","resume","references"]},
+  {name:"Sustainability", keys:["leed","well","embodied","energy","2030","carbon","sustainability"]}
+];
+
+function lines(txt){
+  return txt.split(/[\n\.•\-–;]+/).map(s=>s.trim()).filter(Boolean);
+}
+function tag(l){
+  const s=l.toLowerCase();
+  if(/(shall|must|required|responsible)/.test(s)) return 'MUST';
+  if(/(should|recommended|strongly encourage)/.test(s)) return 'SHOULD';
+  if(/(may|optional|consider)/.test(s)) return 'COULD';
+  return 'COULD';
+}
+function category(l){
+  const s=l.toLowerCase();
+  for(const c of cats){
+    if(c.keys.some(k=>s.includes(k))) return c.name;
+  }
+  return 'General';
+}
+function splitter(){
+  const txt = document.getElementById('rfp').value || '';
+  const out = lines(txt).map((l,i)=>({i:i+1, req:l, tag:tag(l), cat:category(l)}));
+  render(out);
+}
+function render(rows){
+  const tb=document.querySelector('#tbl tbody'); tb.innerHTML='';
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r.i}</td><td>${r.req}</td><td>${r.tag}</td><td>${r.cat}</td>`;
+    tb.appendChild(tr);
+  });
+}
+function download(){
+  const rows=[["#", "Requirement", "Tag", "Category"]];
+  document.querySelectorAll('#tbl tbody tr').forEach(tr=>{
+    rows.push([...tr.children].map(td=>('"'+td.innerText.replace(/"/g,'""')+'"')));
+  });
+  const csv = rows.map(r=>r.join(',')).join('\r\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='rfp_requirements.csv';
+  a.click();
+}
+</script>
+</body>
+</html>
