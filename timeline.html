@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Project Timeline → Calendar (.ics) Generator</title>
+  <style>
+    :root{--bg:#0f172a;--card:#111827;--muted:#9ca3af;--text:#f8fafc;--accent:#22d3ee;--line:#1f2937}
+    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
+    body{margin:0;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--text);padding:24px}
+    .wrap{max-width:980px;margin:0 auto}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+    h1{font-size:24px;margin:0}
+    .card{background:rgba(17,24,39,.7);backdrop-filter: blur(8px);border:1px solid var(--line);
+          border-radius:14px;padding:18px;margin-bottom:16px}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input,select,button,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);
+           background:#0b1324;color:var(--text);outline:none}
+    input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+    .grid{display:grid;gap:12px;grid-template-columns:repeat(4,1fr)}
+    .grid-2{grid-template-columns:repeat(2,1fr)}
+    .grid-3{grid-template-columns:repeat(3,1fr)}
+    .grid-4{grid-template-columns:repeat(4,1fr)}
+    .row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;align-items:center}
+    .row div{padding:8px 10px;border-bottom:1px dashed #223}
+    .muted{color:var(--muted)}
+    .btn{cursor:pointer;background:linear-gradient(90deg,#22d3ee,#38bdf8);color:#031018;border:none}
+    .btn:hover{filter:brightness(1.05)}
+    .pill{display:inline-block;padding:4px 8px;background:#1b263a;border:1px solid #23304a;border-radius:999px;font-size:12px;color:#a7c7ff}
+    .flex{display:flex;gap:12px;align-items:center}
+    .right{justify-content:flex-end}
+    .table{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+    .thead,.tr{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px}
+    .thead{background:#0c1426;color:#b8c3d9;font-weight:600;padding:10px}
+    .tr{padding:10px;border-top:1px solid var(--line)}
+    .footer{font-size:12px;color:#8ea2c7;text-align:center;margin-top:16px}
+    @media(max-width:900px){
+      .grid{grid-template-columns:1fr}
+      .grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
+      .thead,.tr,.row{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Project Timeline → Calendar (.ics) Generator</h1>
+    <span class="pill">client-ready in 60 seconds</span>
+  </header>
+  <div class="card">
+    <div class="grid grid-4">
+      <div>
+        <label>Project name</label>
+        <input id="projectName" placeholder="UNC Health Johnston — Women's Hospital Addition">
+      </div>
+      <div>
+        <label>Project type</label>
+        <select id="projectType">
+          <option value="clinic">Outpatient clinic</option>
+          <option value="hospital">Hospital / addition</option>
+          <option value="research">Research / lab</option>
+          <option value="education">Education</option>
+          <option value="generic">Generic</option>
+        </select>
+      </div>
+      <div>
+        <label>Desired occupancy date</label>
+        <input id="occ" type="date">
+      </div>
+      <div>
+        <label>Assume weekends</label>
+        <select id="weekends">
+          <option value="skip" selected>Skip weekends</option>
+          <option value="count">Count weekends</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid grid-3" style="margin-top:12px">
+      <div>
+        <label>Include permitting milestone</label>
+        <select id="permit">
+          <option value="yes" selected>Yes</option>
+          <option value="no">No</option>
+        </select>
+      </div>
+      <div>
+        <label>Include procurement milestone</label>
+        <select id="procure">
+          <option value="yes" selected>Yes</option>
+          <option value="no">No</option>
+        </select>
+      </div>
+      <div>
+        <label>Calendar file name</label>
+        <input id="icsName" placeholder="Project-Milestones.ics">
+      </div>
+    </div>
+    <div class="flex right" style="margin-top:12px">
+      <button class="btn" onclick="build()">Generate Timeline</button>
+      <button class="btn" onclick="downloadICS()">Download .ics</button>
+    </div>
+  </div>
+
+  <div class="card table">
+    <div class="thead">
+      <div>Milestone</div><div>Start</div><div>Finish</div><div>Duration</div>
+    </div>
+    <div id="rows"></div>
+  </div>
+
+  <div class="card">
+    <label>Notes for the team or client</label>
+    <textarea id="notes" rows="5" placeholder="Assumptions: standard review durations, one round of comments per phase, procurement overlaps with early construction packages."></textarea>
+  </div>
+
+  <div class="footer">Tip: tweak phase durations after generation by clicking any duration value.</div>
+</div>
+
+<script>
+/* Default phase durations in weeks by project type */
+const defaults = {
+  clinic: { CA: 24, Bidding: 4, Permitting: 8, CD: 10, DD: 8, SD: 6, Programming: 6 },
+  hospital: { CA: 52, Bidding: 5, Permitting: 12, CD: 16, DD: 12, SD: 8, Programming: 8 },
+  research: { CA: 40, Bidding: 4, Permitting: 10, CD: 14, DD: 10, SD: 8, Programming: 6 },
+  education:{ CA: 36, Bidding: 4, Permitting: 8, CD: 12, DD: 8, SD: 6, Programming: 6 },
+  generic: { CA: 24, Bidding: 4, Permitting: 6, CD: 10, DD: 8, SD: 6, Programming: 4 }
+};
+const order = ["Programming","SD","DD","CD","Permitting","Bidding","CA"];
+let timeline = [];
+
+function dt(y,m,d){return new Date(y,m,d);}
+function pad(n){return String(n).padStart(2,'0');}
+function fmt(d){return d ? `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}` : "";}
+function parseISO(s){const [Y,M,D]=s.split("-").map(Number);return new Date(Y,(M-1),D);}
+
+function addDays(date,days,skipWeekends){
+  let d=new Date(date);
+  let left=days;
+  while(left>0){
+    d.setDate(d.getDate()+1);
+    if(skipWeekends){
+      const wd=d.getDay();
+      if(wd!==0 && wd!==6) left--;
+    }else{
+      left--;
+    }
+  }
+  return d;
+}
+
+function addWeeks(date,weeks,skipWeekends){
+  const days = Math.round(weeks*5); // 5 workdays per week if skipping weekends
+  return addDays(date, skipWeekends ? days : Math.round(weeks*7), skipWeekends);
+}
+
+function build(){
+  const proj = document.getElementById('projectName').value || 'Project';
+  const type = document.getElementById('projectType').value;
+  const occs = document.getElementById('occ').value;
+  const weekends = document.getElementById('weekends').value === 'skip';
+  const includePermit = document.getElementById('permit').value === 'yes';
+  const includeProcure = document.getElementById('procure').value === 'yes';
+
+  if(!occs){ alert('Pick a desired occupancy date'); return; }
+
+  // Start from occupancy and work backward
+  const occ = parseISO(occs);
+  let phases = {...defaults[type]};
+
+  if(!includePermit){ delete phases.Permitting; }
+  if(!includeProcure){ delete phases.Bidding; } // using Bidding as procurement milestone
+
+  timeline = [];
+
+  // Build forward from project start by reversing order
+  let start = null;
+  const entries = order.filter(p=>phases[p]!==undefined).reverse();
+  entries.forEach((phase, idx)=>{
+    const weeks = phases[phase];
+    if(idx===0){
+      // Compute Construction Administration end = occupancy, start = occ minus CA
+      const caFinish = new Date(occ);
+      const caStart = addWeeks(caFinish, -weeks, weekends);
+      timeline.push({phase, start: caStart, finish: caFinish, weeks});
+      start = caStart;
+    } else {
+      // Previous phases stack backward before current start
+      const finish = new Date(start);
+      const s = addWeeks(finish, -weeks, weekends);
+      timeline.push({phase, start: s, finish, weeks});
+      start = s;
+    }
+  });
+
+  // Reverse back to Programming→...→CA order for display
+  timeline = timeline.reverse();
+
+  renderRows();
+}
+
+function renderRows(){
+  const rows = document.getElementById('rows');
+  rows.innerHTML = '';
+  timeline.forEach((t,i)=>{
+    const row = document.createElement('div');
+    row.className = 'tr';
+    row.innerHTML = `
+      <div>${t.phase}</div>
+      <div>${fmt(t.start)}</div>
+      <div>${fmt(t.finish)}</div>
+      <div><span class="duration" data-i="${i}" title="Click to edit">${t.weeks} wks</span></div>
+    `;
+    rows.appendChild(row);
+  });
+
+  // Click-to-edit durations
+  document.querySelectorAll('.duration').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const idx = Number(el.getAttribute('data-i'));
+      const val = prompt('Enter duration in weeks', timeline[idx].weeks);
+      if(val && !isNaN(Number(val))){
+        timeline[idx].weeks = Number(val);
+        // Recompute dates forward using edited durations
+        recomputeFromProgramming();
+      }
+    });
+  });
+}
+
+function recomputeFromProgramming(){
+  const weekends = document.getElementById('weekends').value === 'skip';
+  // Keep Programming start fixed, recompute forward
+  let cursor = new Date(timeline[0].start);
+  for(let i=0;i<timeline.length;i++){
+    const weeks = timeline[i].weeks;
+    const start = new Date(cursor);
+    const finish = addWeeks(start, weeks, weekends);
+    timeline[i].start = start;
+    timeline[i].finish = finish;
+    cursor = new Date(finish);
+  }
+  renderRows();
+}
+
+function dtstamp(){
+  const d = new Date();
+  return d.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+}
+
+function icsEscape(s){return s.replace(/,/g,'\\,').replace(/;/g,'\\;').replace(/\n/g,'\\n');}
+
+function downloadICS(){
+  if(!timeline.length){ alert('Generate the timeline first'); return; }
+  const proj = document.getElementById('projectName').value || 'Project';
+  const notes = document.getElementById('notes').value || '';
+  const fname = (document.getElementById('icsName').value || 'Project-Milestones.ics').replace(/\s+/g,'_');
+  let ics = 'BEGIN:VCALENDAR\\nVERSION:2.0\\nPRODID:-//BSA LifeStructures//Timeline//EN\\n';
+  const stamp = dtstamp();
+  timeline.forEach(t=>{
+    const uid = Math.random().toString(36).slice(2)+'@bsalifestructures.com';
+    const summary = `${proj} — ${t.phase}`;
+    const start = new Date(t.finish); // Put milestone on phase finish
+    const dt = start.toISOString().split('T')[0].replace(/-/g,'');
+    ics += 'BEGIN:VEVENT\\n';
+    ics += `UID:${uid}\\n`;
+    ics += `DTSTAMP:${stamp}\\n`;
+    ics += `DTSTART;VALUE=DATE:${dt}\\n`;
+    ics += `SUMMARY:${icsEscape(summary)}\\n`;
+    ics += `DESCRIPTION:${icsEscape(notes)}\\n`;
+    ics += 'END:VEVENT\\n';
+  });
+  ics += 'END:VCALENDAR';
+  const blob = new Blob([ics.replaceAll('\\n','\r\n')], {type:'text/calendar'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fname;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+</script>
+</body>
+</html>
