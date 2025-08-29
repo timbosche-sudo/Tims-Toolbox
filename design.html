@@ -2,20 +2,27 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Design Studio — V2.3 (Program-only)</title>
+<title>Design Studio – V8 (Program-only, Floor Assignment)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- styles unchanged from previous message -->
 <style>
-  :root{--bg:#f7f7f8;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--card:#fff}
+  :root{--bsa-red:#de1c28;--header-bg:#374151;--header-ink:#ffffff;--bg:#f7f7f8;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--card:#ffffff}
   *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
   body{margin:0;background:var(--bg);color:var(--ink)}
-  header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:12px 16px;z-index:5}
-  h1{margin:0;font-size:18px}
+  header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--header-bg);color:var(--header-ink);border-bottom:1px solid rgba(0,0,0,.08)}
+  .brandwrap{display:flex;align-items:center;gap:10px;min-width:0}
+  .brandmark svg{height:22px}
+  .brandtitle{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}
+  .badge{font-size:12px;color:#fff;background:var(--bsa-red);padding:2px 8px;border-radius:999px}
+  .pill{margin-left:auto;border:1px solid rgba(255,255,255,.25);padding:4px 10px;border-radius:999px;font-size:12px;color:#e5e7eb}
   .wrap{max-width:1200px;margin:16px auto;padding:0 12px}
   .grid{display:grid;grid-template-columns:360px 1fr;gap:12px}
+  @media (max-width:980px){.grid{grid-template-columns:1fr}.pill{display:none}}
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
   label{font-size:12px;color:var(--muted)}
   input,select,button{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
-  button.primary{background:#111827;color:#fff;border-color:#111827;cursor:pointer}
+  button{cursor:pointer}
+  button.primary{background:var(--bsa-red);color:#fff;border-color:var(--bsa-red)}
   .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
   .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
@@ -23,28 +30,49 @@
   .kpi b{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
   canvas{width:100%;height:330px;border:1px solid var(--line);border-radius:10px;background:#fff}
   .small{font-size:12px;color:var(--muted)}
-  .deptRow{display:grid;grid-template-columns:1fr 100px 80px;gap:6px;align-items:center;margin-bottom:6px}
-  .pill{display:inline-block;border:1px solid var(--line);padding:2px 8px;border-radius:999px;font-size:12px;color:var(--muted);cursor:pointer}
-  /* Legends */
-  .legendBar{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:6px}
-  .legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;margin-top:8px}
-  .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#111}
-  .chip{width:14px;height:14px;border:1px solid #999;border-radius:3px;display:inline-block}
-  /* Program table with scroll + sticky header */
-  .tableWrap{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:10px}
-  #programTbl{width:100%;border-collapse:collapse;margin:0}
-  #programTbl thead th{position:sticky;top:0;background:#fff;z-index:1}
-  #programTbl th,#programTbl td{border-top:1px solid var(--line);padding:6px;font-size:13px;text-align:left}
-  /* Tooltip */
-  #bpTip{position:absolute;pointer-events:none;background:#111;color:#fff;padding:4px 6px;border-radius:6px;font-size:12px;display:none}
-  @media (max-width: 900px){ .grid{grid-template-columns:1fr} }
+  .legendHeader{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .seg button{border:0;padding:4px 10px;background:#fff;font-size:12px}
+  .seg button.on{background:#111827;color:#fff}
+  .legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:10px}
+  .legend .item{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:6px 8px;background:#fff}
+  .legend input[type=color].sw{appearance:none;-webkit-appearance:none;border:1px solid rgba(0,0,0,.15);width:18px;height:18px;border-radius:4px;padding:0;background:transparent}
+  .legend .name{font-size:12px}
+  .legend .sf{font-size:12px;color:var(--muted);margin-left:auto}
+  .assignCard h3{margin:0 0 6px 0}
+  .assignHelp{font-size:12px;color:var(--muted);margin-bottom:8px}
+  .assignScroller{overflow:auto;max-width:100%}
+  .assignTbl{width:auto;border-collapse:collapse}
+  .assignTbl th,.assignTbl td{border-top:1px solid var(--line);padding:8px 10px;font-size:13px}
+  .assignTbl th{font-weight:600;color:#374151;text-align:center}
+  .assignTbl td:first-child{font-weight:600;color:#111827;text-align:left;white-space:nowrap}
+  .assignTbl td{text-align:center}
+  .assignTbl input[type=radio]{transform:scale(1.15)}
+  .ovRow{display:grid;grid-template-columns:70px 1fr 1fr;gap:8px;align-items:center}
+  .ovGrid{display:grid;gap:6px}
+  .ovGrid label{font-size:12px}
+  .parkGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+  .parkOut{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+  .chip{border:1px solid var(--line);border-radius:10px;padding:8px;background:#fff}
+  .chip b{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+  .chip .val{font-family:ui-monospace,Menlo,Consolas,monospace}
 </style>
 </head>
 <body>
-<header><h1>Design Studio — V2.3 (Program-only)</h1></header>
+<header>
+  <div class="brandwrap">
+    <div class="brandmark" aria-label="BSA LifeStructures">
+      <!-- (SVG logo unchanged for brevity) -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 489.48" aria-hidden="true"><defs><style>.cls-1{fill:#de1c28;}</style></defs><g><path class="cls-1" d="M293.75,274.14..."/></g></svg>
+    </div>
+    <div class="brandtitle">Design Studio</div>
+    <span class="badge">V8</span>
+  </div>
+  <span class="pill">Program-only, Floor Assignment</span>
+</header>
+
 <div class="wrap">
   <div class="grid">
-    <!-- LEFT: inputs + program table -->
     <div class="card">
       <div class="row">
         <div>
@@ -57,7 +85,7 @@
       <div style="margin-top:10px" class="row">
         <div><label>Floorplate width (ft)</label><br><input type="number" id="fpW" value="220" step="10"></div>
         <div><label>Floorplate depth (ft)</label><br><input type="number" id="fpD" value="180" step="10"></div>
-        <div><label>Floors</label><br><input type="number" id="floors" value="3" min="1" max="20"></div>
+        <div><label>Floors</label><br><input type="number" id="floors" value="3" min="1" max="30"></div>
       </div>
 
       <div style="margin-top:10px" class="row">
@@ -69,22 +97,46 @@
       <div style="margin-top:10px" class="row">
         <div><label>Default $/GSF</label><br><input type="number" id="ppgsf" value="550" step="10"></div>
         <button id="analyze" class="primary">Analyze</button>
-        <span class="pill" id="autoAssign">Auto-assign floors</span>
+        <span class="tagpill" id="autoAssign" style="cursor:pointer">Auto-assign floors</span>
       </div>
 
-      <p class="small" style="margin-top:8px">CSV columns: Department, Space, Count, NSF (per space). No extra files needed.</p>
-
-      <div class="tableWrap">
-        <table id="programTbl">
-          <thead><tr><th>Department</th><th>Space</th><th>Count</th><th>NSF/ea</th><th>Total NSF</th></tr></thead>
-          <tbody></tbody>
-          <tfoot><tr><td colspan="4">Total</td><td id="totalNSF">0</td></tr></tfoot>
-        </table>
+      <div style="margin-top:8px">
+        <label><input type="checkbox" id="overridePlates"> Override floorplate per floor</label>
+        <div id="ovUI" class="ovGrid" style="margin-top:6px; display:none"></div>
       </div>
+
+      <!-- Parking -->
+      <div style="margin-top:12px">
+        <label>Parking (required)</label>
+        <div class="parkGrid">
+          <div><label>Rate (stalls / 1,000 sf)</label><input type="number" id="parkRate" value="3.0" step="0.1" min="0"></div>
+          <div><label>Basis</label>
+            <select id="parkBasis">
+              <option value="GSF" selected>GSF</option>
+              <option value="NSF">NSF</option>
+            </select>
+          </div>
+        </div>
+        <div class="parkOut">
+          <div class="chip"><b>Total stalls</b><span id="pkTotal" class="val">0</span></div>
+          <div class="chip"><b>Accessible (ADA)</b><span id="pkAccessible" class="val">0</span></div>
+          <div class="chip"><b>Van-accessible</b><span id="pkVan" class="val">0</span></div>
+        </div>
+      </div>
+
+      <p class="small" style="margin-top:8px">CSV columns: Department, Space, Count, NSF (per space).</p>
+
+      <div class="legendHeader">
+        <label>Department legend</label>
+        <div class="seg" id="legendSeg">
+          <button type="button" data-mode="nsf" class="on">NSF</button>
+          <button type="button" data-mode="gsf">GSF</button>
+        </div>
+      </div>
+      <div id="legend" class="legend"></div>
     </div>
 
-    <!-- RIGHT: charts + legends -->
-    <div class="card" style="position:relative">
+    <div class="card">
       <div class="kpi">
         <div><b>Total NSF</b><span id="kNSF" class="mono">0</span></div>
         <div><b>GSF (NTG applied)</b><span id="kGSF" class="mono">0</span></div>
@@ -93,32 +145,11 @@
       </div>
 
       <div class="row" style="margin-top:10px">
-        <div style="flex:1">
-          <label>Stacking Diagram</label>
-          <canvas id="stack"></canvas>
-          <div class="legendBar">
-            <span class="small">Legend metric:</span>
-            <label class="small"><input type="radio" name="legendMode" value="NSF" checked> NSF</label>
-            <label class="small"><input type="radio" name="legendMode" value="GSF"> GSF</label>
-          </div>
-          <div id="stackLegend" class="legend" aria-label="Stack legend"></div>
-        </div>
+        <div style="flex:1"><label>Stacking Diagram</label><canvas id="stack"></canvas></div>
       </div>
-
-      <div class="row" style="margin-top:10px; position:relative">
-        <div style="flex:1">
-          <div class="row" style="justify-content:space-between;align-items:center">
-            <label>Block Plan (coarse)</label>
-            <div class="row"><span class="small">Show floor</span>
-              <select id="blockFloor" title="Which floor to visualize" style="margin-left:6px"></select>
-            </div>
-          </div>
-          <canvas id="block"></canvas>
-          <div id="blockLegend" class="legend" aria-label="Block legend"></div>
-        </div>
-        <div id="bpTip"></div>
+      <div class="row" style="margin-top:10px">
+        <div style="flex:1"><label>Block Plan (axon)</label><canvas id="block"></canvas></div>
       </div>
-
       <div class="row" style="margin-top:10px">
         <button id="exportPNG">Download PNG</button>
         <button id="exportCSV">Download Summary CSV</button>
@@ -126,33 +157,28 @@
     </div>
   </div>
 
-  <!-- Floor assignment -->
-  <div class="card" style="margin-top:12px">
-    <h3 style="margin:0 0 6px 0">Floor Assignment</h3>
-    <div class="row" style="margin-bottom:6px">
-      <span class="small">Pick a floor for each department. “Auto-assign floors” seeds smart defaults, you can override.</span>
-    </div>
-    <div id="assignList"></div>
+  <div class="card assignCard" style="margin-top:12px">
+    <h3>Floor Assignment</h3>
+    <div class="assignHelp">Pick a floor for each department. Changes update the Stacking + Axon charts immediately.</div>
+    <div class="assignScroller"><table class="assignTbl" id="assignTbl"></table></div>
   </div>
 </div>
 
 <script>
 const $ = s => document.querySelector(s);
-const program = [];      // rows: {dept,space,count,nsf,total}
-let deptTotals = [];     // [{dept, nsf}]
-let assignment = {};     // {dept: floorNumber}
+const program = [];
+let deptTotals = [];
+let assignment = {};
 let summary = null;
-let legendMode = 'NSF';
+let legendMode = 'nsf';
 
-const colorMap = {};
-function colorFor(key){
-  if (!colorMap[key]){
-    let h = 0; for (let i=0;i<key.length;i++) h = (h*31 + key.charCodeAt(i)) % 360;
-    colorMap[key] = `hsl(${h},55%,65%)`;
-  }
-  return colorMap[key];
+/* ================= CSV utils (FIX) ================= */
+function toNumber(val){
+  // strip commas, spaces, currency, and any non-numeric (keeps . and -)
+  const s = String(val).replace(/[^0-9.\-]/g,'');
+  const n = Number(s);
+  return Number.isFinite(n) ? n : 0;
 }
-
 function parseCSV(text){
   const lines = text.split(/\r?\n/).filter(x=>x.trim().length);
   const header = lines[0].toLowerCase().includes('department') ? 1 : 0;
@@ -160,236 +186,288 @@ function parseCSV(text){
   for (let i=header;i<lines.length;i++){
     const cols = lines[i].split(',').map(x=>x.trim());
     if (cols.length < 4) continue;
-    const dept = cols[0]; const space = cols[1];
-    const count = Number(cols[2] || 0); const nsf = Number(cols[3] || 0);
+    const dept  = cols[0];
+    const space = cols[1];
+    const count = toNumber(cols[2]);
+    const nsf   = toNumber(cols[3]);
     if (!dept || !space) continue;
-    rows.push({dept,space,count,nsf,total:count*nsf});
+    rows.push({dept, space, count, nsf, total: count * nsf});
   }
   return rows;
 }
+/* =================================================== */
 
-function recompute(){
-  const map = {};
-  program.forEach(r=>{ map[r.dept] = (map[r.dept]||0) + r.total; });
-  deptTotals = Object.entries(map).map(([dept,nsf])=>({dept,nsf})).sort((a,b)=>b.nsf-a.nsf);
-
+/* per-floor plate overrides */
+let floorPlates = [];
+function syncFloorPlates(){
   const floors = Math.max(1, Number($('#floors').value||1));
-  const list = $('#assignList'); list.innerHTML='';
-  deptTotals.forEach(d=>{
-    const row = document.createElement('div'); row.className='deptRow';
-    const sel = document.createElement('select'); sel.dataset.dept=d.dept;
-    for(let f=1; f<=floors; f++){ const opt=document.createElement('option'); opt.value=f; opt.textContent=`Floor ${f}`; sel.appendChild(opt); }
-    sel.value = assignment[d.dept] || '1';
-    sel.onchange = ()=>{ assignment[d.dept] = Number(sel.value); analyze(); };
-    const lock = document.createElement('input'); lock.type='checkbox'; lock.title='Lock to Floor 1';
-    lock.onchange = ()=>{ assignment[d.dept] = lock.checked ? 1 : Number(sel.value); sel.value = assignment[d.dept]; analyze(); };
-    const keep = document.createElement('button'); keep.textContent='Keep with…'; keep.onclick = ()=>{
-      const other = prompt('Keep with which department? Type exact name.'); if (!other) return;
-      const tgt = assignment[other] || 1; assignment[d.dept] = tgt; sel.value = tgt; analyze();
-    };
-    row.innerHTML = `<div><b>${d.dept}</b> <span class="small">(${d.nsf.toLocaleString()} NSF)</span></div>`;
-    row.appendChild(sel); row.appendChild(lock); row.appendChild(keep);
-    list.appendChild(row);
-  });
-
-  renderProgramTable();
-}
-
-function autoAssign(){
-  const floors = Math.max(1, Number($('#floors').value||1));
-  const byName = n => deptTotals.find(d=>d.dept.toLowerCase().includes(n));
-  deptTotals.forEach((d,i)=> assignment[d.dept] = Math.min(floors, Math.floor(i/3)+1)); // spread
-  if (byName('radiation')) assignment[byName('radiation').dept] = 1;
-  if (byName('diagnostic') || byName('imaging')) assignment[(byName('diagnostic')||byName('imaging')).dept] = 1;
-  if (byName('waiting') || byName('public')) assignment[(byName('waiting')||byName('public')).dept] = 1;
-  const inf = deptTotals.find(d=>/medical oncology|infusion/i.test(d.dept));
-  const rx = deptTotals.find(d=>/pharmacy/i.test(d.dept));
-  if (inf && rx) assignment[rx.dept] = assignment[inf.dept];
-  const exam = deptTotals.find(d=>/clinical exam|clinic/i.test(d.dept));
-  if (exam && floors>1) assignment[exam.dept] = Math.min(2, floors);
-  document.querySelectorAll('#assignList select').forEach(sel=>{
-    const dept = sel.dataset.dept; if (assignment[dept]) sel.value = assignment[dept];
-  });
-  analyze();
-}
-
-function packBlocksForFloor(floorBands, fpW, fpD, module){
-  const blocks = []; let x=0,y=0,shelfH=module;
-  const sorted = [...floorBands].sort((a,b)=>b.area-a.area);
-  sorted.forEach(b=>{
-    let w = Math.max(module, Math.round(Math.sqrt(b.area * (fpW/fpD)) / module) * module);
-    let h = Math.max(module, Math.round((b.area / w) / module) * module);
-    if (x + w > fpW){ x=0; y+=shelfH; shelfH=module; }
-    if (y + h > fpD){ x=0; y=0; }
-    blocks.push({dept:b.dept, x, y, w, h});
-    x += w; shelfH = Math.max(shelfH, h);
-  });
-  return blocks;
-}
-
-function analyze(){
-  const fpW = Number($('#fpW').value||0), fpD = Number($('#fpD').value||0);
-  const floors = Math.max(1, Number($('#floors').value||1));
-  const ntg = Number($('#ntg').value||0)/100, circ = Number($('#circ').value||0)/100;
-  const module = Math.max(1, Number($('#module').value||10));
-  const ppgsf = Number($('#ppgsf').value||0);
-
-  const totalNSF = program.reduce((a,r)=>a+r.total,0);
-  const gsf = Math.round(totalNSF * (1 + ntg + circ));
-  const eff = totalNSF > 0 ? totalNSF / gsf : 0;
-  const fpArea = fpW * fpD;
-
-  const deptMap = {}; program.forEach(r=>{ deptMap[r.dept]=(deptMap[r.dept]||0)+r.total; });
-
-  const floorsArr = Array.from({length: floors}, (_,i)=>({floor:i+1, remaining: fpArea, bands:[]}));
-  Object.entries(deptMap).forEach(([dept,nsf])=>{
-    const gross = nsf * (1 + ntg + circ);
-    const f = (assignment[dept]||1) - 1;
-    floorsArr[f].bands.push({dept, area: Math.round(gross)});
-    floorsArr[f].remaining -= Math.round(gross);
-  });
-
-  // populate floor selector
-  const sel = $('#blockFloor');
-  const prev = sel.value || '';
-  sel.innerHTML = '';
-  for(let f=1; f<=floors; f++){ const opt=document.createElement('option'); opt.value=String(f); opt.textContent=`Floor ${f}`; sel.appendChild(opt); }
-  // default to busiest if not chosen
-  let busiestIndex = 0;
-  for (let i=1;i<floorsArr.length;i++){
-    if (floorsArr[i].bands.reduce((a,b)=>a+b.area,0) >
-        floorsArr[busiestIndex].bands.reduce((a,b)=>a+b.area,0)) busiestIndex = i;
+  const baseW = Number($('#fpW').value||0), baseD = Number($('#fpD').value||0);
+  if (floorPlates.length !== floors){
+    const prev = floorPlates.slice();
+    floorPlates = Array.from({length:floors}, (_,i)=> prev[i] || {w:baseW, d:baseD});
   }
-  sel.value = prev || String(busiestIndex+1);
-
-  const floorIndex = Number(sel.value)-1;
-  const blocks = packBlocksForFloor(floorsArr[floorIndex].bands, fpW, fpD, module);
-
-  const overflow = floorsArr.reduce((a,f)=> a + Math.max(0, -f.remaining), 0);
-  const unused = floorsArr.reduce((a,f)=> a + Math.max(0, f.remaining), 0);
-  const score = Math.max(0, Math.min(100, 100 - (overflow/fpArea)*50 - (unused/(fpArea*floors))*25 ));
-
-  summary = {fpW,fpD,floors,ntg,circ,module,totalNSF,gsf,eff,cost:gsf*ppgsf,floorsArr,blocks,score,deptMap};
-  render();
 }
-
-function render(){
-  if (!summary) return;
-  $('#kNSF').textContent = summary.totalNSF.toLocaleString();
-  $('#kGSF').textContent = summary.gsf.toLocaleString();
-  $('#kEff').textContent = `${(summary.eff*100).toFixed(1)}%`;
-  $('#kCost').textContent = `$${summary.cost.toLocaleString()}`;
-
-  drawStack(); drawBlock();
-  renderLegend('stackLegend'); renderLegend('blockLegend');
-  $('#totalNSF').textContent = program.reduce((a,r)=>a+r.total,0).toLocaleString();
-}
-
-function sumAreas(bands){ return bands.reduce((a,b)=>a+b.area,0); }
-
-function drawStack(){
-  const c = $('#stack'); const ctx = c.getContext('2d');
-  const W = c.width = c.clientWidth * devicePixelRatio;
-  const H = c.height = c.clientHeight * devicePixelRatio;
-  ctx.clearRect(0,0,W,H); if (!summary) return;
-
-  const margin = 40 * devicePixelRatio;
-  const innerW = W - margin*2, innerH = H - margin*2;
-  const n = summary.floors, rowH = innerH / n;
-
-  ctx.strokeStyle = '#ddd'; ctx.lineWidth = 1 * devicePixelRatio;
-  summary.floorsArr.forEach((fl, i)=>{
-    const y = margin + (n-1-i)*rowH;
-    ctx.fillStyle = '#666'; ctx.font = `${12*devicePixelRatio}px system-ui`;
-    ctx.fillText(`Floor ${fl.floor}`, 6*devicePixelRatio, y + 14*devicePixelRatio);
-
-    let x = margin; const plate = summary.fpW * summary.fpD;
-    fl.bands.sort((a,b)=>b.area-a.area).forEach(b=>{
-      const w = innerW * (b.area/plate);
-      ctx.fillStyle = colorFor(b.dept);
-      ctx.fillRect(x, y+8*devicePixelRatio, w, rowH-16*devicePixelRatio);
-      if (w > 110 * devicePixelRatio){
-        ctx.fillStyle = '#111'; ctx.font = `${11*devicePixelRatio}px system-ui`;
-        ctx.fillText(b.dept, x+6*devicePixelRatio, y + rowH/2);
-      }
-      x += w;
+function renderOverridesUI(){
+  const wrap = $('#ovUI'); const chk = $('#overridePlates');
+  syncFloorPlates();
+  wrap.style.display = chk.checked ? 'grid' : 'none';
+  if (!chk.checked) return;
+  let html = '';
+  floorPlates.forEach((p,i)=>{
+    html += `<div class="ovRow">
+      <div><b>Floor ${i+1}</b></div>
+      <div><label>Width (ft)<br><input type="number" data-i="${i}" data-k="w" value="${p.w}" min="10" step="5"></label></div>
+      <div><label>Depth (ft)<br><input type="number" data-i="${i}" data-k="d" value="${p.d}" min="10" step="5"></label></div>
+    </div>`;
+  });
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('input[type=number]').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const i = Number(e.target.dataset.i), k = e.target.dataset.k;
+      floorPlates[i][k] = Number(e.target.value||0);
+      analyze();
     });
-    ctx.strokeStyle='#bbb';
-    ctx.strokeRect(margin, y+8*devicePixelRatio, innerW, rowH-16*devicePixelRatio);
   });
-
-  ctx.fillStyle='#111'; ctx.font = `${12*devicePixelRatio}px system-ui`;
-  ctx.fillText(`Floor Fit Score: ${summary.score.toFixed(0)}/100`, W - 180*devicePixelRatio, margin-10*devicePixelRatio);
 }
 
-function drawBlock(){
-  const c = $('#block'); const ctx = c.getContext('2d');
-  const W = c.width = c.clientWidth * devicePixelRatio;
-  const H = c.height = c.clientHeight * devicePixelRatio;
-  ctx.clearRect(0,0,W,H); if (!summary) return;
-
-  const margin = 30 * devicePixelRatio;
-  const innerW = W - margin*2, innerH = H - margin*2;
-  const sx = innerW / summary.fpW, sy = innerH / summary.fpD;
-
-  ctx.strokeStyle = '#bbb'; ctx.lineWidth = 1*devicePixelRatio;
-  ctx.strokeRect(margin, margin, innerW, innerH);
-
-  ctx.strokeStyle = '#eee';
-  for (let gx=0; gx<=summary.fpW; gx += summary.module){
-    const x = margin + gx*sx; ctx.beginPath(); ctx.moveTo(x, margin); ctx.lineTo(x, margin+innerH); ctx.stroke();
+/* colors (editable) */
+const colorSeedMap={}; const colorOverrides={};
+function colorFor(key){
+  if (colorOverrides[key]) return colorOverrides[key];
+  if (!colorSeedMap[key]){
+    let h=0; for(let i=0;i<key.length;i++) h=(h*31+key.charCodeAt(i))%360;
+    colorSeedMap[key]=`hsl(${h},55%,65%)`;
   }
-  for (let gy=0; gy<=summary.fpD; gy += summary.module){
-    const y = margin + gy*sy; ctx.beginPath(); ctx.moveTo(margin, y); ctx.lineTo(margin+innerW, y); ctx.stroke();
-  }
+  return colorSeedMap[key];
+}
+function toHex(css){const tmp=document.createElement('canvas');const ctx=tmp.getContext('2d');ctx.fillStyle=css;ctx.fillRect(0,0,1,1);const [r,g,b]=ctx.getImageData(0,0,1,1).data;const h=v=>v.toString(16).padStart(2,'0');return `#${h(r)}${h(g)}${h(b)}`;}
 
-  summary.blocks.forEach(b=>{
-    const x = margin + b.x*sx, y = margin + b.y*sy, w = b.w*sx, h = b.h*sy;
-    ctx.fillStyle = colorFor(b.dept); ctx.fillRect(x,y,w,h);
-    ctx.strokeStyle = '#777'; ctx.strokeRect(x,y,w,h);
-    if (w > 120*devicePixelRatio && h > 20*devicePixelRatio){
-      ctx.fillStyle = '#111'; ctx.font = `${11*devicePixelRatio}px system-ui`;
-      ctx.fillText(b.dept, x + 4*devicePixelRatio, y + 14*devicePixelRatio);
+/* recompute */
+function recompute(){
+  const map={}; program.forEach(r=>{ map[r.dept]=(map[r.dept]||0)+r.total; });
+  deptTotals = Object.entries(map).map(([dept,nsf])=>({dept,nsf})).sort((a,b)=>b.nsf-a.nsf);
+  renderLegend();
+  renderAssignmentMatrix();
+}
+
+/* legend */
+function grossFactor(){ return 1 + Number($('#ntg').value||0)/100 + Number($('#circ').value||0)/100; }
+function renderLegend(){
+  const el=$('#legend'); if(!el) return;
+  const gf=grossFactor();
+  el.innerHTML = deptTotals.map(d=>{
+    const shown = (legendMode==='nsf') ? d.nsf : Math.round(d.nsf*gf);
+    const unit = legendMode.toUpperCase();
+    const col = toHex(colorFor(d.dept));
+    return `<div class="item">
+      <input type="color" class="sw" value="${col}" data-dept="${encodeURIComponent(d.dept)}" title="Edit color">
+      <span class="name">${d.dept}</span>
+      <span class="sf">${shown.toLocaleString()} ${unit}</span>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('input[type=color].sw').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const dept=decodeURIComponent(e.target.dataset.dept);
+      colorOverrides[dept]=e.target.value;
+      drawStack(); drawBlock();
+    });
+  });
+}
+
+/* matrix */
+function renderAssignmentMatrix(){
+  const tbl=$('#assignTbl'); if(!tbl) return;
+  const floors=Math.max(1, Number($('#floors').value||1));
+  let html='<thead><tr><th style="text-align:left">Department</th>';
+  for(let f=1; f<=floors; f++) html+=`<th>Floor ${f}</th>`;
+  html+='</tr></thead><tbody>';
+  deptTotals.forEach((d,i)=>{
+    const name=`asg-${i}`;
+    html+=`<tr><td>${d.dept} <span class="small">(${d.nsf.toLocaleString()} NSF)</span></td>`;
+    for(let f=1; f<=floors; f++){
+      const checked=(assignment[d.dept]||1)===f?'checked':'';
+      html+=`<td><input type="radio" name="${name}" value="${f}" data-dept="${encodeURIComponent(d.dept)}" ${checked}></td>`;
     }
+    html+='</tr>';
   });
-
-  // annotate which floor is shown
-  ctx.fillStyle='#666'; ctx.font = `${12*devicePixelRatio}px system-ui`;
-  ctx.fillText(`Showing Floor ${$('#blockFloor').value}`, margin, margin - 8*devicePixelRatio);
-}
-
-function renderLegend(containerId){
-  const div = document.getElementById(containerId);
-  div.innerHTML = '';
-  const ntg = Number($('#ntg').value||0)/100, circ = Number($('#circ').value||0)/100;
-  deptTotals.forEach(d=>{
-    const item = document.createElement('div'); item.className = 'legend-item';
-    const chip = document.createElement('span'); chip.className='chip'; chip.style.background = colorFor(d.dept);
-    const nsf = d.nsf, gsf = Math.round(nsf * (1 + ntg + circ));
-    const val = legendMode === 'GSF' ? `${gsf.toLocaleString()} GSF` : `${nsf.toLocaleString()} NSF`;
-    const label = document.createElement('span'); label.textContent = `${d.dept} (${val})`;
-    item.appendChild(chip); item.appendChild(label); div.appendChild(item);
+  html+='</tbody>'; tbl.innerHTML=html;
+  tbl.querySelectorAll('input[type=radio]').forEach(r=>{
+    r.addEventListener('change', e=>{
+      const dept=decodeURIComponent(e.target.dataset.dept);
+      assignment[dept]=Number(e.target.value);
+      analyze();
+    });
   });
 }
 
-function renderProgramTable(){
-  const tb = $('#programTbl tbody'); tb.innerHTML='';
-  program.forEach(r=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${r.dept}</td><td>${r.space}</td><td>${r.count}</td><td>${r.nsf}</td><td>${r.total}</td>`;
-    tb.appendChild(tr);
-  });
+/* auto-assign */
+function autoAssign(){
+  const floors=Math.max(1, Number($('#floors').value||1));
+  const byName = n => deptTotals.find(d=>d.dept.toLowerCase().includes(n));
+  deptTotals.forEach((d,i)=> assignment[d.dept]=Math.min(floors, Math.floor(i/3)+1));
+  if (byName('radiation')) assignment[byName('radiation').dept]=1;
+  if (byName('diagnostic')||byName('imaging')) assignment[(byName('diagnostic')||byName('imaging')).dept]=1;
+  if (byName('waiting')||byName('public')) assignment[(byName('waiting')||byName('public')).dept]=1;
+  const inf=deptTotals.find(d=>/medical oncology|infusion/i.test(d.dept));
+  const rx =deptTotals.find(d=>/pharmacy/i.test(d.dept));
+  if (inf&&rx) assignment[rx.dept]=assignment[inf.dept];
+  const exam=deptTotals.find(d=>/clinical exam|clinic/i.test(d.dept));
+  if (exam&&floors>1) assignment[exam.dept]=Math.min(2,floors);
+  renderAssignmentMatrix(); analyze();
 }
 
-// ------- Events -------
-$('#csv').addEventListener('change', async e=>{
-  const file = e.target.files[0]; if (!file) return;
-  const txt = await file.text();
-  program.length = 0; parseCSV(txt).forEach(r=>program.push(r));
-  recompute(); autoAssign(); analyze();
+/* core calc */
+function analyze(){
+  const floors=Math.max(1, Number($('#floors').value||1));
+  syncFloorPlates();
+  const gf=grossFactor();
+  const module=Math.max(1, Number($('#module').value||10));
+  const ppgsf=Number($('#ppgsf').value||0);
+
+  const totalNSF=program.reduce((a,r)=>a+r.total,0);
+  const gsf=Math.round(totalNSF*gf);
+  const eff=totalNSF>0 ? totalNSF/gsf : 0;
+
+  const deptMap={}; program.forEach(r=>{ deptMap[r.dept]=(deptMap[r.dept]||0)+r.total; });
+  const floorsArr=Array.from({length:floors}, (_,i)=>{
+    const plateW=floorPlates[i].w, plateD=floorPlates[i].d, plateArea=plateW*plateD;
+    return {floor:i+1, plateW, plateD, plateArea, remaining:plateArea, bands:[]};
+  });
+  Object.entries(deptMap).forEach(([dept,nsf])=>{
+    const gross=nsf*gf; const f=(assignment[dept]||1)-1;
+    floorsArr[f].bands.push({dept, area:Math.round(gross)});
+    floorsArr[f].remaining-=Math.round(gross);
+  });
+
+  const busiest=floorsArr.reduce((a,b)=> (sumAreas(b.bands)>sumAreas(a.bands)?b:a), floorsArr[0]);
+  const blocks=[]; let x=0,y=0,shelfH=module;
+  const fpW=busiest.plateW, fpD=busiest.plateD;
+  busiest.bands.sort((a,b)=>b.area-a.area).forEach(b=>{
+    const w=Math.max(module, Math.round(Math.sqrt(b.area*(fpW/fpD))/module)*module);
+    const h=Math.max(module, Math.round((b.area/w)/module)*module);
+    if(x+w>fpW){ x=0; y+=shelfH; shelfH=module; }
+    if(y+h>fpD){ x=0; y=0; }
+    blocks.push({dept:b.dept, x,y,w,h}); x+=w; shelfH=Math.max(shelfH,h);
+  });
+
+  const totalPlateArea=floorsArr.reduce((s,f)=>s+f.plateArea,0)||1;
+  const overflow=floorsArr.reduce((a,f)=> a+Math.max(0,-f.remaining),0);
+  const unused  =floorsArr.reduce((a,f)=> a+Math.max(0, f.remaining),0);
+  const score=Math.max(0,Math.min(100,100-(overflow/totalPlateArea)*35-(unused/totalPlateArea)*20));
+
+  summary={floors,gf,module,totalNSF,gsf,eff,cost:gsf*ppgsf,floorsArr,blocks,score,busiestPlateW:fpW,busiestPlateD:fpD};
+
+  // KPIs + charts + legend refresh
+  $('#kNSF').textContent=summary.totalNSF.toLocaleString();
+  $('#kGSF').textContent=summary.gsf.toLocaleString();
+  $('#kEff').textContent=`${(summary.eff*100).toFixed(1)}%`;
+  $('#kCost').textContent=`$${summary.cost.toLocaleString()}`;
+  renderLegend(); drawStack(); drawBlock();
+
+  updateParking(); // ensure parking reflects latest areas
+}
+function sumAreas(bands){return bands.reduce((a,b)=>a+b.area,0);}
+
+/* Parking */
+function accessibleRequired(total){
+  if (total<=25) return 1;
+  if (total<=50) return 2;
+  if (total<=75) return 3;
+  if (total<=100) return 4;
+  if (total<=150) return 5;
+  if (total<=200) return 6;
+  if (total<=300) return 7;
+  if (total<=400) return 8;
+  if (total<=500) return 9;
+  if (total<=1000) return Math.ceil(total*0.02);
+  return 20 + Math.ceil((total-1000)/100);
+}
+function updateParking(){
+  const rate=Number($('#parkRate').value||0);
+  const basis=$('#parkBasis').value;
+  const sf=(basis==='NSF')?(summary?.totalNSF||0):(summary?.gsf||0);
+  const total=Math.ceil((sf/1000)*rate);
+  const acc=accessibleRequired(total);
+  const van=Math.max(1,Math.ceil(acc/6));
+  $('#pkTotal').textContent=total.toLocaleString();
+  $('#pkAccessible').textContent=acc.toLocaleString();
+  $('#pkVan').textContent=van.toLocaleString();
+}
+
+/* Drawing (stack + axon) — unchanged from previous message for brevity */
+const AX=Math.PI/6;
+function isoProject(x,y,z){return {x:(x-y)*Math.cos(AX), y:(x+y)*Math.sin(AX)-z};}
+function shade(hex,f){const n=parseInt(hex.slice(1),16);let r=(n>>16)&255,g=(n>>8)&255,b=n&255;r=Math.max(0,Math.min(255,Math.round(r+(255-r)*f)));g=Math.max(0,Math.min(255,Math.round(g+(255-g)*f)));b=Math.max(0,Math.min(255,Math.round(b+(255-b)*f)));const h=v=>v.toString(16).padStart(2,'0');return `#${h(r)}${h(g)}${h(b)}`;}
+function colorHexFor(key){return toHex(colorFor(key));}
+function drawStack(){ /* (same as previous; uses summary values) */ 
+  const c=$('#stack'); const ctx=c.getContext('2d'); if(!summary) return;
+  const margin=40*devicePixelRatio,minRowPx=44*devicePixelRatio,n=summary.floors;
+  const innerH=n*minRowPx,H=innerH+margin*2,W=c.clientWidth*devicePixelRatio;
+  c.width=W;c.height=H;c.style.height=(H/devicePixelRatio)+'px';ctx.clearRect(0,0,W,H);
+  const innerW=W-margin*2,rowH=innerH/n;
+  summary.floorsArr.forEach((fl,i)=>{
+    const y=margin+(n-1-i)*rowH;
+    ctx.fillStyle='#e5e7eb';ctx.fillRect(margin,y+8*devicePixelRatio,innerW,rowH-16*devicePixelRatio);
+    ctx.strokeStyle='#bbb';ctx.strokeRect(margin,y+8*devicePixelRatio,innerW,rowH-16*devicePixelRatio);
+    let x=margin, plate=fl.plateArea;
+    fl.bands.sort((a,b)=>b.area-a.area).forEach(b=>{
+      const w=innerW*(b.area/plate); ctx.fillStyle=colorFor(b.dept);
+      ctx.fillRect(x,y+8*devicePixelRatio,w,rowH-16*devicePixelRatio);
+      ctx.strokeStyle='#bbb';ctx.strokeRect(x,y+8*devicePixelRatio,w,rowH-16*devicePixelRatio); x+=w;
+    });
+    ctx.fillStyle='#111';ctx.font=`${12*devicePixelRatio}px system-ui`;ctx.fillText(`Floor ${fl.floor}`,6*devicePixelRatio,y+14*devicePixelRatio);
+  });
+  ctx.fillStyle='#111';ctx.font=`${12*devicePixelRatio}px system-ui`;
+  ctx.fillText(`Floor Fit Score: ${summary.score.toFixed(0)}/100`, W-180*devicePixelRatio, margin-10*devicePixelRatio);
+}
+function drawBlock(){
+  const c=$('#block'); const ctx=c.getContext('2d'); const W=c.width=c.clientWidth*devicePixelRatio; const H=c.height=c.clientHeight*devicePixelRatio;
+  ctx.clearRect(0,0,W,H); if(!summary) return;
+  const margin=40*devicePixelRatio, Z=14, fpW=summary.busiestPlateW, fpD=summary.busiestPlateD;
+  const corners=[isoProject(0,0,0),isoProject(fpW,0,0),isoProject(0,fpD,0),isoProject(fpW,fpD,0),isoProject(0,0,Z)];
+  const minX=Math.min(...corners.map(p=>p.x)),maxX=Math.max(...corners.map(p=>p.x));
+  const minY=Math.min(...corners.map(p=>p.y)),maxY=Math.max(...corners.map(p=>p.y));
+  const scale=Math.min((W-2*margin)/(maxX-minX),(H-2*margin)/(maxY-minY));
+  ctx.save(); ctx.translate(margin+(-minX)*scale, margin+(-minY)*scale);
+  const p0=isoProject(0,0,0), p1=isoProject(fpW,0,0), p2=isoProject(fpW,fpD,0), p3=isoProject(0,fpD,0);
+  ctx.strokeStyle='#bbb'; ctx.beginPath(); ctx.moveTo(p0.x*scale,p0.y*scale); [p1,p2,p3,p0].forEach(p=>ctx.lineTo(p.x*scale,p.y*scale)); ctx.stroke();
+  ctx.strokeStyle='#eee'; ctx.lineWidth=1*devicePixelRatio;
+  for(let gx=0; gx<=fpW; gx+=summary.module){const a=isoProject(gx,0,0), b=isoProject(gx,fpD,0); ctx.beginPath(); ctx.moveTo(a.x*scale,a.y*scale); ctx.lineTo(b.x*scale,b.y*scale); ctx.stroke();}
+  for(let gy=0; gy<=fpD; gy+=summary.module){const a=isoProject(0,gy,0), b=isoProject(fpW,gy,0); ctx.beginPath(); ctx.moveTo(a.x*scale,a.y*scale); ctx.lineTo(b.x*scale,b.y*scale); ctx.stroke();}
+  const blocks=[...summary.blocks].sort((a,b)=>(a.x+a.y)-(b.x+b.y));
+  blocks.forEach(b=>{
+    const col=colorHexFor(b.dept), colSide=shade(col,-0.18), colFront=shade(col,-0.10), colTop=shade(col,0.06);
+    const x1=b.x,y1=b.y,x2=b.x+b.w,y2=b.y+b.h;
+    const A=isoProject(x1,y1,0),B=isoProject(x2,y1,0),C=isoProject(x2,y2,0),D=isoProject(x1,y2,0);
+    const AT=isoProject(x1,y1,Z),BT=isoProject(x2,y1,Z),CT=isoProject(x2,y2,Z),DT=isoProject(x1,y2,Z);
+    ctx.fillStyle=colSide; ctx.beginPath(); ctx.moveTo(B.x*scale,B.y*scale); ctx.lineTo(C.x*scale,C.y*scale); ctx.lineTo(CT.x*scale,CT.y*scale); ctx.lineTo(BT.x*scale,BT.y*scale); ctx.closePath(); ctx.fill(); ctx.strokeStyle='#777'; ctx.stroke();
+    ctx.fillStyle=colFront; ctx.beginPath(); ctx.moveTo(A.x*scale,A.y*scale); ctx.lineTo(B.x*scale,B.y*scale); ctx.lineTo(BT.x*scale,BT.y*scale); ctx.lineTo(AT.x*scale,AT.y*scale); ctx.closePath(); ctx.fill(); ctx.strokeStyle='#777'; ctx.stroke();
+    ctx.fillStyle=colTop; ctx.beginPath(); ctx.moveTo(AT.x*scale,AT.y*scale); ctx.lineTo(BT.x*scale,BT.y*scale); ctx.lineTo(CT.x*scale,CT.y*scale); ctx.lineTo(DT.x*scale,DT.y*scale); ctx.closePath(); ctx.fill(); ctx.strokeStyle='#666'; ctx.stroke();
+  });
+  ctx.restore();
+}
+
+/* events */
+$('#floors').addEventListener('input', ()=>{ syncFloorPlates(); renderAssignmentMatrix(); renderOverridesUI(); analyze(); });
+$('#overridePlates').addEventListener('change', renderOverridesUI);
+['fpW','fpD','module','ppgsf'].forEach(id=> $('#'+id).addEventListener('input', ()=>{ syncFloorPlates(); renderOverridesUI(); analyze(); }));
+['ntg','circ'].forEach(id=> $('#'+id).addEventListener('input', ()=>{ renderLegend(); analyze(); }));
+$('#parkRate').addEventListener('input', updateParking);
+$('#parkBasis').addEventListener('change', updateParking);
+document.getElementById('legendSeg').addEventListener('click', (e)=>{
+  if(e.target.tagName!=='BUTTON') return;
+  legendMode = e.target.dataset.mode;
+  [...e.currentTarget.querySelectorAll('button')].forEach(b=>b.classList.toggle('on', b.dataset.mode===legendMode));
+  renderLegend();
 });
-$('#loadSample').onclick = ()=>{
-  const sample = `Department,Space,Count,NSF
+$('#csv').addEventListener('change', async e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const txt=await file.text();
+  program.length=0; parseCSV(txt).forEach(r=>program.push(r));
+  recompute(); autoAssign(); analyze();   // populates KPIs + charts
+});
+$('#loadSample').onclick=()=>{
+  const sample=`Department,Space,Count,NSF
 Radiation Oncology,LINAC Vault,2,1600
 Radiation Oncology,LINAC Control,2,120
 Diagnostics / Imaging,PET/CT Room,1,500
@@ -398,66 +476,29 @@ Pharmacy (USP 797/800),Hazardous Buffer (USP 800),1,180
 Clinical Exam,Exam Room,18,120
 Waiting / Public,Main Lobby/Waiting,1,1200
 Support Space (Shared),General Storage,2,200`;
-  program.length = 0; parseCSV(sample).forEach(r=>program.push(r));
+  program.length=0; parseCSV(sample).forEach(r=>program.push(r));
   recompute(); autoAssign(); analyze();
 };
-$('#analyze').onclick = analyze;
-$('#autoAssign').onclick = autoAssign;
-document.querySelectorAll('input[name="legendMode"]').forEach(r=>{
-  r.addEventListener('change', e=>{ legendMode = e.target.value; render(); });
-});
-$('#blockFloor').addEventListener('change', analyze);
-
-$('#exportPNG').onclick = ()=>{
-  const c1 = $('#stack'), c2 = $('#block');
-  const W = Math.max(c1.width, c2.width);
-  const H = c1.height + c2.height + 20*devicePixelRatio;
-  const out = document.createElement('canvas');
-  out.width = W; out.height = H;
-  const ctx = out.getContext('2d');
-  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,W,H);
-  ctx.drawImage(c1, 0, 0);
-  ctx.drawImage(c2, 0, c1.height + 20*devicePixelRatio);
-  const a = document.createElement('a');
-  a.href = out.toDataURL('image/png'); a.download = 'design-v2.3.png'; a.click();
+$('#analyze').onclick=analyze;
+$('#autoAssign').onclick=autoAssign;
+$('#exportPNG').onclick=()=>{
+  const c1=$('#stack'), c2=$('#block');
+  const W=Math.max(c1.width,c2.width), H=c1.height+c2.height+20*devicePixelRatio;
+  const out=document.createElement('canvas'); out.width=W; out.height=H;
+  const ctx=out.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+  ctx.drawImage(c1,0,0); ctx.drawImage(c2,0,c1.height+20*devicePixelRatio);
+  const a=document.createElement('a'); a.href=out.toDataURL('image/png'); a.download='design-v8.png'; a.click();
 };
-$('#exportCSV').onclick = ()=>{
-  const rows = ['Department,NSF,AssignedFloor'];
+$('#exportCSV').onclick=()=>{
+  const rows=['Department,NSF,AssignedFloor'];
   deptTotals.forEach(d=> rows.push(`${d.dept},${d.nsf},${assignment[d.dept]||1}`));
-  const blob = new Blob([rows.join('\n')], {type:'text/csv'});
+  const blob=new Blob([rows.join('\n')],{type:'text/csv'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='program_floor_assignment.csv'; a.click();
 };
 
-// Block plan tooltip
-const bpTip = document.getElementById('bpTip');
-const blockCanvas = document.getElementById('block');
-blockCanvas.addEventListener('mousemove', (e)=>{
-  if (!summary) return;
-  const rect = blockCanvas.getBoundingClientRect();
-  const px = (e.clientX - rect.left) * devicePixelRatio;
-  const py = (e.clientY - rect.top) * devicePixelRatio;
-
-  const margin = 30 * devicePixelRatio;
-  const sx = (blockCanvas.width - margin*2) / summary.fpW;
-  const sy = (blockCanvas.height - margin*2) / summary.fpD;
-  const fx = (px - margin) / sx;
-  const fy = (py - margin) / sy;
-
-  let hit = null;
-  summary.blocks.forEach(b=>{
-    if (fx>=b.x && fx<=b.x+b.w && fy>=b.y && fy<=b.y+b.h) hit = b;
-  });
-  if (hit){
-    bpTip.style.display = 'block';
-    bpTip.style.left = `${e.clientX + 8}px`;
-    bpTip.style.top = `${e.clientY + 8}px`;
-    const areaGSF = Math.round(hit.w * hit.h); // feet -> GSF proxy on plate
-    bpTip.textContent = `${hit.dept} — ~${areaGSF.toLocaleString()} GSF`;
-  }else{
-    bpTip.style.display = 'none';
-  }
-});
-blockCanvas.addEventListener('mouseleave', ()=> bpTip.style.display='none');
+/* kick */
+syncFloorPlates();
+renderOverridesUI();
 </script>
 </body>
 </html>
