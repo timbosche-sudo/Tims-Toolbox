@@ -3,80 +3,208 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sustainability Calculator • BSA (V3)</title>
+<title>Sustainability Calculator • BSA</title>
+<meta name="color-scheme" content="light">
 <style>
-  :root{--bg:#0f172a;--panel:#111827;--ink:#e5e7eb;--muted:#94a3b8;--accent:#22c55e;--accent2:#06b6d4;}
-  *{box-sizing:border-box}
-  body{margin:0;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
-  header{padding:18px 24px;border-bottom:1px solid #1f2937;display:flex;gap:16px;align-items:center;position:sticky;top:0;background:#0b1220cc;backdrop-filter: blur(6px)}
-  h1{font-size:18px;margin:0}
-  .badge{font-size:12px;color:#10b981;background:#064e3b;padding:4px 8px;border-radius:999px}
-  main{display:grid;grid-template-columns:380px 1fr;gap:18px;padding:18px;min-height:100dvh}
-  .card{background:linear-gradient(180deg,#0f172a,#0b1220);border:1px solid #1f2937;border-radius:14px;padding:16px}
-  .stack{display:flex;flex-direction:column;gap:12px}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  label{font-size:13px;color:var(--muted)}
-  input,select{width:100%;padding:12px;border-radius:10px;border:1px solid #334155;background:#0b1220;color:var(--ink)}
-  .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-  .kpi .tile{background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:12px}
-  .kpi .big{font-size:22px;font-weight:700}
-  .tabs{display:flex;gap:8px;margin-top:8px}
-  .tab{padding:8px 12px;border:1px solid #1f2937;border-radius:999px;cursor:pointer;color:var(--muted)}
-  .tab.active{color:#10b981;border-color:#10b981;background:#052e2e}
-  .chart{height:280px;border:1px dashed #334155;border-radius:12px;display:grid;place-items:center;margin-top:10px;position:relative;overflow:hidden}
-  .bars{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;gap:22px;padding:24px;height:100%}
-  .bar{width:64px;background:linear-gradient(180deg,var(--accent),#14532d);border-radius:10px 10px 6px 6px;transition:height .25s;min-height:4px}
-  .bar.alt{background:linear-gradient(180deg,var(--accent2),#0e7490)}
-  .legend{position:absolute;left:14px;top:8px;font-size:12px;color:var(--muted)}
-  .foot{font-size:12px;color:var(--muted);margin-top:10px}
-  .pill{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #1f2937;background:#0b1220;color:#e2e8f0}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  button{padding:10px 14px;border-radius:10px;border:1px solid #1f2937;background:#0b1220;color:#e2e8f0;cursor:pointer}
-  button.primary{background:#065f46;border-color:#10b981}
-  .disclaimer{font-size:11px;color:#9ca3af}
+  :root{
+    /* Brand + UI */
+    --bsa-red:#de1c28;              /* from your SVG */
+    --header-bg:#374151;            /* charcoal to match clinic tool */
+    --header-ink:#ffffff;
+    --brand-ink:#0f172a;
+    --ink:#1f2937;
+    --muted:#6b7280;
+    --bg:#f3f4f6;
+    --panel:#ffffff;
+    --line:#e5e7eb;
+    --shadow:0 6px 18px rgba(0,0,0,0.06);
 
-  /* PRINT SHEET */
+    /* Data accents (to match clinic tool vibe) */
+    --primary:#0891b2; /* teal green */
+    --primary-weak:#95d5cf;
+    --neutral:#cbd5e1;
+    --highlight:#d61f2d; /* BSA red for comparison bars */
+
+    /* Print */
+    --p-ink:#0b1220;
+    --p-line:#e5e7eb;
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Header, charcoal bar + BSA mark + title */
+  header{
+    position:sticky; top:0; z-index:5;
+    display:flex; align-items:center; gap:12px;
+    padding:10px 16px;
+    background:var(--header-bg); color:var(--header-ink);
+    border-bottom:1px solid rgba(0,0,0,.08);
+  }
+  .brandwrap{display:flex; align-items:center; gap:10px; min-width:0}
+  .brandmark{display:flex; align-items:center}
+  .brandmark svg{height:22px; width:auto; display:block}
+  .brandtitle{font-size:16px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#fff}
+  .badge{font-size:12px; color:#fff; background:var(--bsa-red); padding:2px 8px; border-radius:999px}
+  .pill{font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.25); background:transparent; color:#e5e7eb; margin-left:auto}
+
+  /* Layout */
+  main{
+    display:grid; grid-template-columns:minmax(320px,380px) 1fr; gap:16px;
+    padding:16px; min-height:100dvh;
+  }
+  @media (max-width: 980px){
+    main{grid-template-columns:1fr}
+    .pill{display:none}
+  }
+
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px;
+    box-shadow:var(--shadow);
+  }
+  .stack{display:flex; flex-direction:column; gap:12px}
+  .row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  @media (max-width:680px){ .row{grid-template-columns:1fr} }
+
+  label{font-size:12px; color:var(--muted); display:block; margin-bottom:4px}
+  input,select,button{font:inherit}
+  input,select{
+    width:100%; padding:12px 12px; border-radius:10px;
+    background:#fff; border:1px solid var(--line); color:var(--ink);
+  }
+  input[type=number]{appearance:textfield}
+  input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{appearance:none;margin:0}
+
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  @media (max-width:420px){ .grid2{grid-template-columns:1fr} }
+
+  button{
+    padding:10px 14px; border-radius:10px; border:1px solid var(--line);
+    background:#fff; color:#111827; cursor:pointer;
+  }
+  button.primary{background:var(--bsa-red); border-color:var(--bsa-red); color:#fff}
+
+  .disclaimer{font-size:12px; color:#6b7280}
+
+  /* Tabs, light underline style */
+  .tabs{display:flex; gap:8px; border-bottom:1px solid var(--line); margin:-2px -2px 8px}
+  .tab{
+    padding:10px 12px; cursor:pointer; color:#6b7280; border-bottom:2px solid transparent;
+  }
+  .tab.active{color:#111827; border-color:var(--primary)}
+
+  /* KPI tiles */
+  .kpi{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  @media (max-width:680px){ .kpi{grid-template-columns:1fr} }
+  .tile{background:#fafafa; border:1px solid var(--line); border-radius:10px; padding:12px}
+  .tile .label{font-size:12px; color:#6b7280}
+  .tile .big{font-size:22px; font-weight:700}
+
+  /* Charts, simple bar cards similar to clinic tool */
+  .chart{
+    min-height:220px; border:1px solid var(--line); border-radius:10px; background:#fff;
+    display:grid; place-items:center; position:relative; overflow:hidden;
+  }
+  .legend{position:absolute; left:12px; top:10px; font-size:12px; color:#6b7280}
+  .bars{position:absolute; inset:0; display:flex; align-items:flex-end; justify-content:center; gap:22px; padding:28px 24px 18px}
+  .bar{
+    width:64px; min-height:6px; border-radius:8px 8px 6px 6px;
+    background:var(--primary); transition:height .25s ease;
+  }
+  .bar.alt{background:var(--highlight)}
+  .xlab{ text-align:center; margin-top:8px; font-size:12px; color:#6b7280}
+
+  .foot{font-size:12px; color:#6b7280; margin-top:8px}
+
+  /* Tiny color legend chips, optional */
+  .chips{display:flex; gap:12px; align-items:center}
+  .chip{display:inline-flex; align-items:center; gap:8px; font-size:12px; color:#6b7280}
+  .dot{width:14px; height:14px; border-radius:999px; background:var(--primary); border:1px solid rgba(0,0,0,.1)}
+  .dot.neutral{background:var(--neutral)}
+  .dot.highlight{background:var(--highlight)}
+
+  /* PRINT SHEET — light, one page */
   #printSheet{display:none}
   #printSheet *{box-sizing:border-box}
-  #printSheet{font:12px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;color:#0b1220;background:#fff;padding:0.5in}
-  #printHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-  #printTitle{font-size:18px;font-weight:700}
-  #printMeta{font-size:12px;color:#374151}
-  .print-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-  .card-p{border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#fff}
-  .kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-  .kpi-box{border:1px solid #e5e7eb;border-radius:10px;padding:10px}
-  .kpi-label{font-size:11px;color:#6b7280}
-  .kpi-big{font-size:18px;font-weight:700}
-  .barH{height:16px;border-radius:8px;background:#e5e7eb;position:relative;overflow:hidden}
-  .barH .fill{position:absolute;left:0;top:0;bottom:0;border-radius:8px}
-  .fill.base{background:#10b981}
-  .fill.prop{background:#06b6d4}
-  .caption{font-size:11px;color:#6b7280;margin-top:6px}
-  .small{font-size:11px;color:#6b7280}
-  .brand{font-size:11px;color:#6b7280;text-align:right;margin-top:8px}
-  @media print{ body{background:#fff} header,main{display:none!important} #printSheet{display:block!important} @page{size:letter;margin:0.5in} }
+  #printSheet{
+    font:12px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
+    color:var(--p-ink); background:#fff; padding:0.5in;
+  }
+  #printHeader{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px}
+  #printTitle{font-size:18px; font-weight:700}
+  #printMeta{font-size:12px; color:#374151}
+  .print-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+  .card-p{border:1px solid var(--p-line); border-radius:12px; padding:12px; background:#fff}
+  .kpi-row{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .kpi-box{border:1px solid var(--p-line); border-radius:10px; padding:10px}
+  .kpi-label{font-size:11px; color:#6b7280}
+  .kpi-big{font-size:18px; font-weight:700}
+  .barH{height:14px; border-radius:8px; background:#f3f4f6; position:relative; overflow:hidden}
+  .barH .fill{position:absolute; left:0; top:0; bottom:0; border-radius:8px}
+  .fill.base{background:var(--primary)}
+  .fill.prop{background:var(--highlight)}
+  .caption{font-size:11px; color:#6b7280; margin-top:6px}
+  .small{font-size:11px; color:#6b7280}
+  .brand{font-size:11px; color:#6b7280; text-align:right; margin-top:8px}
+  @media print{
+    body{background:#fff}
+    header,main{display:none!important}
+    #printSheet{display:block!important}
+    @page{size:letter; margin:0.5in}
+  }
 
-  /* DATA MODAL */
-  .modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:50}
-  .modal .sheet{width:min(720px,92vw);background:#0b1220;border:1px solid #1f2937;border-radius:14px;padding:16px}
-  .modal h3{margin:0 0 8px 0;font-size:16px}
-  .modal .row2{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
-  .modal .src{background:#0f172a;border:1px solid #1f2937;border-radius:12px;padding:12px;margin-top:10px}
-  .tag{display:inline-block;font-size:12px;padding:2px 8px;border:1px solid #1f2937;border-radius:999px;color:#94a3b8}
+  /* DATA MODAL (light) */
+  .modal{position:fixed; inset:0; background:#0007; display:none; align-items:center; justify-content:center; z-index:50}
+  .modal .sheet{width:min(720px,92vw); background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px; box-shadow:var(--shadow)}
+  .modal h3{margin:0 0 8px 0; font-size:16px}
+  .modal .row2{display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center}
+  .modal .src{background:#f8fafc; border:1px solid var(--line); border-radius:10px; padding:12px; margin-top:10px}
+  .tag{display:inline-block; font-size:12px; padding:2px 8px; border:1px solid var(--line); border-radius:999px; color:#475569; background:#fff}
 </style>
 </head>
 <body>
   <header>
-    <h1>Sustainability Calculator</h1><span class="badge">V3</span>
+    <div class="brandwrap">
+      <div class="brandmark" aria-label="BSA LifeStructures">
+        <!-- BSA LOGO SVG (exact from your file) -->
+        <svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 489.48" aria-hidden="true">
+          <defs><style>.cls-1{fill:#de1c28;}</style></defs>
+          <g id="Layer_1-2" data-name="Layer 1">
+            <g>
+              <path class="cls-1" d="M293.75,274.14c-18.01-17.42-43.03-29.48-74.49-35.97,10.29-3.5,19.76-7.87,28.31-13.06,12.42-7.55,23.01-16.55,31.47-26.76,8.49-10.23,15.1-21.55,19.63-33.64,4.55-12.12,6.86-24.88,6.86-37.94,0-19.6-3.3-37.44-9.8-53.02-6.55-15.65-16.73-29.1-30.28-39.96-13.45-10.79-30.68-19.07-51.24-24.62C193.81,3.67,169.47.89,141.87.89H0v488.17h159.56c25.83,0,49.28-3.08,69.68-9.16,20.53-6.11,38.1-15.08,52.22-26.65,14.19-11.63,25.15-26.02,32.59-42.76,7.42-16.69,11.19-35.7,11.19-56.5,0-32.78-10.59-59.65-31.5-79.85ZM41.9,35.3h99.98c41.85,0,73.1,8.15,92.9,24.23,19.59,15.9,29.52,39.78,29.52,70.98,0,12-2.32,23.81-6.9,35.11-4.54,11.26-11.75,21.49-21.42,30.39-9.7,8.94-22.36,16.26-37.61,21.75-15.31,5.51-34.09,8.3-55.81,8.3H41.9V35.3ZM252.76,427.72c-20.92,17.63-52.4,26.58-93.55,26.58H41.9v-195.87h117.67c19.75,0,37.63,2.24,53.13,6.67,15.39,4.4,28.5,10.78,38.97,18.96,10.41,8.14,18.49,18.14,24.01,29.73,5.53,11.59,8.34,24.88,8.34,39.51,0,31.89-10.51,56.93-31.25,74.42Z"/>
+              <path class="cls-1" d="M760.26.89h-38.97l-199.75,488.17h31.64c3.97,0,7.43-1.17,10.31-3.47,2.77-2.21,4.73-4.9,5.8-7.86l55.59-137.65h231.77l55.61,137.69c1.35,3.24,3.28,5.91,5.74,7.94,2.66,2.22,6.03,3.35,10.01,3.35h31.98L760.26.89ZM633.11,310.79l97.96-242.86c1.82-4.08,3.52-8.56,5.1-13.44,1.59-4.88,3.07-10.04,4.42-15.48,3.18,11.11,6.46,20.64,9.86,28.57l97.96,243.2h-215.31Z"/>
+              <g>
+                <path class="cls-1" d="M558.1,287.83l-14.66-7.98c-9.68-5.11-20.2-9.77-31.25-13.83-11.28-4.15-22.99-8.05-34.8-11.6-12.38-3.71-24.67-7.86-36.49-12.33-12.2-4.61-23.83-9.92-34.54-15.8-11.41-6.26-21.56-13.98-30.16-22.97-8.87-9.23-15.97-20.34-21.1-33.01-5.15-12.66-7.76-27.65-7.76-44.54s3.11-32.42,9.25-47.51c6.17-15.19,15.31-28.78,27.17-40.39,11.8-11.55,26.46-20.86,43.58-27.67,17.05-6.76,36.66-10.2,58.29-10.2,24.14,0,45.94,4.02,64.79,11.95,18.91,7.95,36.81,20.66,53.2,37.76l7.6,7.93-7.14,10.75c-2.98,5.24-8.62,8.48-14.98,8.48-5.25,0-10.17-2.26-15.06-6.91-2.13-2.03-4.91-4.59-8.33-7.7-3.1-2.8-7.08-5.97-11.85-9.43-4.35-3.15-9.77-6.15-16.09-8.93-6.38-2.8-13.95-5.18-22.49-7.07-8.42-1.86-18.4-2.8-29.65-2.8-17.05,0-32.26,2.61-45.17,7.76-12.85,5.12-23.7,11.95-32.23,20.29-8.49,8.3-15.03,18.04-19.45,28.95-4.48,11.03-6.75,22.71-6.75,34.72,0,15.24,2.86,27.88,8.51,37.57,5.93,10.16,13.8,18.84,23.39,25.79,10.14,7.36,22.01,13.59,35.28,18.51,14.26,5.29,28.96,10.45,43.7,15.32,15,4.97,30.04,10.3,44.7,15.85,7.88,2.99,15.48,6.47,22.6,10.36l10.55,5.76-12.65,32.89Z"/>
+                <path class="cls-1" d="M470.51,489.48h-9.6c-16.61,0-31.74-1.49-44.94-4.44-13.35-2.98-25.79-7.35-36.98-13-10.81-5.46-20.95-12.19-30.16-20l-11.16-9.47,10.17-10.53c1.15-1.19,2.2-2.48,3.25-3.75l10.21-12.24,10.54,8.94c1.94,1.64,3.94,3.32,6.14,5.04,5.37,4.22,12.08,8.3,19.96,12.15,7.85,3.83,17.07,7.04,27.37,9.54,10.19,2.48,22.13,3.74,35.48,3.74l2.61-.12,20.35-.35-13.25,34.5Z"/>
+              </g>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div class="brandtitle">Sustainability Calculator</div>
+      <span class="badge">V3</span>
+    </div>
     <span class="pill" id="projectNamePill">Project: Untitled</span>
   </header>
 
   <main>
+    <!-- Inputs -->
     <section class="card stack" id="inputs">
+      <div class="chips" aria-hidden="true">
+        <span class="chip"><span class="dot"></span>Primary</span>
+        <span class="chip"><span class="dot neutral"></span>Neutral</span>
+        <span class="chip"><span class="dot highlight"></span>Highlight</span>
+      </div>
+
       <div class="stack">
         <div class="row">
-          <div><label>Project name</label><input id="projectName" placeholder="e.g., UNC Clayton Women's Hospital" /></div>
+          <div><label>Project name</label><input id="projectName" placeholder="e.g., UNC Clayton Women's Hospital"></div>
           <div><label>Location</label>
             <select id="location">
               <option value="MROE">Midwest</option>
@@ -86,30 +214,37 @@
             </select>
           </div>
         </div>
+
         <div class="row">
           <div><label>Gross floor area, ft²</label><input id="gfa" type="number" value="70000"></div>
           <div><label>Analysis period, years</label><input id="years" type="number" value="20"></div>
         </div>
+
         <div class="row">
           <div><label>Baseline EUI, kBtu/ft²·yr</label><input id="euiBase" type="number" value="210"></div>
           <div><label>Improved EUI, kBtu/ft²·yr</label><input id="euiProp" type="number" value="165"></div>
         </div>
+
         <div class="row">
           <div><label>Electricity rate, $/kWh</label><input id="rateElec" type="number" value="0.12" step="0.001"></div>
           <div><label>Natural gas rate, $/therm</label><input id="rateGas" type="number" value="0.90" step="0.01"></div>
         </div>
+
         <div class="row">
           <div><label>Grid emissions factor, kg CO₂e/kWh</label><input id="kgCO2perKWh" type="number" value="0.38" step="0.01"></div>
           <div><label>Water rate, $/kgal</label><input id="rateWater" type="number" value="9.50" step="0.01"></div>
         </div>
+
         <div class="row">
           <div><label>Water baseline, gal/ft²·yr</label><input id="waterBase" type="number" value="13"></div>
           <div><label>Water improved, gal/ft²·yr</label><input id="waterProp" type="number" value="9"></div>
         </div>
+
         <div class="grid2">
           <button id="shareBtn">Copy sharable URL</button>
           <button class="primary" id="resetBtn">Reset to defaults</button>
         </div>
+
         <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
           <button id="printBtn">Print summary (PDF)</button>
           <button id="dataBtn">Data</button>
@@ -118,11 +253,12 @@
       </div>
     </section>
 
+    <!-- Charts -->
     <section class="card">
-      <div class="tabs">
-        <div class="tab active" data-tab="energy">Energy</div>
-        <div class="tab" data-tab="water">Water</div>
-        <div class="tab" data-tab="carbon">Carbon</div>
+      <div class="tabs" role="tablist">
+        <div class="tab active" data-tab="energy" role="tab" aria-selected="true">Energy</div>
+        <div class="tab" data-tab="water" role="tab" aria-selected="false">Water</div>
+        <div class="tab" data-tab="carbon" role="tab" aria-selected="false">Carbon</div>
       </div>
 
       <div id="panel-energy" class="stack">
@@ -131,16 +267,17 @@
           <div class="tile"><div class="label">Annual energy cost, proposed</div><div id="kpiEProp" class="big">$0</div></div>
           <div class="tile"><div class="label">Annual savings</div><div id="kpiESav" class="big">$0</div></div>
         </div>
+
         <div class="chart">
           <div class="legend">Annual energy use and cost</div>
           <div class="bars">
             <div>
               <div class="bar" id="barEUIBase"></div>
-              <div style="text-align:center;margin-top:8px;font-size:12px;color:var(--muted)">Baseline</div>
+              <div class="xlab">Baseline</div>
             </div>
             <div>
               <div class="bar alt" id="barEUIProp"></div>
-              <div style="text-align:center;margin-top:8px;font-size:12px;color:var(--muted)">Proposed</div>
+              <div class="xlab">Proposed</div>
             </div>
           </div>
         </div>
@@ -152,16 +289,17 @@
           <div class="tile"><div class="label">Annual water cost, proposed</div><div id="kpiWProp" class="big">$0</div></div>
           <div class="tile"><div class="label">Annual savings</div><div id="kpiWSav" class="big">$0</div></div>
         </div>
+
         <div class="chart">
           <div class="legend">Annual water use and cost</div>
           <div class="bars">
             <div>
               <div class="bar" id="barWBase"></div>
-              <div style="text-align:center;margin-top:8px;font-size:12px;color:var(--muted)">Baseline</div>
+              <div class="xlab">Baseline</div>
             </div>
             <div>
               <div class="bar alt" id="barWProp"></div>
-              <div style="text-align:center;margin-top:8px;font-size:12px;color:var(--muted)">Proposed</div>
+              <div class="xlab">Proposed</div>
             </div>
           </div>
         </div>
@@ -173,22 +311,23 @@
           <div class="tile"><div class="label">Annual scope 2, proposed</div><div id="kpiCProp" class="big">0 tCO₂e</div></div>
           <div class="tile"><div class="label">Annual reduction</div><div id="kpiCSav" class="big">0 tCO₂e</div></div>
         </div>
+
         <div class="chart">
           <div class="legend">Annual scope 2 emissions</div>
           <div class="bars">
             <div>
               <div class="bar" id="barCBase"></div>
-              <div style="text-align:center;margin-top:8px;font-size:12px;color:var(--muted)">Baseline</div>
+              <div class="xlab">Baseline</div>
             </div>
             <div>
               <div class="bar alt" id="barCProp"></div>
-              <div style="text-align:center;margin-top:8px;font-size:12px;color:var(--muted)">Proposed</div>
+              <div class="xlab">Proposed</div>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="foot">Tip: use this as a conversation guide, then run the PDF print for a one-pager.</div>
+      <div class="foot">Use this as a conversation guide, then print a one-pager.</div>
     </section>
   </main>
 
@@ -229,10 +368,12 @@
         <div class="barH"><div id="pBarEBase" class="fill base" style="width:60%"></div></div>
         <div class="barH" style="margin-top:6px"><div id="pBarEProp" class="fill prop" style="width:30%"></div></div>
         <div class="caption">Bars show relative annual energy use based on EUI inputs.</div>
+
         <div style="font-weight:700;margin:14px 0 6px">Water comparison</div>
         <div class="barH"><div id="pBarWBase" class="fill base" style="width:60%"></div></div>
         <div class="barH" style="margin-top:6px"><div id="pBarWProp" class="fill prop" style="width:30%"></div></div>
         <div class="caption">Bars show relative annual water use based on intensity inputs.</div>
+
         <div style="font-weight:700;margin:14px 0 6px">Carbon comparison</div>
         <div class="barH"><div id="pBarCBase" class="fill base" style="width:60%"></div></div>
         <div class="barH" style="margin-top:6px"><div id="pBarCProp" class="fill prop" style="width:30%"></div></div>
@@ -244,20 +385,20 @@
   </section>
 
   <!-- DATA MODAL -->
-  <div id="dataModal" class="modal">
+  <div id="dataModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="dataTitle">
     <div class="sheet">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <h3>Data Adapter</h3>
+        <h3 id="dataTitle">Data Adapter</h3>
         <button id="dataClose">Close</button>
       </div>
 
       <div class="src">
         <div style="display:flex;gap:8px;align-items:center;">
           <div class="tag">Electricity & Gas Rates</div>
-          <small style="color:#94a3b8">EIA Open Data, requires key</small>
+          <small style="color:#475569">EIA Open Data, requires key</small>
         </div>
         <div class="row2">
-          <input id="eiaKey" placeholder="EIA_API_KEY (stored locally)" />
+          <input id="eiaKey" placeholder="EIA_API_KEY (stored locally)">
           <button id="saveEIAKey">Save key</button>
         </div>
         <div class="row2">
@@ -273,31 +414,31 @@
             <a href="https://www.eia.gov/opendata/" target="_blank" rel="noopener"><button>Open source</button></a>
           </div>
         </div>
-        <small style="color:#9ca3af">Fills: Electricity $/kWh and Gas $/therm</small>
+        <small style="color:#64748b">Fills: Electricity $/kWh and Gas $/therm</small>
       </div>
 
       <div class="src">
         <div style="display:flex;gap:8px;align-items:center;">
           <div class="tag">Grid Emissions Factor</div>
-          <small style="color:#94a3b8">EPA Power Profiler</small>
+          <small style="color:#475569">EPA Power Profiler</small>
         </div>
         <div class="row2">
-          <input id="zipEF" placeholder="ZIP code for region lookup" />
+          <input id="zipEF" placeholder="ZIP code for region lookup">
           <div style="display:flex;gap:8px">
             <button id="fetchEF">Estimate EF</button>
             <a href="https://www.epa.gov/egrid/power-profiler" target="_blank" rel="noopener"><button>Open source</button></a>
           </div>
         </div>
-        <small style="color:#9ca3af">Fills: kg CO₂e/kWh (estimate, confirm via EPA)</small>
+        <small style="color:#64748b">Fills: kg CO₂e/kWh (estimate, confirm via EPA)</small>
       </div>
 
       <div class="src">
         <div style="display:flex;gap:8px;align-items:center;">
           <div class="tag">Water & Sewer</div>
-          <small style="color:#94a3b8">Use local utility or paste</small>
+          <small style="color:#475569">Use local utility or paste</small>
         </div>
         <div class="row2">
-          <input id="waterRatePaste" placeholder="Paste $/kgal from utility site" />
+          <input id="waterRatePaste" placeholder="Paste $/kgal from utility site">
           <button id="applyWater">Apply to field</button>
         </div>
       </div>
@@ -305,11 +446,22 @@
   </div>
 
 <script>
-(function(){const bar=document.createElement('div');bar.id='errbar';bar.style.cssText="display:none;position:fixed;left:0;right:0;top:0;z-index:9999;background:#7f1d1d;color:#fff;padding:8px 12px;font:14px/1.3 system-ui";document.body.appendChild(bar);window.onerror=function(msg,src,line,col){bar.textContent="Script error: "+msg+" ("+line+":"+col+")";bar.style.display='block';};})();
+/* Minimal error bar */
+(function(){
+  const bar=document.createElement('div');
+  bar.id='errbar';
+  bar.style.cssText="display:none;position:fixed;left:0;right:0;top:0;z-index:9999;background:#7f1d1d;color:#fff;padding:8px 12px;font:14px/1.3 system-ui";
+  document.body.appendChild(bar);
+  window.onerror=function(msg,src,line,col){
+    bar.textContent="Script error: "+msg+" ("+line+":"+col+")";
+    bar.style.display='block';
+  };
+})();
 
 const fmtUSD = n => n.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});
 const fmtTons = n => n.toLocaleString(undefined,{maximumFractionDigits:0}) + " tCO\u2082e";
 
+/* Tabs */
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
   t.classList.add('active');
@@ -318,13 +470,21 @@ document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
     const el=document.getElementById('panel-'+id);
     el.style.display = id===name ? 'block' : 'none';
   });
+  document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected', x===t ? 'true' : 'false'));
 }));
 
 const ids=['projectName','location','gfa','years','euiBase','euiProp','rateElec','rateGas','kgCO2perKWh','rateWater','waterBase','waterProp'];
-function hookInputs(){ ids.forEach(id=>{const el=document.getElementById(id); if(!el) return; ['input','change','keyup'].forEach(ev=>el.addEventListener(ev,()=>{calc();persist();}));}); }
+
+function hookInputs(){
+  ids.forEach(id=>{
+    const el=document.getElementById(id); if(!el) return;
+    ['input','change','keyup'].forEach(ev=>el.addEventListener(ev,()=>{calc();persist();}));
+  });
+}
 function wireButtons(){
   document.getElementById('shareBtn').addEventListener('click',()=>{
-    const p=new URLSearchParams(); ids.forEach(id=>p.set(id,document.getElementById(id).value));
+    const p=new URLSearchParams();
+    ids.forEach(id=>p.set(id,document.getElementById(id).value));
     const url=location.origin+location.pathname+'?'+p.toString();
     if(navigator.clipboard?.writeText){navigator.clipboard.writeText(url).then(()=>alert('Sharable URL copied.'));} else {prompt("Copy this URL",url);}
   });
@@ -333,8 +493,15 @@ function wireButtons(){
 }
 function initValues(){
   const qs=new URLSearchParams(location.search);
-  if(qs.size){ ids.forEach(id=>{const v=qs.get(id); if(v!==null) document.getElementById(id).value=v;}); }
-  else { const saved=localStorage.getItem('sustCalc'); if(saved){const obj=JSON.parse(saved); ids.forEach(id=>{ if(obj[id]!==undefined) document.getElementById(id).value=obj[id]; });}}
+  if(qs.size){
+    ids.forEach(id=>{const v=qs.get(id); if(v!==null) document.getElementById(id).value=v;});
+  }else{
+    const saved=localStorage.getItem('sustCalc');
+    if(saved){
+      const obj=JSON.parse(saved);
+      ids.forEach(id=>{ if(obj[id]!==undefined) document.getElementById(id).value=obj[id]; });
+    }
+  }
   persist();
 }
 function persist(){
@@ -343,13 +510,14 @@ function persist(){
   document.getElementById('projectNamePill').textContent="Project: "+(obj.projectName||"Untitled");
 }
 
+/* Scales to container height, no fixed px so it behaves on iPad */
 function scaleBars(idA,idB,a,b){
   const max=Math.max(a,b,1);
   [[idA,a],[idB,b]].forEach(([id,val])=>{
     const el=document.getElementById(id); if(!el) return;
     const bars=el.closest('.bars'); if(!bars) return;
-    const innerH=Math.max(0,bars.clientHeight-48);
-    const px=Math.max(4,(0.08*innerH)+(0.78*innerH)*(val/max));
+    const innerH=Math.max(0,bars.clientHeight-54);
+    const px=Math.max(6,(0.08*innerH)+(0.78*innerH)*(val/max));
     el.style.height=px+'px';
   });
 }
@@ -357,21 +525,31 @@ function scaleBars(idA,idB,a,b){
 function calc(){
   const num=id=>+document.getElementById(id).value||0;
   const gfa=num('gfa'); const euiBase=num('euiBase'); const euiProp=num('euiProp');
+
   const kBtu_base=euiBase*gfa, kBtu_prop=euiProp*gfa;
   const kWh_base=(kBtu_base*0.7)/3.412, kWh_prop=(kBtu_prop*0.7)/3.412;
   const therm_base=(kBtu_base*0.3)/100, therm_prop=(kBtu_prop*0.3)/100;
+
   const eCostBase=kWh_base*num('rateElec') + therm_base*num('rateGas');
   const eCostProp=kWh_prop*num('rateElec') + therm_prop*num('rateGas');
-  setText('kpiEBase',fmtUSD(eCostBase)); setText('kpiEProp',fmtUSD(eCostProp)); setText('kpiESav',fmtUSD(eCostBase-eCostProp));
+
+  setText('kpiEBase',fmtUSD(eCostBase));
+  setText('kpiEProp',fmtUSD(eCostProp));
+  setText('kpiESav',fmtUSD(eCostBase-eCostProp));
   scaleBars('barEUIBase','barEUIProp',euiBase,euiProp);
 
   const waterBase=gfa*num('waterBase'), waterProp=gfa*num('waterProp');
   const wCostBase=(waterBase/1000)*num('rateWater'), wCostProp=(waterProp/1000)*num('rateWater');
-  setText('kpiWBase',fmtUSD(wCostBase)); setText('kpiWProp',fmtUSD(wCostProp)); setText('kpiWSav',fmtUSD(wCostBase-wCostProp));
+
+  setText('kpiWBase',fmtUSD(wCostBase));
+  setText('kpiWProp',fmtUSD(wCostProp));
+  setText('kpiWSav',fmtUSD(wCostBase-wCostProp));
   scaleBars('barWBase','barWProp',waterBase,waterProp);
 
   const kgCO2=num('kgCO2perKWh'); const tBase=(kWh_base*kgCO2)/1000, tProp=(kWh_prop*kgCO2)/1000;
-  setText('kpiCBase',fmtTons(tBase)); setText('kpiCProp',fmtTons(tProp)); setText('kpiCSav',fmtTons(tBase-tProp));
+  setText('kpiCBase',fmtTons(tBase));
+  setText('kpiCProp',fmtTons(tProp));
+  setText('kpiCSav',fmtTons(tBase-tProp));
   scaleBars('barCBase','barCProp',tBase,tProp);
 }
 function setText(id,txt){const el=document.getElementById(id); if(el) el.textContent=txt;}
@@ -381,6 +559,7 @@ function renderPrintSummary(){
   const loc=document.getElementById('location').value;
   const gfa=+document.getElementById('gfa').value||0;
   document.getElementById('printMeta').textContent=`${proj} • ${gfa.toLocaleString()} ft² • Region: ${loc}`;
+
   const num=id=>+document.getElementById(id).value||0;
   const euiBase=num('euiBase'), euiProp=num('euiProp');
   const kBtu_base=euiBase*gfa, kBtu_prop=euiProp*gfa;
@@ -388,24 +567,31 @@ function renderPrintSummary(){
   const therm_base=(kBtu_base*0.3)/100, therm_prop=(kBtu_prop*0.3)/100;
   const eCostBase=kWh_base*num('rateElec') + therm_base*num('rateGas');
   const eCostProp=kWh_prop*num('rateElec') + therm_prop*num('rateGas');
+
   const waterBase=gfa*num('waterBase'), waterProp=gfa*num('waterProp');
   const wCostBase=(waterBase/1000)*num('rateWater'), wCostProp=(waterProp/1000)*num('rateWater');
+
   const kgCO2=num('kgCO2perKWh'); const tBase=(kWh_base*kgCO2)/1000, tProp=(kWh_prop*kgCO2)/1000;
+
   setText('pEBase',fmtUSD(eCostBase)); setText('pEProp',fmtUSD(eCostProp)); setText('pESav',fmtUSD(eCostBase-eCostProp));
   setText('pWBase',fmtUSD(wCostBase)); setText('pWProp',fmtUSD(wCostProp)); setText('pWSav',fmtUSD(wCostBase-wCostProp));
   setText('pCBase',tBase.toLocaleString(undefined,{maximumFractionDigits:0})+' tCO₂e');
   setText('pCProp',tProp.toLocaleString(undefined,{maximumFractionDigits:0})+' tCO₂e');
   setText('pCSav',(tBase-tProp).toLocaleString(undefined,{maximumFractionDigits:0})+' tCO₂e');
+
   const widthPct=(a,b)=>{const m=Math.max(a,b,1); return [a/m*100,b/m*100];};
   let [w1,w2]=widthPct(kBtu_base,kBtu_prop); document.getElementById('pBarEBase').style.width=Math.max(8,w1)+'%'; document.getElementById('pBarEProp').style.width=Math.max(8,w2)+'%';
   [w1,w2]=widthPct(waterBase,waterProp); document.getElementById('pBarWBase').style.width=Math.max(8,w1)+'%'; document.getElementById('pBarWProp').style.width=Math.max(8,w2)+'%';
   [w1,w2]=widthPct(tBase,tProp); document.getElementById('pBarCBase').style.width=Math.max(8,w1)+'%'; document.getElementById('pBarCProp').style.width=Math.max(8,w2)+'%';
 }
 
-// Data Adapter
+/* Data Adapter */
 (function(){
   const modal=document.getElementById('dataModal');
-  document.getElementById('dataBtn').addEventListener('click',()=>{modal.style.display='flex'; document.getElementById('eiaKey').value=localStorage.getItem('EIA_API_KEY')||'';});
+  document.getElementById('dataBtn').addEventListener('click',()=>{
+    modal.style.display='flex';
+    document.getElementById('eiaKey').value=localStorage.getItem('EIA_API_KEY')||'';
+  });
   document.getElementById('dataClose').addEventListener('click',()=>modal.style.display='none');
 
   document.getElementById('saveEIAKey').addEventListener('click',()=>{
@@ -423,10 +609,20 @@ function renderPrintSummary(){
         fetch(`https://api.eia.gov/series/?api_key=${key}&series_id=${eSeries}`),
         fetch(`https://api.eia.gov/series/?api_key=${key}&series_id=${gSeries}`)
       ]);
-      if(eResp.ok){const j=await eResp.json(); const cents=j?.series?.[0]?.data?.[0]?.[1]; if(typeof cents==='number') document.getElementById('rateElec').value=(cents/100).toFixed(3);}
-      if(gResp.ok){const j=await gResp.json(); const mcf=j?.series?.[0]?.data?.[0]?.[1]; if(typeof mcf==='number') document.getElementById('rateGas').value=(mcf/10).toFixed(2);}
+      if(eResp.ok){
+        const j=await eResp.json();
+        const cents=j?.series?.[0]?.data?.[0]?.[1];
+        if(typeof cents==='number') document.getElementById('rateElec').value=(cents/100).toFixed(3);
+      }
+      if(gResp.ok){
+        const j=await gResp.json();
+        const mcf=j?.series?.[0]?.data?.[0]?.[1];
+        if(typeof mcf==='number') document.getElementById('rateGas').value=(mcf/10).toFixed(2);
+      }
       calc(); persist(); alert('Rates updated from EIA (where available).');
-    }catch(e){alert('Could not fetch from EIA. Use Open source then paste.');}
+    }catch(e){
+      alert('Could not fetch from EIA. Use Open source then paste.');
+    }
   });
 
   document.getElementById('fetchEF').addEventListener('click',()=>{
@@ -440,7 +636,10 @@ function renderPrintSummary(){
   document.getElementById('applyWater').addEventListener('click',()=>{
     const v=document.getElementById('waterRatePaste').value.trim();
     const num=parseFloat(v.replace(/[^\d.]/g,''));
-    if(Number.isFinite(num)){document.getElementById('rateWater').value=num.toFixed(2); calc(); persist();}
+    if(Number.isFinite(num)){
+      document.getElementById('rateWater').value=num.toFixed(2);
+      calc(); persist();
+    }
   });
 })();
 
