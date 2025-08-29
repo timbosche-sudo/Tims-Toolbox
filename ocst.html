@@ -1,11 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Outpatient Clinic Scenario Tool</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Outpatient Clinic Scenario Tool</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
     :root{
       --primary-color:#007C78;
       --primary-hover:#005e5b;
@@ -76,18 +77,10 @@
       box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
       overflow: hidden;
     }
-	@media (min-width: 1024px) {
-    .inputs-container {
-      grid-template-columns: repeat(4, 1fr); /* Group 4 fields per row */
-    }
-
-    .charts-row {
-      grid-template-columns: repeat(3, 1fr); /* 3 charts per row */
-    }
 
     .inputs-container {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 12px;
       padding: 15px 25px;
       background-color: #fff;
@@ -191,103 +184,109 @@
         color-adjust: exact;
         zoom: 0.95;
       }
-	  .wrapper {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
     }
   </style>
+<style>
+  .charts-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .chart-card {
+    margin-bottom: 20px;
+    width: 100%;
+  }
+
+  .wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+</style>
+
 </head>
-</div> <!-- close wrapper -->
-<body>
-	 <div class="wrapper">
-       <!-- existing content -->
-       </div>
-  <header>
-    <div class="brand">
-      <div class="logo" aria-label="BSA LifeStructures logo" role="img">
-        <!-- Inline SVG logo (no XML declaration) -->
-        <svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 489.48" aria-hidden="true" focusable="false">
-          <defs>
-            <style>.cls-1 { fill: #de1c28; }</style>
-          </defs>
-          <g id="Layer_1-2" data-name="Layer 1">
-            <g>
-              <path class="cls-1" d="M293.75,274.14c-18.01-17.42-43.03-29.48-74.49-35.97,10.29-3.5,19.76-7.87,28.31-13.06,12.42-7.55,23.01-16.55,31.47-26.76,8.49-10.23,15.1-21.55,19.63-33.64,4.55-12.12,6.86-24.88,6.86-37.94,0-19.6-3.3-37.44-9.8-53.02-6.55-15.65-16.73-29.1-30.28-39.96-13.45-10.79-30.68-19.07-51.24-24.62C193.81,3.67,169.47.89,141.87.89H0v488.17h159.56c25.83,0,49.28-3.08,69.68-9.16,20.53-6.11,38.1-15.08,52.22-26.65,14.19-11.63,25.15-26.02,32.59-42.76,7.42-16.69,11.19-35.7,11.19-56.5,0-32.78-10.59-59.65-31.5-79.85ZM41.9,35.3h99.98c41.85,0,73.1,8.15,92.9,24.23,19.59,15.9,29.52,39.78,29.52,70.98,0,12-2.32,23.81-6.9,35.11-4.54,11.26-11.75,21.49-21.42,30.39-9.7,8.94-22.36,16.26-37.61,21.75-15.31,5.51-34.09,8.3-55.81,8.3H41.9V35.3ZM252.76,427.72c-20.92,17.63-52.4,26.58-93.55,26.58H41.9v-195.87h117.67c19.75,0,37.63,2.24,53.13,6.67,15.39,4.4,28.5,10.78,38.97,18.96,10.41,8.14,18.49,18.14,24.01,29.73,5.53,11.59,8.34,24.88,8.34,39.51,0,31.89-10.51,56.93-31.25,74.42Z"/>
-              <path class="cls-1" d="M760.26.89h-38.97l-199.75,488.17h31.64c3.97,0,7.43-1.17,10.31-3.47,2.77-2.21,4.73-4.9,5.8-7.86l55.59-137.65h231.77l55.61,137.69c1.35,3.24,3.28,5.91,5.74,7.94,2.66,2.22,6.03,3.35,10.01,3.35h31.98L760.26.89ZM633.11,310.79l97.96-242.86c1.82-4.08,3.52-8.56,5.1-13.44,1.59-4.88,3.07-10.04,4.42-15.48,3.18,11.11,6.46,20.64,9.86,28.57l97.96,243.2h-215.31Z"/>
-              <g>
-                <path class="cls-1" d="M558.1,287.83l-14.66-7.98c-9.68-5.11-20.2-9.77-31.25-13.83-11.28-4.15-22.99-8.05-34.8-11.6-12.38-3.71-24.67-7.86-36.49-12.33-12.2-4.61-23.83-9.92-34.54-15.8-11.41-6.26-21.56-13.98-30.16-22.97-8.87-9.23-15.97-20.34-21.1-33.01-5.15-12.66-7.76-27.65-7.76-44.54s3.11-32.42,9.25-47.51c6.17-15.19,15.31-28.78,27.17-40.39,11.8-11.55,26.46-20.86,43.58-27.67,17.05-6.76,36.66-10.2,58.29-10.2,24.14,0,45.94,4.02,64.79,11.95,18.91,7.95,36.81,20.66,53.2,37.76l7.6,7.93-7.14,10.75c-2.98,5.24-8.62,8.48-14.98,8.48-5.25,0-10.17-2.26-15.06-6.91-2.13-2.03-4.91-4.59-8.33-7.7-3.1-2.8-7.08-5.97-11.85-9.43-4.35-3.15-9.77-6.15-16.09-8.93-6.38-2.8-13.95-5.18-22.49-7.07-8.42-1.86-18.4-2.8-29.65-2.8-17.05,0-32.26,2.61-45.17,7.76-12.85,5.12-23.7,11.95-32.23,20.29-8.49,8.3-15.03,18.04-19.45,28.95-4.48,11.03-6.75,22.71-6.75,34.72,0,15.24,2.86,27.88,8.51,37.57,5.93,10.16,13.8,18.84,23.39,25.79,10.14,7.36,22.01,13.59,35.28,18.51,14.26,5.29,28.96,10.45,43.7,15.32,15,4.97,30.04,10.3,44.7,15.85,7.88,2.99,15.48,6.47,22.6,10.36l10.55,5.76-12.65,32.89Z"/>
-                <path class="cls-1" d="M470.51,489.48h-9.6c-16.61,0-31.74-1.49-44.94-4.44-13.35-2.98-25.79-7.35-36.98-13-10.81-5.46-20.95-12.19-30.16-20l-11.16-9.47,10.17-10.53c1.15-1.19,2.2-2.48,3.25-3.75l10.21-12.24,10.54,8.94c1.94,1.64,3.94,3.32,6.14,5.04,5.37,4.22,12.08,8.3,19.96,12.15,7.85,3.83,17.07,7.04,27.37,9.54,10.19,2.48,22.13,3.74,35.48,3.74l2.61-.12,20.35-.35-13.25,34.5Z"/>
-              </g>
-            </g>
-          </g>
-        </svg>
-      </div>
-      <h1>Outpatient Clinic Scenario Tool</h1>
-    </div>
-
-    <div class="header-buttons">
-      <button id="addScenarioBtn">Add Scenario</button>
-      <button id="saveBtn">Save Scenario</button>
-      <button id="loadBtn">Load Saved Data</button>
-      <button id="printBtn">Print to PDF</button>
-      <button id="resetBtn">Reset</button>
-    </div>
-  </header>
-
-  <!-- Scenarios Container -->
-  <div id="scenariosContainer">
-    <div class="scenario">
-      <section class="inputs-container">
-        <div class="input-group">
-          <label>BSA Benchmark Data (Service Line):</label>
-          <select class="serviceLine"></select>
-        </div>
-        <div class="input-group"><label>Daily Patient Volume:</label><input type="number" class="patientVolume" value="120" /></div>
-        <div class="input-group"><label>Providers:</label><input type="number" class="providers" value="5" /></div>
-        <div class="input-group"><label>Exam:Provider Ratio:</label>
-          <select class="examProviderRatio">
-            <option value="2">2:1</option>
-            <option value="3">3:1</option>
-            <option value="4" selected>4:1</option>
-			<option value="5">5:1</option>
-            <option value="6">6:1</option>
-          </select>
-        </div>
-        <div class="input-group"><label>Avg. Visit Length (mins):</label><input type="number" class="visitLength" value="20" /></div>
-        <div class="input-group"><label>Hours of Operation:</label><input type="number" class="hours" value="8" /></div>
-        <div class="input-group"><label>No-Show Rate (%):</label><input type="number" class="noShow" value="5" /></div>
-        <div class="input-group"><label>Walk-In Volume:</label><input type="number" class="walkIn" value="10" /></div>
-        <div class="input-group"><label>Telehealth Volume (%):</label><input type="number" class="telehealth" value="15" /></div>
-        <div class="input-group"><label>Support Staff:</label><input type="number" class="supportStaff" value="8" /></div>
-        <div class="input-group"><label>Target Wait Time (mins):</label><input type="number" class="targetWait" value="15" /></div>
-        <div class="input-group"><label>Target Utilization (%):</label><input type="number" class="targetUtilization" value="85" /></div>
-        <div class="input-group"><label>Benchmark Throughput (patients/day):</label><input type="number" class="benchmark" value="140" /></div>
-      </section>
-
-      <!-- COLOR CONTROLS: three colors only -->
-      <div class="color-controls">
-        <div class="color-picker"><label>Primary</label><input type="color" class="primaryColor" value="#007C78"></div>
-        <div class="color-picker"><label>Neutral</label><input type="color" class="lightGray" value="#e5e5e5"></div>
-        <div class="color-picker"><label>Highlight</label><input type="color" class="highlightColor" value="#cc1b2d"></div>
-      </div>
-
-      <!-- CHARTS -->
-      <section class="charts-row">
-        <div class="chart-card"><h3>Exam Rooms Needed</h3><canvas class="roomsChart"></canvas></div>
-        <div class="chart-card"><h3>Estimated Wait Times</h3><canvas class="waitChart"></canvas></div>
-        <div class="chart-card"><h3>Utilization vs Benchmark</h3><canvas class="utilizationChart"></canvas></div>
-      </section>
-      <section class="charts-row">
-        <div class="chart-card"><h3>Required vs Available Rooms</h3><canvas class="requiredRoomsChart"></canvas></div>
-        <div class="chart-card"><h3>No-Show + Telehealth Impact</h3><canvas class="impactChart"></canvas></div>
-        <div class="chart-card"><h3>Daily Throughput vs Target</h3><canvas class="throughputChart"></canvas></div>
-      </section>
-    </div>
-  </div>
-</div> <!-- close wrapper -->
-  <script>
+<body><div class="wrapper">
+<header>
+<div class="brand">
+<div aria-label="BSA LifeStructures logo" class="logo" role="img">
+<!-- Inline SVG logo (no XML declaration) -->
+<svg aria-hidden="true" data-name="Layer 2" focusable="false" id="Layer_2" viewbox="0 0 960 489.48" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<style>.cls-1 { fill: #de1c28; }</style>
+</defs>
+<g data-name="Layer 1" id="Layer_1-2">
+<g>
+<path class="cls-1" d="M293.75,274.14c-18.01-17.42-43.03-29.48-74.49-35.97,10.29-3.5,19.76-7.87,28.31-13.06,12.42-7.55,23.01-16.55,31.47-26.76,8.49-10.23,15.1-21.55,19.63-33.64,4.55-12.12,6.86-24.88,6.86-37.94,0-19.6-3.3-37.44-9.8-53.02-6.55-15.65-16.73-29.1-30.28-39.96-13.45-10.79-30.68-19.07-51.24-24.62C193.81,3.67,169.47.89,141.87.89H0v488.17h159.56c25.83,0,49.28-3.08,69.68-9.16,20.53-6.11,38.1-15.08,52.22-26.65,14.19-11.63,25.15-26.02,32.59-42.76,7.42-16.69,11.19-35.7,11.19-56.5,0-32.78-10.59-59.65-31.5-79.85ZM41.9,35.3h99.98c41.85,0,73.1,8.15,92.9,24.23,19.59,15.9,29.52,39.78,29.52,70.98,0,12-2.32,23.81-6.9,35.11-4.54,11.26-11.75,21.49-21.42,30.39-9.7,8.94-22.36,16.26-37.61,21.75-15.31,5.51-34.09,8.3-55.81,8.3H41.9V35.3ZM252.76,427.72c-20.92,17.63-52.4,26.58-93.55,26.58H41.9v-195.87h117.67c19.75,0,37.63,2.24,53.13,6.67,15.39,4.4,28.5,10.78,38.97,18.96,10.41,8.14,18.49,18.14,24.01,29.73,5.53,11.59,8.34,24.88,8.34,39.51,0,31.89-10.51,56.93-31.25,74.42Z"></path>
+<path class="cls-1" d="M760.26.89h-38.97l-199.75,488.17h31.64c3.97,0,7.43-1.17,10.31-3.47,2.77-2.21,4.73-4.9,5.8-7.86l55.59-137.65h231.77l55.61,137.69c1.35,3.24,3.28,5.91,5.74,7.94,2.66,2.22,6.03,3.35,10.01,3.35h31.98L760.26.89ZM633.11,310.79l97.96-242.86c1.82-4.08,3.52-8.56,5.1-13.44,1.59-4.88,3.07-10.04,4.42-15.48,3.18,11.11,6.46,20.64,9.86,28.57l97.96,243.2h-215.31Z"></path>
+<g>
+<path class="cls-1" d="M558.1,287.83l-14.66-7.98c-9.68-5.11-20.2-9.77-31.25-13.83-11.28-4.15-22.99-8.05-34.8-11.6-12.38-3.71-24.67-7.86-36.49-12.33-12.2-4.61-23.83-9.92-34.54-15.8-11.41-6.26-21.56-13.98-30.16-22.97-8.87-9.23-15.97-20.34-21.1-33.01-5.15-12.66-7.76-27.65-7.76-44.54s3.11-32.42,9.25-47.51c6.17-15.19,15.31-28.78,27.17-40.39,11.8-11.55,26.46-20.86,43.58-27.67,17.05-6.76,36.66-10.2,58.29-10.2,24.14,0,45.94,4.02,64.79,11.95,18.91,7.95,36.81,20.66,53.2,37.76l7.6,7.93-7.14,10.75c-2.98,5.24-8.62,8.48-14.98,8.48-5.25,0-10.17-2.26-15.06-6.91-2.13-2.03-4.91-4.59-8.33-7.7-3.1-2.8-7.08-5.97-11.85-9.43-4.35-3.15-9.77-6.15-16.09-8.93-6.38-2.8-13.95-5.18-22.49-7.07-8.42-1.86-18.4-2.8-29.65-2.8-17.05,0-32.26,2.61-45.17,7.76-12.85,5.12-23.7,11.95-32.23,20.29-8.49,8.3-15.03,18.04-19.45,28.95-4.48,11.03-6.75,22.71-6.75,34.72,0,15.24,2.86,27.88,8.51,37.57,5.93,10.16,13.8,18.84,23.39,25.79,10.14,7.36,22.01,13.59,35.28,18.51,14.26,5.29,28.96,10.45,43.7,15.32,15,4.97,30.04,10.3,44.7,15.85,7.88,2.99,15.48,6.47,22.6,10.36l10.55,5.76-12.65,32.89Z"></path>
+<path class="cls-1" d="M470.51,489.48h-9.6c-16.61,0-31.74-1.49-44.94-4.44-13.35-2.98-25.79-7.35-36.98-13-10.81-5.46-20.95-12.19-30.16-20l-11.16-9.47,10.17-10.53c1.15-1.19,2.2-2.48,3.25-3.75l10.21-12.24,10.54,8.94c1.94,1.64,3.94,3.32,6.14,5.04,5.37,4.22,12.08,8.3,19.96,12.15,7.85,3.83,17.07,7.04,27.37,9.54,10.19,2.48,22.13,3.74,35.48,3.74l2.61-.12,20.35-.35-13.25,34.5Z"></path>
+</g>
+</g>
+</g>
+</svg>
+</div>
+<h1>Outpatient Clinic Scenario Tool</h1>
+</div>
+<div class="header-buttons">
+<button id="addScenarioBtn">Add Scenario</button>
+<button id="saveBtn">Save Scenario</button>
+<button id="loadBtn">Load Saved Data</button>
+<button id="printBtn">Print to PDF</button>
+<button id="resetBtn">Reset</button>
+</div>
+</header>
+<!-- Scenarios Container -->
+<div id="scenariosContainer">
+<div class="scenario">
+<section class="inputs-container">
+<div class="input-group">
+<label>BSA Benchmark Data (Service Line):</label>
+<select class="serviceLine"></select>
+</div>
+<div class="input-group"><label>Daily Patient Volume:</label><input class="patientVolume" type="number" value="120"/></div>
+<div class="input-group"><label>Providers:</label><input class="providers" type="number" value="5"/></div>
+<div class="input-group"><label>Exam:Provider Ratio:</label>
+<select class="examProviderRatio">
+<option value="2">2:1</option>
+<option value="3">3:1</option>
+<option selected="" value="4">4:1</option>
+<option value="5">5:1</option>
+<option value="6">6:1</option>
+</select>
+</div>
+<div class="input-group"><label>Avg. Visit Length (mins):</label><input class="visitLength" type="number" value="20"/></div>
+<div class="input-group"><label>Hours of Operation:</label><input class="hours" type="number" value="8"/></div>
+<div class="input-group"><label>No-Show Rate (%):</label><input class="noShow" type="number" value="5"/></div>
+<div class="input-group"><label>Walk-In Volume:</label><input class="walkIn" type="number" value="10"/></div>
+<div class="input-group"><label>Telehealth Volume (%):</label><input class="telehealth" type="number" value="15"/></div>
+<div class="input-group"><label>Support Staff:</label><input class="supportStaff" type="number" value="8"/></div>
+<div class="input-group"><label>Target Wait Time (mins):</label><input class="targetWait" type="number" value="15"/></div>
+<div class="input-group"><label>Target Utilization (%):</label><input class="targetUtilization" type="number" value="85"/></div>
+<div class="input-group"><label>Benchmark Throughput (patients/day):</label><input class="benchmark" type="number" value="140"/></div>
+</section>
+<!-- COLOR CONTROLS: three colors only -->
+<div class="color-controls">
+<div class="color-picker"><label>Primary</label><input class="primaryColor" type="color" value="#007C78"/></div>
+<div class="color-picker"><label>Neutral</label><input class="lightGray" type="color" value="#e5e5e5"/></div>
+<div class="color-picker"><label>Highlight</label><input class="highlightColor" type="color" value="#cc1b2d"/></div>
+</div>
+<!-- CHARTS -->
+<section class="charts-row">
+<div class="chart-card"><h3>Exam Rooms Needed</h3><canvas class="roomsChart"></canvas></div>
+<div class="chart-card"><h3>Estimated Wait Times</h3><canvas class="waitChart"></canvas></div>
+<div class="chart-card"><h3>Utilization vs Benchmark</h3><canvas class="utilizationChart"></canvas></div>
+</section>
+<section class="charts-row">
+<div class="chart-card"><h3>Required vs Available Rooms</h3><canvas class="requiredRoomsChart"></canvas></div>
+<div class="chart-card"><h3>No-Show + Telehealth Impact</h3><canvas class="impactChart"></canvas></div>
+<div class="chart-card"><h3>Daily Throughput vs Target</h3><canvas class="throughputChart"></canvas></div>
+</section>
+</div>
+</div>
+<script>
     const benchmarks = {
       medical: 140, surgical: 120, maternity: 100, cardiology: 160,
       orthopedics: 150, oncology: 110, neurology: 130, pediatrics: 180,
@@ -480,5 +479,5 @@
     if (firstPrimaryPicker) firstPrimaryPicker.addEventListener('input', syncHeaderColors);
     syncHeaderColors();
   </script>
-</body>
+</div></body>
 </html>
