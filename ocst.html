@@ -76,10 +76,18 @@
       box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
       overflow: hidden;
     }
+	@media (min-width: 1024px) {
+    .inputs-container {
+      grid-template-columns: repeat(4, 1fr); /* Group 4 fields per row */
+    }
+
+    .charts-row {
+      grid-template-columns: repeat(3, 1fr); /* 3 charts per row */
+    }
 
     .inputs-container {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 12px;
       padding: 15px 25px;
       background-color: #fff;
@@ -183,10 +191,19 @@
         color-adjust: exact;
         zoom: 0.95;
       }
+	  .wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
     }
   </style>
 </head>
+</div> <!-- close wrapper -->
 <body>
+	 <div class="wrapper">
+       <!-- existing content -->
+       </div>
   <header>
     <div class="brand">
       <div class="logo" aria-label="BSA LifeStructures logo" role="img">
@@ -269,7 +286,7 @@
       </section>
     </div>
   </div>
-
+</div> <!-- close wrapper -->
   <script>
     const benchmarks = {
       medical: 140, surgical: 120, maternity: 100, cardiology: 160,
