@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BSA | Healthcare Design Benchmark Report Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      /* Brand */
+      --bsa-red:#de1c28;
+      --charcoal:#222426;
+      --ink:#1a1c1e;
+      --muted:#6d7178;
+      --surface:#ffffff;
+      --page:#f5f7f9;
+      --stroke:#e6eaef;
+      --focus:rgba(222,28,40,.30);
+
+      /* Charts */
+      --accent:#de1c28;
+      --accent-2:#42464c;
+      --accent-3:#a6adb6;
+      --good:#19a974;
+      --warn:#ffb700;
+
+      /* UI */
+      --radius:12px;
+      --shadow:0 1px 2px rgba(0,0,0,.04), 0 8px 30px rgba(0,0,0,.06);
+      --lift:0 6px 16px rgba(0,0,0,.10);
+    }
+
+    @font-face{
+      font-family:"BSA Sans";
+      src: local("Helvetica Neue"),
+           local("HelveticaNeue"),
+           local("HelveticaNeueLT Pro 55 Roman"),
+           local("Helvetica"),
+           local("Arial");
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    html,body{
+      height:100%; margin:0; background:var(--page); color:var(--ink);
+      font-family:"BSA Sans",-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Helvetica,Arial,sans-serif;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+
+    /* Header */
+    .app-header{ background:var(--charcoal); color:#fff; box-shadow:var(--shadow); }
+    .header-inner{ max-width:1120px; margin:0 auto; padding:16px 20px; display:flex; align-items:center; gap:16px; }
+    .brand{ display:flex; align-items:center; gap:14px; min-width:0; flex:1; }
+    .brand svg{ width:100px; height:auto; display:block; }
+    .brand > .brand-title{ font-size:24px; line-height:1; font-weight:750; letter-spacing:.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+    /* Header actions */
+    .header-actions{ margin-left:auto; position:relative; }
+    .menu-btn{
+      appearance:none; border:0; background:transparent; color:#fff;
+      width:40px; height:40px; border-radius:8px; display:grid; place-items:center; cursor:pointer;
+    }
+    .menu-btn:focus{ outline:none; box-shadow:0 0 0 3px var(--focus); }
+    .menu-sheet{
+      position:absolute; right:0; top:44px; min-width:190px;
+      background:#ffffff; color:var(--ink); border:1px solid var(--stroke);
+      border-radius:10px; box-shadow:var(--lift); padding:8px; display:none; z-index:10;
+    }
+    .menu-sheet.open{ display:block; }
+    .menu-item{
+      display:flex; align-items:center; gap:8px; width:100%;
+      padding:10px 10px; border-radius:8px; font-size:14px; background:transparent; border:0; cursor:pointer;
+    }
+    .menu-item:hover{ background:#f2f4f7; }
+    .menu-icon{ width:18px; height:18px; color:var(--accent-2); }
+
+    /* Shell */
+    .container{ max-width:1120px; margin:24px auto; padding:24px; background:var(--surface); border-radius:var(--radius); box-shadow:var(--shadow); }
+
+    h1{ margin:0 0 12px 0; font-size:22px; font-weight:700; letter-spacing:.2px; }
+    .subtle{ margin:0 0 20px 0; color:var(--muted); font-size:14px; }
+
+    /* Form */
+    .form-section{ display:grid; grid-template-columns:1fr; gap:14px; margin-bottom:10px; }
+    label{ font-size:13px; font-weight:600; }
+    select{
+      width:100%; min-height:260px; border:1px solid var(--stroke); border-radius:8px; background:#fff;
+      padding:10px; font-size:14px; outline:none; box-shadow:inset 0 1px 0 rgba(0,0,0,.02);
+    }
+    select:focus{ border-color:var(--accent); box-shadow:0 0 0 3px var(--focus); }
+    option{ padding:6px; }
+
+    /* Sections */
+    #reportOutput{ display:block; margin-top:16px; }
+    .report-section{
+      border:1px solid var(--stroke);
+      border-radius:12px;
+      padding:18px 18px 10px 18px;
+      background:#fff;
+      box-shadow:var(--shadow);
+      margin-bottom:16px;
+      page-break-inside:avoid;
+    }
+
+    .section-head{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:6px; }
+    .section-left{ display:flex; align-items:center; gap:10px; }
+    .report-title{ font-size:18px; font-weight:800; margin:0; letter-spacing:.2px; }
+    .tag{ font-size:12px; color:#fff; background:var(--accent-2); padding:4px 8px; border-radius:999px; white-space:nowrap; }
+    .updated{ font-size:12px; color:var(--muted); white-space:nowrap; }
+    .report-desc{ margin:6px 0 12px 0; color:var(--muted); font-size:14px; line-height:1.5; }
+
+    /* Legend */
+    .legend{ display:flex; flex-wrap:wrap; gap:10px 14px; margin:0 0 10px 0; padding:0; list-style:none; }
+    .legend-item{ display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--accent-2); }
+    .chip{ width:12px; height:12px; border-radius:3px; display:inline-block; border:1px solid rgba(0,0,0,.08); box-shadow: inset 0 1px 0 rgba(255,255,255,.4); }
+    .chip.red{ background:var(--accent); }
+    .chip.charcoal{ background:var(--accent-2); }
+    .chip.gray{ background:var(--accent-3); }
+    .chip.good{ background:var(--good); }
+    .chip.warn{ background:var(--warn); }
+
+    /* Viz grid */
+    .viz-grid{ display:grid; grid-template-columns:1fr; gap:12px; }
+    @media (min-width:760px){ .viz-grid{ grid-template-columns:repeat(12,1fr); } }
+    .viz{
+      position:relative;
+      border:1px solid var(--stroke);
+      border-radius:10px;
+      padding:10px;
+      background:#fff;
+      transition:transform .12s ease, box-shadow .12s ease;
+    }
+    .viz:hover{ transform:translateY(-1px); box-shadow:var(--lift); }
+    .viz.half{ grid-column:span 12; }
+    .viz.third{ grid-column:span 12; }
+    .viz.two{ grid-column:span 12; }
+    .viz.full{ grid-column:span 12; }
+    @media (min-width:760px){
+      .viz.half{ grid-column:span 6; }
+      .viz.third{ grid-column:span 4; }
+      .viz.two{ grid-column:span 8; }
+      .viz.full{ grid-column:span 12; }
+    }
+    .viz h4{ margin:0 0 8px 0; font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--accent-2); }
+
+    /* Subtle grid texture on viz cards */
+    .viz::before{
+      content:"";
+      position:absolute; inset:0; border-radius:10px; pointer-events:none;
+      background:
+        repeating-linear-gradient( 0deg, rgba(66,70,76,.03), rgba(66,70,76,.03) 1px, transparent 1px, transparent 12px),
+        repeating-linear-gradient(90deg, rgba(66,70,76,.03), rgba(66,70,76,.03) 1px, transparent 1px, transparent 12px);
+      -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,.7), rgba(0,0,0,0) 70%);
+              mask-image: radial-gradient(ellipse at center, rgba(0,0,0,.7), rgba(0,0,0,0) 70%);
+    }
+
+    /* KPIs */
+    .kpis{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+    @media (min-width:760px){ .kpis{ grid-template-columns:repeat(4,1fr); } }
+    .kpi{ border:1px dashed var(--stroke); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:2px; background:#fff; }
+    .kpi .label{ font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
+    .kpi .value{ font-size:22px; font-weight:800; }
+    .kpi.good .value{ color:var(--good); }
+    .kpi.warn .value{ color:var(--accent); }
+
+    /* Category cards */
+    .cat-grid{ display:grid; grid-template-columns:1fr; gap:14px; }
+    @media (min-width:860px){ .cat-grid{ grid-template-columns:1fr 1fr; } }
+    .cat-item{ display:flex; gap:12px; align-items:flex-start; border:1px solid var(--stroke); border-radius:10px; background:#fff; padding:12px; }
+    .icon-circle{ width:46px; height:46px; border-radius:999px; display:grid; place-items:center; color:#fff; flex:0 0 46px; }
+    .cat-text h5{ font-size:14px; letter-spacing:.08em; text-transform:uppercase; margin:0 0 4px 0; color:var(--accent-2); }
+    .cat-text p{ margin:0; font-size:13px; color:var(--muted); line-height:1.45; }
+
+    .sw-blue{background:#597bb3;}
+    .sw-purple{background:#7b4aa6;}
+    .sw-green{background:#37a26b;}
+    .sw-gray{background:#6c7177;}
+    .sw-teal{background:#5db2ad;}
+    .sw-orange{background:#f1a43a;}
+    .sw-red{background:var(--accent);}
+
+    /* Print tweaks */
+    @media print{
+      @page{ margin:16mm; }
+      *{ -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .app-header, .form-section{ display:none !important; }
+      body{ background:#fff !important; }
+      .container{ box-shadow:none !important; padding:0 !important; }
+      .viz{ box-shadow:none !important; }
+      .viz::before{ display:none !important; } /* prevent black rectangles on iOS print */
+      /* Footer */
+      #print-footer{
+        position:fixed; left:0; right:0; bottom:8mm;
+        text-align:center; font-size:11px; color:#6b6f76;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand" aria-label="BSA LifeStructures">
+        <!-- BSA Logo -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 489.48" role="img" aria-label="BSA Logo">
+          <defs><style>.cls-1{fill:#de1c28;}</style></defs>
+          <g id="Layer_1-2" data-name="Layer 1">
+            <g>
+              <path class="cls-1" d="M293.75,274.14c-18.01-17.42-43.03-29.48-74.49-35.97,10.29-3.5,19.76-7.87,28.31-13.06,12.42-7.55,23.01-16.55,31.47-26.76,8.49-10.23,15.1-21.55,19.63-33.64,4.55-12.12,6.86-24.88,6.86-37.94,0-19.6-3.3-37.44-9.8-53.02-6.55-15.65-16.73-29.1-30.28-39.96-13.45-10.79-30.68-19.07-51.24-24.62C193.81,3.67,169.47.89,141.87.89H0v488.17h159.56c25.83,0,49.28-3.08,69.68-9.16,20.53-6.11,38.1-15.08,52.22-26.65,14.19-11.63,25.15-26.02,32.59-42.76,7.42-16.69,11.19-35.7,11.19-56.5,0-32.78-10.59-59.65-31.5-79.85ZM41.9,35.3h99.98c41.85,0,73.1,8.15,92.9,24.23,19.59,15.9,29.52,39.78,29.52,70.98,0,12-2.32,23.81-6.9,35.11-4.54,11.26-11.75,21.49-21.42,30.39-9.7,8.94-22.36,16.26-37.61,21.75-15.31,5.51-34.09,8.3-55.81,8.3H41.9V35.3ZM252.76,427.72c-20.92,17.63-52.4,26.58-93.55,26.58H41.9v-195.87h117.67c19.75,0,37.63,2.24,53.13,6.67,15.39,4.4,28.5,10.78,38.97,18.96,10.41,8.14,18.49,18.14,24.01,29.73,5.53,11.59,8.34,24.88,8.34,39.51,0,31.89-10.51,56.93-31.25,74.42Z"/>
+              <path class="cls-1" d="M760.26.89h-38.97l-199.75,488.17h31.64c3.97,0,7.43-1.17,10.31-3.47,2.77-2.21,4.73-4.9,5.8-7.86l55.59-137.65h231.77l55.61,137.69c1.35,3.24,3.28,5.91,5.74,7.94,2.66,2.22,6.03,3.35,10.01,3.35h31.98L760.26.89ZM633.11,310.79l97.96-242.86c1.82-4.08,3.52-8.56,5.1-13.44,1.59-4.88,3.07-10.04,4.42-15.48,3.18,11.11,6.46,20.64,9.86,28.57l97.96,243.2h-215.31Z"/>
+              <g>
+                <path class="cls-1" d="M558.1,287.83l-14.66-7.98c-9.68-5.11-20.2-9.77-31.25-13.83-11.28-4.15-22.99-8.05-34.8-11.6-12.38-3.71-24.67-7.86-36.49-12.33-12.2-4.61-23.83-9.92-34.54-15.8-11.41-6.26-21.56-13.98-30.16-22.97-8.87-9.23-15.97-20.34-21.1-33.01-5.15-12.66-7.76-27.65-7.76-44.54s3.11-32.42,9.25-47.51c6.17-15.19,15.31-28.78,27.17-40.39,11.8-11.55,26.46-20.86,43.58-27.67,17.05-6.76,36.66-10.2,58.29-10.2,24.14,0,45.94,4.02,64.79,11.95,18.91,7.95,36.81,20.66,53.2,37.76l7.6,7.93-7.14,10.75c-2.98,5.24-8.62,8.48-14.98,8.48-5.25,0-10.17-2.26-15.06-6.91-2.13-2.03-4.91-4.59-8.33-7.7-3.1-2.8-7.08-5.97-11.85-9.43-4.35-3.15-9.77-6.15-16.09-8.93-6.38-2.8-13.95-5.18-22.49-7.07-8.42-1.86-18.4-2.8-29.65-2.8-17.05,0-32.26,2.61-45.17,7.76-12.85,5.12-23.7,11.95-32.23,20.29-8.49,8.3-15.03,18.04-19.45,28.95-4.48,11.03-6.75,22.71-6.75,34.72,0,15.24,2.86,27.88,8.51,37.57,5.93,10.16,13.8,18.84,23.39,25.79,10.14,7.36,22.01,13.59,35.28,18.51,14.26,5.29,28.96,10.45,43.7,15.32,15,4.97,30.04,10.3,44.7,15.85,7.88,2.99,15.48,6.47,22.6,10.36l10.55,5.76-12.65,32.89Z"/>
+                <path class="cls-1" d="M470.51,489.48h-9.6c-16.61,0-31.74-1.49-44.94-4.44-13.35-2.98-25.79-7.35-36.98-13-10.81-5.46-20.95-12.19-30.16-20l-11.16-9.47 10.17-10.53c1.15-1.19,2.2-2.48,3.25-3.75l10.21-12.24 10.54,8.94c1.94,1.64,3.94,3.32,6.14,5.04,5.37,4.22,12.08,8.3,19.96,12.15,7.85,3.83,17.07,7.04,27.37,9.54,10.19,2.48,22.13,3.74,35.48,3.74l2.61-.12,20.35-.35-13.25,34.5Z"/>
+              </g>
+            </g>
+          </g>
+        </svg>
+
+        <div class="brand-title">Benchmark Tools</div>
+      </div>
+
+      <div class="header-actions">
+        <button class="menu-btn" id="menuBtn" aria-haspopup="true" aria-expanded="false" title="Menu">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+            <rect x="3" y="6"  width="18" height="2" rx="1"></rect>
+            <rect x="3" y="11" width="18" height="2" rx="1"></rect>
+            <rect x="3" y="16" width="18" height="2" rx="1"></rect>
+          </svg>
+        </button>
+
+        <div class="menu-sheet" id="menuSheet" role="menu" aria-label="Actions">
+          <button class="menu-item" id="printBtn" role="menuitem">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M6 3h12v5H6zM6 14h12v7H6z"/><path d="M4 10h16a2 2 0 0 1 2 2v3H2v-3a2 2 0 0 1 2-2z"/>
+            </svg>
+            Print to PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <h1>Healthcare Design Benchmark Report Generator</h1>
+    <p class="subtle">Full-width stacked sections with branded placeholder visuals, legends, and timestamps. We can scale each section’s dashboard over time.</p>
+
+    <div class="form-section">
+      <label for="categories" class="kicker">Benchmark Categories</label>
+      <select id="categories" multiple size="10">
+        <option value="Patient Care" selected>Patient Care</option>
+        <option value="Staff Safety">Staff Safety</option>
+        <option value="Family Experience">Family Experience</option>
+        <option value="Supply Chain">Supply Chain</option>
+        <option value="Medication Management">Medication Management</option>
+        <option value="Equipment & Lab">Equipment & Lab</option>
+        <option value="IT & Technology">IT & Technology</option>
+        <option value="Clinical Metrics">Clinical Metrics</option>
+        <option value="Building Metrics">Building Metrics</option>
+        <option value="Evidence-Based Design">Evidence-Based Design</option>
+      </select>
+    </div>
+
+    <section id="reportOutput" aria-live="polite"></section>
+  </main>
+
+  <!-- Print footer -->
+  <div id="print-footer" aria-hidden="true">
+    Generated using the BSA Intelligence Suite - BSA Benchmark Tools
+  </div>
+
+  <script>
+    /* Date only */
+    const LAST_UPDATED = new Date().toLocaleDateString([], {year:'numeric', month:'short', day:'2-digit'});
+
+    function legend(items){
+      return `<ul class="legend">
+        ${items.map(i=>`<li class="legend-item"><span class="chip ${i.color}"></span>${i.label}</li>`).join('')}
+      </ul>`;
+    }
+
+    /* Inline SVG builders */
+    function barChart(values=[30,60,45,80,50], max=100){
+      const w=260, h=100, pad=16, bw=(w - pad*2)/values.length - 6;
+      return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="120" aria-label="Bar chart">
+        <rect x="0" y="0" width="${w}" height="${h}" fill="#fff"/>
+        ${values.map((v,i)=>{ const bh=(h-26)*(v/max);
+          return `<rect x="${pad+i*(bw+6)}" y="${h-10-bh}" width="${bw}" height="${bh}" rx="3" fill="var(--accent)"></rect>`;
+        }).join('')}
+        <line x1="${pad}" y1="${h-10}" x2="${w-pad}" y2="${h-10}" stroke="var(--accent-3)" stroke-width="1"/>
+      </svg>`;
+    }
+
+    function sparkline(points=[5,9,6,10,7,12,8]){
+      const w=260,h=60,p=6,dx=(w-2*p)/(points.length-1);
+      const max=Math.max(...points), min=Math.min(...points);
+      const y=v=>h-p-((v-min)/(max-min||1))*(h-2*p);
+      return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="70" aria-label="Sparkline">
+        <polyline points="${points.map((v,i)=>`${p+i*dx},${y(v)}`).join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      </svg>`;
+    }
+
+    function donut(pct=72,label="Utilization"){
+      const r=40,cx=55,cy=55,circ=2*Math.PI*r,off=circ*(1-pct/100);
+      return `<svg viewBox="0 0 110 110" width="110" height="110" aria-label="Donut chart">
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--accent-3)" stroke-width="12" opacity=".35"/>
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--accent)" stroke-width="12"
+          stroke-dasharray="${circ} ${circ}" stroke-dashoffset="${off}" transform="rotate(-90 ${cx} ${cy})"/>
+        <text x="${cx}" y="${cy-2}" text-anchor="middle" font-size="18" font-weight="800">${pct}%</text>
+        <text x="${cx}" y="${cy+16}" text-anchor="middle" font-size="9" fill="var(--muted)">${label}</text>
+      </svg>`;
+    }
+
+    function progress(pct=58,label="Wait Time vs Target"){
+      return `<div style="display:flex;align-items:center;gap:8px;">
+        <div style="flex:1;border:1px solid var(--stroke);border-radius:999px;overflow:hidden;height:10px;">
+          <div style="width:${pct}%;height:100%;background:var(--accent);"></div>
+        </div>
+        <div style="min-width:56px;font-weight:700;">${pct}%</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">${label}</div>`;
+    }
+
+    function bullet(actual=78,target=90,rangeHigh=100,label="Throughput"){
+      const w=260,h=36,aw=Math.min(actual,100)*2.3, tw=Math.min(target,100)*2.3;
+      return `<svg viewBox="0 0 260 36" width="100%" height="42" aria-label="Bullet chart">
+        <rect x="0" y="12" width="230" height="12" fill="var(--accent-3)" opacity=".35" rx="6"/>
+        <rect x="0" y="12" width="${aw}" height="12" fill="var(--accent)" rx="6"/>
+        <line x1="${tw}" y1="8" x2="${tw}" y2="28" stroke="var(--accent-2)" stroke-width="2"/>
+        <text x="0" y="10" font-size="11" fill="var(--muted)">${label}</text>
+      </svg>`;
+    }
+
+    function heatmap(rows=4,cols=8,hot=[2,3,7,12,20,23]){
+      const size=16,gap=4,w=cols*(size+gap)-gap,h=rows*(size+gap)-gap;
+      let idx=0, cells='';
+      for(let r=0;r<rows;r++){
+        for(let c=0;c<cols;c++){
+          const x=c*(size+gap), y=r*(size+gap);
+          const active = hot.includes(idx++);
+          cells += `<rect x="${x}" y="${y}" width="${size}" height="${size}" rx="3"
+               fill="${active?'var(--accent)':'#eef2f6'}"/>`;
+        }
+      }
+      return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h+2}" aria-label="Heat map">${cells}</svg>`;
+    }
+
+    /* Tiny icons for category cards */
+    const I = {
+      patient:  () => `<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+                         <rect x="3" y="14" width="18" height="4" rx="1"/><circle cx="8" cy="9" r="3"/>
+                         <path d="M12 9h9a1 1 0 0 1 1 1v3h-2v-2h-8z" fill="currentColor"/></svg>`,
+      provider: () => `<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+                         <circle cx="12" cy="7.5" r="3.5"/><path d="M4 19a6 6 0 0 1 16 0v1H4z"/>
+                         <path d="M11 12h2v3h-2z"/><path d="M9.5 13.5h5" stroke="#fff" stroke-width="1.6" /></svg>`,
+      family:   () => `<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+                         <circle cx="7" cy="8" r="2.4"/><circle cx="15.5" cy="8.4" r="2.1"/><circle cx="19.5" cy="10.2" r="1.6"/>
+                         <path d="M3 19v-1.1c0-2.2 1.8-4 4-4h0c2.2 0 4 1.8 4 4V19H3z"/>
+                         <path d="M13 19v-.8c0-1.9 1.6-3.4 3.5-3.4h.1c1.9 0 3.4 1.5 3.4 3.4V19H13z"/></svg>`,
+      med:      () => `<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+                         <rect x="4" y="11" width="9" height="9" rx="2"/><path d="M7 6h7a3 3 0 0 1 3 3v2H10a3 3 0 0 1-3-3V6z"/>
+                         <path d="M7 15h7" stroke="#fff" stroke-width="1.8"/></svg>`,
+      equip:    () => `<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+                         <path d="M5 4h10v4H5zM7 9h14v4H7zM5 14h10v6H5z"/></svg>`,
+      it:       () => `<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+                         <rect x="3" y="4" width="18" height="12" rx="2"/><rect x="9" y="18" width="6" height="2" rx="1"/></svg>`,
+      supplies: () => `<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+                         <rect x="3" y="9" width="18" height="6" rx="3"/><rect x="8" y="10.5" width="8" height="3" rx="1.5" fill="#fff"/></svg>`
+    };
+
+    /* Content map */
+    const reportData = {
+      "Patient Care": {
+        title:"Patient Care",
+        description:"Benchmarks related to patient outcomes, satisfaction, and throughput.",
+        legendItems:[
+          {color:'red', label:'Demand / Wait Time'},
+          {color:'charcoal', label:'Capacity / Providers'},
+          {color:'good', label:'Positive signal'},
+          {color:'gray', label:'Target / Baseline'}
+        ],
+        visuals(){ return `
+          <div class="viz-grid">
+            <div class="viz full">
+              <h4>Key Signals</h4>
+              <div class="kpis">
+                <div class="kpi good"><div class="label">Satisfaction</div><div class="value">92%</div></div>
+                <div class="kpi"><div class="label">Avg LOS</div><div class="value">3.1 hrs</div></div>
+                <div class="kpi warn"><div class="label">Wait Time</div><div class="value">18m</div></div>
+                <div class="kpi"><div class="label">No-Show</div><div class="value">4.8%</div></div>
+              </div>
+            </div>
+            <div class="viz half">
+              <h4>Arrival Peaks</h4>
+              ${barChart([55,85,60,90,75,65,40],100)}
+            </div>
+            <div class="viz half">
+              <h4>Utilization</h4>
+              <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+                ${donut(76,"Rooms")}
+                ${donut(68,"Providers")}
+                <div style="flex:1;min-width:180px">${progress(58,"Wait Time vs Target")}</div>
+              </div>
+            </div>
+            <div class="viz full">
+              <h4>Throughput vs Target</h4>
+              ${bullet(78,90,100,"Patients / Day")}
+            </div>
+          </div>`; }
+      },
+      "Staff Safety": {
+        title:"Staff Safety",
+        description:"Design strategies and benchmarks to ensure staff well-being and safety.",
+        legendItems:[
+          {color:'red', label:'Incidents'},
+          {color:'good', label:'Compliance'},
+          {color:'gray', label:'Coverage'}
+        ],
+        visuals(){ return `
+          <div class="viz-grid">
+            <div class="viz half">
+              <h4>Incident Trend</h4>
+              ${sparkline([8,7,6,6,5,4,5,4,3])}
+            </div>
+            <div class="viz half">
+              <h4>Safe Room Coverage</h4>
+              ${heatmap(4,10,[1,2,9,10,12,16,21,29,30,35])}
+            </div>
+            <div class="viz third">
+              <h4>PPE Compliance</h4>
+              ${donut(94,"Audit")}
+            </div>
+            <div class="viz third">
+              <h4>Injury Rate</h4>
+              ${donut(3,"per 10k hrs")}
+            </div>
+            <div class="viz third">
+              <h4>Fatigue Risk</h4>
+              ${progress(32,"Shifts > 12 hrs")}
+            </div>
+          </div>`; }
+      },
+      "Family Experience": {
+        title:"Family Experience",
+        description:"Benchmarks for family engagement and comfort in healthcare environments.",
+        legendItems:[
+          {color:'red', label:'Hotspots'},
+          {color:'gray', label:'Baseline'},
+          {color:'good', label:'Improvement'}
+        ],
+        visuals(){ return `
+          <div class="viz-grid">
+            <div class="viz half">
+              <h4>Wayfinding Hotspots</h4>
+              ${heatmap(5,12,[4,5,6,13,17,20,29,30,41,42,43,57])}
+            </div>
+            <div class="viz half">
+              <h4>Amenities Usage</h4>
+              ${barChart([25,40,65,30,55],80)}
+            </div>
+            <div class="viz full">
+              <h4>Feedback Trend</h4>
+              ${sparkline([70,72,74,73,78,80,83,85])}
+            </div>
+          </div>`; }
+      },
+      "Supply Chain": {
+        title:"Supply Chain",
+        description:"Metrics for supply delivery, stocking, and storage efficiency.",
+        legendItems:[
+          {color:'good', label:'On-time delivery'},
+          {color:'red', label:'Variance'},
+          {color:'gray', label:'Par baseline'}
+        ],
+        visuals(){ return `
+          <div class="viz-grid">
+            <div class="viz third">
+              <h4>Delivery On-Time</h4>
+              ${donut(88,"OTD")}
+            </div>
+            <div class="viz two">
+              <h4>Par Level Variance</h4>
+              ${barChart([15,30,22,45,18,27,36,20],50)}
+            </div>
+            <div class="viz full">
+              <h4>Pick Path Heat</h4>
+              ${heatmap(3,18,[1,2,3,7,11,12,17,18,25,26,31,32,40,41,45,46,50])}
+            </div>
+          </div>`; }
+      },
+      "Medication Management": {
+        title:"Medication Management",
+        description:"Benchmarks for medication storage, controls, and administration.",
+        legendItems:[
+          {color:'good', label:'Accuracy'},
+          {color:'red', label:'Exceptions'},
+          {color:'gray', label:'Target'}
+        ],
+        visuals(){ return `
+          <div class="viz-grid">
+            <div class="viz half">
+              <h4>Dispense Accuracy</h4>
+              ${donut(99,"Accuracy")}
+            </div>
+            <div class="viz half">
+              <h4>Pyxis Open Events</h4>
+              ${sparkline([5,4,6,7,9,8,6,7,5,4])}
+            </div>
+            <div class="viz full">
+              <h4>Time to Med</h4>
+              ${bullet(64,80,100,"Minutes to Admin")}
+            </div>
+          </div>`; }
+      },
+      "Equipment & Lab": {
+        title:"Equipment & Lab",
+        description:"Design and operational benchmarks for lab and equipment areas.",
+        legendItems:[
+          {color:'good', label:'Uptime / PM'},
+          {color:'red', label:'Downtime'},
+          {color:'gray', label:'Threshold'}
+        ],
+        visuals(){ return `
+          <div class="viz-grid">
+            <div class="viz half">
+              <h4>Asset Uptime</h4>
+              ${donut(97,"Uptime")}
+            </div>
+            <div class="viz half">
+              <h4>Preventive Maint. Compliance</h4>
+              ${progress(84,"PM Completed")}
+            </div>
+            <div class="viz full">
+              <h4>Utilization by Modality</h4>
+              ${barChart([35,70,55,80,60,45],90)}
+            </div>
+          </div>`; }
+      },
+      "IT & Technology": {
+        title:"IT & Technology",
+        description:"Benchmarks for digital infrastructure and downtime processes.",
+        legendItems:[
+          {color:'good', label:'Uptime'},
+          {color:'red', label:'Incidents'},
+          {color:'gray', label:'Baseline / Hours'}
+        ],
+        visuals(){ return `
+          <div class="viz-grid">
+            <div class="viz third">
+              <h4>Uptime</h4>
+              ${donut(99,"Core Apps")}
+            </div>
+            <div class="viz third">
+              <h4>Tickets Closed</h4>
+              ${sparkline([12,14,18,17,20,22,24])}
+            </div>
+            <div class="viz third">
+              <h4>Critical Incidents</h4>
+              ${progress(6,"MTTR Hours")}
+            </div>
+            <div class="viz full">
+              <h4>Downtime Heat (by hour)</h4>
+              ${heatmap(4,24,[7,8,9,18,19,20,45,46,47,70,71,72,87,88,89])}
+            </div>
+          </div>`; }
+      },
+      "Clinical Metrics": {
+        title:"Clinical Metrics",
+        description:"Performance indicators for clinical outcomes and efficiency.",
+        legendItems:[
+          {color:'red', label:'Readmit'},
+          {color:'good', label:'Throughput'},
+          {color:'gray', label:'Target'}
+        ],
+        visuals(){ return `
+          <div class="viz-grid">
+            <div class="viz half">
+              <h4>LOS Trend</h4>
+              ${sparkline([3.4,3.2,3.1,3.0,3.3,3.2,3.0,2.9])}
+            </div>
+            <div class="viz half">
+              <h4>Readmission Rate</h4>
+              ${donut(9,"30-Day")}
+            </div>
+            <div class="viz full">
+              <h4>Throughput</h4>
+              ${bullet(82,95,100,"Patients / Day")}
+            </div>
+
+            <!-- Native recreation of the category image -->
+            <div class="viz full">
+              <h4>THE 7 LEAN FLOWS of HEALTHCARE</h4>
+              <div class="cat-grid">
+                <div class="cat-item">
+                  <div class="icon-circle sw-red">${I.patient()}</div>
+                  <div class="cat-text">
+                    <h5>Patient</h5>
+                    <p>Processes that directly impact patient care.</p>
+                  </div>
+                </div>
+
+                <div class="cat-item">
+                  <div class="icon-circle sw-blue">${I.provider()}</div>
+                  <div class="cat-text">
+                    <h5>Providers / Staff / Safety</h5>
+                    <p>Processes that impact providers or staff or are carried out between providers.</p>
+                  </div>
+                </div>
+
+                <div class="cat-item">
+                  <div class="icon-circle sw-orange">${I.family()}</div>
+                  <div class="cat-text">
+                    <h5>Families</h5>
+                    <p>Processes that impact families and visitors.</p>
+                  </div>
+                </div>
+
+                <div class="cat-item">
+                  <div class="icon-circle sw-teal">${I.supplies()}</div>
+                  <div class="cat-text">
+                    <h5>Supplies</h5>
+                    <p>Supply delivery, stocking, storage, and management.</p>
+                  </div>
+                </div>
+
+                <div class="cat-item">
+                  <div class="icon-circle sw-purple">${I.med()}</div>
+                  <div class="cat-text">
+                    <h5>Medication</h5>
+                    <p>Guides medication storage, controls, and administration.</p>
+                  </div>
+                </div>
+
+                <div class="cat-item">
+                  <div class="icon-circle sw-green">${I.equip()}</div>
+                  <div class="cat-text">
+                    <h5>Equipment / Lab / Blood Bank</h5>
+                    <p>Impacts equipment cleaning, storage, procurement, and management.</p>
+                  </div>
+                </div>
+
+                <div class="cat-item">
+                  <div class="icon-circle sw-gray">${I.it()}</div>
+                  <div class="cat-text">
+                    <h5>Information / IT / Technology / Downtime</h5>
+                    <p>How information is disseminated, electronically or through other channels.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>`; }
+      },
+      "Building Metrics": {
+        title:"Building Metrics",
+        description:"Physical environment benchmarks including air exchanges and acoustics.",
+        legendItems:[
+          {color:'red', label:'Hot / High'},
+          {color:'good', label:'On Target'},
+          {color:'gray', label:'Baseline'}
+        ],
+        visuals(){ return `
+          <div class="viz-grid">
+            <div class="viz third">
+              <h4>Air Changes</h4>
+              ${donut(12,"ACH / hr")}
+            </div>
+            <div class="viz third">
+              <h4>Noise (dBA)</h4>
+              ${sparkline([58,56,55,60,62,59,57])}
+            </div>
+            <div class="viz third">
+              <h4>Energy vs Target</h4>
+              ${progress(74,"EUI")}
+            </div>
+            <div class="viz full">
+              <h4>Thermal Comfort Heat</h4>
+              ${heatmap(4,16,[2,3,4,6,7,8,11,15,22,23,24,30,31,32,55,56])}
+            </div>
+          </div>`; }
+      },
+      "Evidence-Based Design": {
+        title:"Evidence-Based Design",
+        description:"Design strategies supported by research and best practices.",
+        legendItems:[
+          {color:'good', label:'Adoption / Gains'},
+          {color:'red', label:'Gaps'},
+          {color:'gray', label:'Evidence strength'}
+        ],
+        visuals(){ return `
+          <div class="viz-grid">
+            <div class="viz half">
+              <h4>Interventions Adoption</h4>
+              ${barChart([20,35,50,65,80],100)}
+            </div>
+            <div class="viz half">
+              <h4>Post-Occupancy Gains</h4>
+              ${sparkline([2,4,5,7,8,10,12,13])}
+            </div>
+            <div class="viz full">
+              <h4>Evidence Strength</h4>
+              ${bullet(68,85,100,"Weighted Score")}
+            </div>
+          </div>`; }
+      }
+    };
+
+    function sectionTemplate(key){
+      const d = reportData[key];
+      return `
+        <article class="report-section">
+          <div class="section-head">
+            <div class="section-left">
+              <h3 class="report-title">${d.title}</h3>
+              <span class="tag">Placeholder Dashboard</span>
+            </div>
+            <span class="updated">Last updated ${LAST_UPDATED}</span>
+          </div>
+          ${legend(d.legendItems || [])}
+          <p class="report-desc">${d.description}</p>
+          ${d.visuals()}
+        </article>`;
+    }
+
+    function generateReport(){
+      const select = document.getElementById("categories");
+      const selected = Array.from(select.selectedOptions).map(o=>o.value);
+      const output = document.getElementById("reportOutput");
+      output.innerHTML = selected.map(sectionTemplate).join("");
+    }
+
+    /* Menu + print */
+    document.addEventListener("DOMContentLoaded", () => {
+      const sel = document.getElementById("categories");
+      sel.addEventListener("change", generateReport);
+      sel.addEventListener("input", generateReport);
+      sel.addEventListener("click", e => { if (e.target.tagName === "OPTION") generateReport(); });
+      generateReport();
+
+      const btn   = document.getElementById('menuBtn');
+      const sheet = document.getElementById('menuSheet');
+      const printBtn = document.getElementById('printBtn');
+
+      function closeMenu(){ sheet.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
+
+      btn.addEventListener('click', e => {
+        const open = sheet.classList.toggle('open');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        e.stopPropagation();
+      });
+      document.addEventListener('click', e => { if(!sheet.contains(e.target) && e.target !== btn) closeMenu(); });
+      printBtn.addEventListener('click', () => { closeMenu(); window.print(); });
+    });
+  </script>
+</body>
+</html>
