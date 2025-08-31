@@ -5,65 +5,102 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Life Cycle Cost Calculator • BSA (V3)</title>
 <style>
-  :root{--bg:#0b1220; --panel:#0f172a; --ink:#e5e7eb; --muted:#94a3b8; --accent:#22c55e; --accent2:#06b6d4; --warn:#f59e0b}
+  /* Fonts, swap to your licensed paths */
+  @font-face{font-family:"Helvetica Neue";font-style:normal;font-weight:400;font-display:swap;src:url("./fonts/HelveticaNeue.woff2") format("woff2")}
+  @font-face{font-family:"Helvetica Neue";font-style:normal;font-weight:700;font-display:swap;src:url("./fonts/HelveticaNeue-Bold.woff2") format("woff2")}
+
+  :root{
+    --brand:#de1c28; --charcoal:#1f1f1f; --charcoal-b:#2b2b2b;
+    --bg:#f3f4f6; --panel:#fff; --ink:#0f172a; --muted:#6b7280; --line:#e5e7eb;
+    --accent:#22c55e; --accent2:#06b6d4; --warn:#f59e0b;
+  }
+
   *{box-sizing:border-box}
-  body{margin:0;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
-  header{padding:18px 24px;border-bottom:1px solid #1f2937;display:flex;gap:16px;align-items:center;position:sticky;top:0;background:#0b1220cc;backdrop-filter: blur(6px)}
-  h1{font-size:18px;margin:0}
-  .badge{font-size:12px;color:#06b6d4;background:#083344;padding:4px 8px;border-radius:999px}
-  .pill{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #1f2937;background:#0b1220;color:#e2e8f0}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 "Helvetica Neue",Helvetica,Arial,system-ui,-apple-system,"Segoe UI",Roboto,Inter;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+
+  header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px;padding:12px 20px;background:#1f1f1fcc;backdrop-filter:blur(6px);border-bottom:1px solid var(--charcoal-b);color:#fff}
+  .brand{display:flex;align-items:center;gap:12px;min-width:0}
+  .brand svg{height:24px;width:auto;display:block}
+  .brand-title{font-weight:700;letter-spacing:.2px;color:#fff}
+  h1{font-size:18px;margin:0;font-weight:700;color:#fff}
+  .badge{font-size:12px;color:#fff;background:var(--brand);padding:4px 8px;border-radius:999px}
+  .pill{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #3a3a3a;background:#111;color:#fff}
+
   main{display:grid;grid-template-columns:420px 1fr;gap:18px;padding:18px;min-height:100dvh}
-  .card{background:linear-gradient(180deg,#101826,#0b1220);border:1px solid #1f2937;border-radius:14px;padding:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
   .stack{display:flex;flex-direction:column;gap:12px}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
   label{font-size:13px;color:var(--muted)}
-  input,select{width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#0b1220;color:#e2e8f0}
+  input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink);font-family:inherit}
+  input:focus,select:focus{outline:2px solid #c7d2fe;outline-offset:1px}
   .btns{display:flex;gap:8px;flex-wrap:wrap}
-  button{padding:10px 14px;border-radius:10px;border:1px solid #1f2937;background:#0b1220;color:#e2e8f0;cursor:pointer}
-  button.primary{background:#0b3a3a;border-color:#06b6d4}
+  button{padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;font-family:inherit}
+  button:hover{background:#f9fafb}
+  button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+
   .tabs{display:flex;gap:8px}
-  .tab{padding:8px 12px;border:1px solid #1f2937;border-radius:999px;cursor:pointer;color:var(--muted)}
-  .tab.active{color:#10b981;border-color:#10b981;background:#052e2e}
+  .tab{padding:8px 12px;border:1px solid var(--line);border-radius:999px;cursor:pointer;color:var(--muted);background:#fff}
+  .tab.active{color:#111827;border-color:#9ca3af;background:#f3f4f6}
   .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
-  .tile{background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:12px}
+  .tile{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}
   .big{font-size:22px;font-weight:700}
-  .chart{height:320px;border:1px dashed #334155;border-radius:12px;position:relative;overflow:hidden}
+
+  .chart{height:320px;border:1px dashed var(--line);border-radius:12px;position:relative;overflow:hidden;background:#fff}
   .legend{position:absolute;left:14px;top:8px;font-size:12px;color:var(--muted)}
   .bars{position:absolute;inset:0;display:flex;align-items:flex-end;gap:18px;justify-content:center;padding:28px 18px 18px;height:100%}
-  .bar{width:44px;background:linear-gradient(180deg,var(--accent2),#0e7490);border-radius:10px 10px 6px 6px;transition:height .25s;min-height:4px}
-  .bar.b{background:linear-gradient(180deg,var(--accent),#14532d)}
+  .bar{width:44px;background:linear-gradient(180deg,var(--accent2),#0ea5e9);border-radius:10px 10px 6px 6px;transition:height .25s;min-height:4px}
+  .bar.b{background:linear-gradient(180deg,var(--accent),#16a34a)}
   .xlab{position:absolute;bottom:8px;left:0;right:0;text-align:center;color:var(--muted);font-size:12px}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th,td{border-bottom:1px solid #1f2937;padding:6px 8px;text-align:right}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:right}
   th:first-child,td:first-child{text-align:left}
   tfoot td{font-weight:700}
-  .disclaimer{font-size:11px;color:#9ca3af}
-  /* sensitivity */
+  .disclaimer{font-size:11px;color:#6b7280}
+
   .sens{display:grid;grid-template-columns:280px 1fr;gap:16px}
-  .sens .group{background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:12px}
+  .sens .group{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}
   .srow{display:grid;grid-template-columns:1fr 70px;gap:8px;align-items:center;margin:8px 0}
   .srow input[type=range]{width:100%}
-  .tornado{border:1px dashed #334155;border-radius:12px;padding:12px;height:320px;display:flex;flex-direction:column;gap:8px}
+  .tornado{border:1px dashed var(--line);border-radius:12px;padding:12px;height:320px;display:flex;flex-direction:column;gap:8px;background:#fff}
   .tw{display:flex;align-items:center;gap:8px}
-  .tlabel{flex:0 0 190px;color:#cbd5e1;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .tbar{height:18px;border-radius:9px;background:#0e7490;opacity:.9}
+  .tlabel{flex:0 0 190px;color:#374151;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tbar{height:18px;border-radius:9px;background:#0ea5e9;opacity:.9}
   .tbar.neg{background:#ef4444}
-  .tval{width:80px;text-align:right;color:#94a3b8;font-size:12px}
-  /* DATA MODAL */
-  .modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:50}
-  .modal .sheet{width:min(720px,92vw);background:#0b1220;border:1px solid #1f2937;border-radius:14px;padding:16px}
+  .tval{width:80px;text-align:right;color:#6b7280;font-size:12px}
+
+  .modal{position:fixed;inset:0;background:#0006;display:none;align-items:center;justify-content:center;z-index:50}
+  .modal .sheet{width:min(720px,92vw);background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px}
   .modal h3{margin:0 0 8px 0;font-size:16px}
   .modal .row2{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
-  .modal .src{background:#0f172a;border:1px solid #1f2937;border-radius:12px;padding:12px;margin-top:10px}
-  .tag{display:inline-block;font-size:12px;padding:2px 8px;border:1px solid #1f2937;border-radius:999px;color:#94a3b8}
-  /* owner view */
+  .modal .src{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px}
+  .tag{display:inline-block;font-size:12px;padding:2px 8px;border:1px solid var(--line);border-radius:999px;color:#6b7280}
+
   .owner #inputs{display:none}
   .owner .kpis .big{font-size:26px}
+
+  @media (max-width:980px){main{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <header>
+  <div class="brand" aria-label="BSA LifeStructures">
+    <!-- BSA logo (inline SVG) -->
+    <svg viewBox="0 0 960 489.48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="BSA">
+      <defs><style>.cls-1{fill:#de1c28;}</style></defs>
+      <g>
+        <path class="cls-1" d="M293.75,274.14c-18.01-17.42-43.03-29.48-74.49-35.97,10.29-3.5,19.76-7.87,28.31-13.06,12.42-7.55,23.01-16.55,31.47-26.76,8.49-10.23,15.1-21.55,19.63-33.64,4.55-12.12,6.86-24.88,6.86-37.94,0-19.6-3.3-37.44-9.8-53.02-6.55-15.65-16.73-29.1-30.28-39.96-13.45-10.79-30.68-19.07-51.24-24.62C193.81,3.67,169.47.89,141.87.89H0v488.17h159.56c25.83,0,49.28-3.08,69.68-9.16,20.53-6.11,38.1-15.08,52.22-26.65,14.19-11.63,25.15-26.02,32.59-42.76,7.42-16.69,11.19-35.7,11.19-56.5,0-32.78-10.59-59.65-31.5-79.85ZM41.9,35.3h99.98c41.85,0,73.1,8.15,92.9,24.23,19.59,15.9,29.52,39.78,29.52,70.98,0,12-2.32,23.81-6.9,35.11-4.54,11.26-11.75,21.49-21.42,30.39-9.7,8.94-22.36,16.26-37.61,21.75-15.31,5.51-34.09,8.3-55.81,8.3H41.9V35.3ZM252.76,427.72c-20.92,17.63-52.4,26.58-93.55,26.58H41.9v-195.87h117.67c19.75,0,37.63,2.24,53.13,6.67,15.39,4.4,28.5,10.78,38.97,18.96,10.41,8.14,18.49,18.14,24.01,29.73,5.53,11.59,8.34,24.88,8.34,39.51,0,31.89-10.51,56.93-31.25,74.42Z"/>
+        <path class="cls-1" d="M760.26.89h-38.97l-199.75,488.17h31.64c3.97,0,7.43-1.17,10.31-3.47,2.77-2.21,4.73-4.9,5.8-7.86l55.59-137.65h231.77l55.61,137.69c1.35,3.24,3.28,5.91,5.74,7.94,2.66,2.22,6.03,3.35,10.01,3.35h31.98L760.26.89ZM633.11,310.79l97.96-242.86c1.82-4.08,3.52-8.56,5.1-13.44,1.59-4.88,3.07-10.04,4.42-15.48,3.18,11.11,6.46,20.64,9.86,28.57l97.96,243.2h-215.31Z"/>
+        <g>
+          <path class="cls-1" d="M558.1,287.83l-14.66-7.98c-9.68-5.11-20.2-9.77-31.25-13.83-11.28-4.15-22.99-8.05-34.8-11.6-12.38-3.71-24.67-7.86-36.49-12.33-12.2-4.61-23.83-9.92-34.54-15.8-11.41-6.26-21.56-13.98-30.16-22.97-8.87-9.23-15.97-20.34-21.1-33.01-5.15-12.66-7.76-27.65-7.76-44.54s3.11-32.42,9.25-47.51c6.17-15.19,15.31-28.78,27.17-40.39,11.8-11.55,26.46-20.86,43.58-27.67,17.05-6.76,36.66-10.2,58.29-10.2,24.14,0,45.94,4.02,64.79,11.95,18.91,7.95,36.81,20.66,53.2,37.76l7.6,7.93-7.14,10.75c-2.98,5.24-8.62,8.48-14.98,8.48-5.25,0-10.17-2.26-15.06-6.91-2.13-2.03-4.91-4.59-8.33-7.7-3.1-2.8-7.08-5.97-11.85-9.43-4.35-3.15-9.77-6.15-16.09-8.93-6.38-2.8-13.95-5.18-22.49-7.07-8.42-1.86-18.4-2.8-29.65-2.8-17.05,0-32.26,2.61-45.17,7.76-12.85,5.12-23.7,11.95-32.23,20.29-8.49,8.3-15.03,18.04-19.45,28.95-4.48,11.03-6.75,22.71-6.75,34.72,0,15.24,2.86,27.88,8.51,37.57,5.93,10.16,13.8,18.84,23.39,25.79,10.14,7.36,22.01,13.59,35.28,18.51,14.26,5.29,28.96,10.45,43.7,15.32,15,4.97,30.04,10.3,44.7,15.85,7.88,2.99,15.48,6.47,22.6,10.36l10.55,5.76-12.65,32.89Z"/>
+          <path class="cls-1" d="M470.51,489.48h-9.6c-16.61,0-31.74-1.49-44.94-4.44-13.35-2.98-25.79-7.35-36.98-13-10.81-5.46-20.95-12.19-30.16-20l-11.16-9.47,10.17-10.53c1.15-1.19,2.2-2.48,3.25-3.75l10.21-12.24,10.54,8.94c1.94,1.64,3.94,3.32,6.14,5.04,5.37,4.22,12.08,8.3,19.96,12.15,7.85,3.83,17.07,7.04,27.37,9.54,10.19,2.48,22.13,3.74,35.48,3.74l2.61-.12,20.35-.35-13.25,34.5Z"/>
+        </g>
+      </g>
+    </svg>
+    <div class="brand-title">Sustainability Tools</div>
+  </div>
+
   <h1>Life Cycle Cost Calculator</h1><span class="badge">V3</span>
   <span class="pill" id="scenarioPill">Scenarios: A vs B</span>
   <span class="pill" id="ownerToggle" style="cursor:pointer">Owner view</span>
@@ -112,10 +149,10 @@
         </select>
       </div>
       <div class="btns">
-        <button id="share">Copy sharable URL</button>
-        <button id="swap">Swap A and B</button>
-        <button id="print">Print</button>
-        <button id="dataBtn">Data</button>
+        <button id="share" type="button">Copy sharable URL</button>
+        <button id="swap" type="button">Swap A and B</button>
+        <button id="print" type="button">Print</button>
+        <button id="dataBtn" type="button" class="primary">Data</button>
       </div>
     </div>
 
@@ -134,7 +171,7 @@
     <div id="panel-summary" class="stack">
       <div class="kpis" id="kpis"></div>
       <div class="chart">
-        <div class="legend">Cumulative net present cost (NPC) — lower is better</div>
+        <div class="legend">Cumulative net present cost (NPC), lower is better</div>
         <div class="bars" id="bars"></div>
         <div class="xlab" id="xlab">A vs B</div>
       </div>
@@ -164,10 +201,10 @@
         <div class="srow"><label>Discount rate</label><input id="s_disc" type="range" min="0" max="12" step="0.1" value="6"><div id="s_disc_val">6%</div></div>
         <div class="srow"><label>Energy escalation</label><input id="s_escal" type="range" min="0" max="6" step="0.1" value="2"><div id="s_escal_val">2%</div></div>
         <div class="srow"><label>OPEX ± variance</label><input id="s_ov" type="range" min="0" max="30" step="1" value="10"><div id="s_ov_val">±10%</div></div>
-        <div style="font-size:12px;color:#9ca3af;margin-top:8px">Bars show impact on ΔNPC (B − A) when each input moves to the selected value or variance.</div>
+        <div style="font-size:12px;color:#6b7280;margin-top:8px">Bars show impact on ΔNPC (B − A) when each input moves to the selected value or variance.</div>
       </div>
       <div class="group">
-        <div style="font-weight:700;margin-bottom:6px">Tornado chart (impact on ΔNPC)</div>
+        <div style="font-weight:700;margin-bottom:6px">Tornado chart, impact on ΔNPC</div>
         <div class="tornado" id="tornado"></div>
       </div>
     </div>
@@ -179,17 +216,17 @@
   <div class="sheet">
     <div style="display:flex;justify-content:space-between;align-items:center">
       <h3>Data Adapter</h3>
-      <button id="dataClose">Close</button>
+      <button id="dataClose" type="button">Close</button>
     </div>
 
     <div class="src">
       <div style="display:flex;gap:8px;align-items:center;">
         <div class="tag">Electricity & Gas Rates</div>
-        <small style="color:#94a3b8">EIA Open Data, requires key</small>
+        <small style="color:#6b7280">EIA Open Data, requires key</small>
       </div>
       <div class="row2">
         <input id="eiaKey" placeholder="EIA_API_KEY (stored locally)" />
-        <button id="saveEIAKey">Save key</button>
+        <button id="saveEIAKey" type="button">Save key</button>
       </div>
       <div class="row2">
         <select id="stateSelect">
@@ -200,254 +237,306 @@
           <option value="TX">Texas</option>
         </select>
         <div style="display:flex;gap:8px">
-          <button id="fetchEIA">Fetch rates (ref)</button>
-          <a href="https://www.eia.gov/opendata/" target="_blank" rel="noopener"><button>Open source</button></a>
+          <button id="fetchEIA" type="button">Fetch rates (ref)</button>
+          <a href="https://www.eia.gov/opendata/" target="_blank" rel="noopener"><button type="button">Open source</button></a>
         </div>
       </div>
-      <small style="color:#9ca3af">Use fetched rates to calibrate OPEX assumptions.</small>
+      <small style="color:#6b7280">Use fetched rates to calibrate OPEX assumptions.</small>
     </div>
 
     <div class="src">
       <div style="display:flex;gap:8px;align-items:center;">
         <div class="tag">Escalation guidance</div>
-        <small style="color:#94a3b8">Paste % per year</small>
+        <small style="color:#6b7280">Paste % per year</small>
       </div>
       <div class="row2">
         <input id="escalPaste" placeholder="e.g., 2.4" />
-        <button id="applyEscal">Apply to field</button>
+        <button id="applyEscal" type="button">Apply to field</button>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-// error banner
-(function(){const b=document.createElement('div');b.id='errbar';b.style.cssText="display:none;position:fixed;left:0;right:0;top:0;z-index:9999;background:#7f1d1d;color:#fff;padding:8px 12px;font:14px/1.3 system-ui";document.body.appendChild(b);window.onerror=function(m,s,l,c){b.textContent="Script error: "+m+" ("+l+":"+c+")";b.style.display='block';};})();
-
-const fmtUSD=n=>n.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});
-const pct=n=>n.toLocaleString(undefined,{maximumFractionDigits:1})+"%";
-
-// Tabs
-document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
-  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-  t.classList.add('active');
-  const name=t.dataset.tab;
-  ['summary','cashflow','sensitivity'].forEach(id=>{document.getElementById('panel-'+id).style.display=id===name?'block':'none';});
-}));
-
-// Owner view
-document.getElementById('ownerToggle').addEventListener('click',()=>{document.body.classList.toggle('owner');});
-
-// Presets
-document.getElementById('preset').addEventListener('change',e=>{
-  const v=e.target.value;
-  if(v==='ac_vs_wc'){setA({name:'Air-cooled chiller',capex:2800000,opex:310000,repl:'15:1800000'});setB({name:'Water-cooled chiller + tower',capex:3600000,opex:250000,repl:'18:2300000'});}
-  else if(v==='boiler_vs_hp'){setA({name:'Gas boiler plant',capex:2200000,opex:290000,repl:'18:1500000'});setB({name:'Heat pump plant',capex:3200000,opex:210000,repl:'20:1800000'});}
-  else if(v==='doas_erv'){setA({name:'Conventional AHU',capex:1400000,opex:260000,repl:'15:1000000'});setB({name:'DOAS + ERV',capex:1750000,opex:210000,repl:'18:1000000'});}
-  update();
-});
-
-// Inputs hook
-['years','nameA','nameB','discount','escal','capexA','opexA','replA','capexB','opexB','replB','residMethod']
-.forEach(id=>{const el=document.getElementById(id); ['input','change','keyup'].forEach(ev=>el.addEventListener(ev,update));});
-
-// Buttons
-document.getElementById('swap').addEventListener('click',()=>{const A=getA(),B=getB();setA(B);setB(A);update();});
-document.getElementById('share').addEventListener('click',()=>{
-  const p=new URLSearchParams(),A=getA(),B=getB();
-  Object.entries(A).forEach(([k,v])=>p.set('A_'+k,v)); Object.entries(B).forEach(([k,v])=>p.set('B_'+k,v));
-  p.set('disc',val('discount')); p.set('years',val('years')); p.set('escal',val('escal')); p.set('resid',val('residMethod'));
-  const url=location.origin+location.pathname+'?'+p.toString();
-  if(navigator.clipboard?.writeText){navigator.clipboard.writeText(url).then(()=>alert('Sharable URL copied.'));} else {prompt("Copy this URL",url);}
-});
-document.getElementById('print').addEventListener('click',()=>window.print());
-
-// Helpers
-function setA(o){if(o.name!==undefined)E('nameA').value=o.name; if(o.capex)E('capexA').value=o.capex; if(o.opex)E('opexA').value=o.opex; if(o.repl)E('replA').value=o.repl;}
-function setB(o){if(o.name!==undefined)E('nameB').value=o.name; if(o.capex)E('capexB').value=o.capex; if(o.opex)E('opexB').value=o.opex; if(o.repl)E('replB').value=o.repl;}
-function getA(){return {name:val('nameA'),capex:+val('capexA'),opex:+val('opexA'),repl:val('replA')};}
-function getB(){return {name:val('nameB'),capex:+val('capexB'),opex:+val('opexB'),repl:val('replB')};}
-function E(id){return document.getElementById(id)}; function val(id){return E(id).value}
-
-function buildFlows(s,years,escal){
-  const flows=Array(years+1).fill(0);
-  flows[0]=s.capex;
-  for(let y=1;y<=years;y++) flows[y]+= s.opex*Math.pow(1+escal,y-1);
-  if(s.repl){const [yr,cost]=s.repl.split(':').map(x=>+x); if(yr>0&&yr<=years) flows[yr]+=cost;}
-  if(E('residMethod').value==='straight'){
-    const life=s.repl?+s.repl.split(':')[0]:years;
-    const remaining=Math.max(life-years,0);
-    const salvage=s.capex*(remaining/life);
-    flows[years]-=salvage;
-  }
-  return flows;
-}
-function NPV(flows,disc){return flows.reduce((acc,c,y)=>acc + c/Math.pow(1+disc,y), 0);}
-function cumulativeNPC(flows,disc){let sum=0;return flows.map((c,y)=>{sum += c/Math.pow(1+disc,y); return sum;});}
-function tile(label,value){const d=document.createElement('div');d.className='tile';d.innerHTML=`<div style="color:#94a3b8;font-size:12px">${label}</div><div class="big">${value}</div>`;return d;}
-
-function update(){
-  const A=getA(),B=getB();
-  const disc=(+val('discount')||0)/100;
-  const years=+val('years')||25;
-  const escal=(+val('escal')||0)/100;
-
-  E('scenarioPill').textContent=`Scenarios: ${A.name} vs ${B.name}`;
-  E('thA').textContent=A.name; E('thB').textContent=B.name;
-
-  const flowsA=buildFlows(A,years,escal), flowsB=buildFlows(B,years,escal);
-  const npcA=NPV(flowsA,disc), npcB=NPV(flowsB,disc);
-  const cumA=cumulativeNPC(flowsA,disc), cumB=cumulativeNPC(flowsB,disc);
-
-  const k=E('kpis'); k.innerHTML='';
-  k.appendChild(tile('NPC '+A.name,fmtUSD(npcA)));
-  k.appendChild(tile('NPC '+B.name,fmtUSD(npcB)));
-  k.appendChild(tile('Delta NPC (B − A)',fmtUSD(npcB-npcA)));
-  k.appendChild(tile('Simple payback',simplePayback(flowsA,flowsB)));
-  k.appendChild(tile('IRR of delta',irrOfDelta(flowsA,flowsB)));
-
-  const tb=E('tbody'); tb.innerHTML='';
-  for(let y=0;y<=years;y++){
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${y}</td><td>${fmtUSD(cumA[y])}</td><td>${fmtUSD(cumB[y])}</td>`;
-    tb.appendChild(tr);
-  }
-  E('totA').textContent=fmtUSD(npcA); E('totB').textContent=fmtUSD(npcB);
-
-  drawBars('bars',[cumA.at(-1),cumB.at(-1)],[A.name,B.name]);
-  drawCashFlow(A,B,years,escal,disc);
-  drawTornado();
-}
-function simplePayback(a,b){const dCap=b[0]-a[0];let cum=0;for(let y=1;y<Math.max(a.length,b.length);y++){const sav=(a[y]||0)-(b[y]||0);cum+=sav;if(cum>=dCap)return y.toFixed(1)+' yrs';}return "n/a";}
-function irrOfDelta(a,b){const d=a.map((v,i)=>(b[i]||0)-v);let r=.1;for(let i=0;i<100;i++){let f=0,df=0;for(let t=0;t<d.length;t++){f+=d[t]/Math.pow(1+r,t);df+=-t*d[t]/Math.pow(1+r,t+1);}const nr=r-f/df;if(!isFinite(nr))break;if(Math.abs(nr-r)<1e-6)break;r=nr;}return (isNaN(r)||!isFinite(r))?"n/a":pct(r*100);}
-
-function drawBars(containerId,values,labels){
-  const bars=E(containerId); bars.innerHTML='';
-  const max=Math.max(...values,1);
-  const innerH=Math.max(0,bars.clientHeight-48);
-  values.forEach((v,i)=>{
-    const wrap=document.createElement('div');wrap.style.display='flex';wrap.style.flexDirection='column';wrap.style.alignItems='center';
-    const b=document.createElement('div');b.className='bar'+(i===1?' b':'');
-    const px=Math.max(4,(0.1*innerH)+(0.8*innerH)*(v/max));
-    b.style.height=px+'px'; wrap.appendChild(b);
-    const cap=document.createElement('div');cap.style.textAlign='center';cap.style.color='#94a3b8';cap.style.fontSize='12px';cap.style.marginTop='6px';cap.textContent=labels[i];
-    wrap.appendChild(cap); bars.appendChild(wrap);
-  });
-}
-
-function drawCashFlow(A,B,years,escal,disc){
-  const cf=E('cfBars'); cf.innerHTML='';
-  const segA=segments(A,years,escal,disc);
-  const segB=segments(B,years,escal,disc);
-
-  const k=E('kpis2'); k.innerHTML='';
-  k.appendChild(tile(A.name+' CAPEX',fmtUSD(segA.capex)));
-  k.appendChild(tile(A.name+' OPEX (PV)',fmtUSD(segA.opexPV)));
-  k.appendChild(tile(B.name+' CAPEX',fmtUSD(segB.capex)));
-  k.appendChild(tile(B.name+' OPEX (PV)',fmtUSD(segB.opexPV)));
-
-  const stacks=[
-    {label:A.name, vals:[segA.capex, segA.opexPV, segA.replPV, -segA.salvPV]},
-    {label:B.name, vals:[segB.capex, segB.opexPV, segB.replPV, -segB.salvPV]}
-  ];
-  const sums=stacks.map(s=>s.vals.reduce((a,c)=>a+Math.max(0,c),0));
-  const max=Math.max(...sums,1);
-  const innerH=Math.max(0,cf.clientHeight-48);
-
-  const colors=['#0ea5e9','#22c55e','#f59e0b','#94a3b8'];
-  stacks.forEach(s=>{
-    const wrap=document.createElement('div');wrap.style.display='flex';wrap.style.flexDirection='column';wrap.style.alignItems='center';
-    const bar=document.createElement('div');bar.style.width='60px';bar.style.borderRadius='10px';bar.style.overflow='hidden';bar.style.display='flex';bar.style.flexDirection='column-reverse';
-    s.vals.forEach((v,i)=>{
-      const seg=document.createElement('div');
-      const px=Math.max(3,(v>0? v:0)/max*(0.9*innerH));
-      seg.style.height=px+'px'; seg.style.background=colors[i]; bar.appendChild(seg);
-    });
-    wrap.appendChild(bar);
-    const cap=document.createElement('div');cap.style.color='#94a3b8';cap.style.fontSize='12px';cap.style.marginTop='6px';cap.textContent=s.label;
-    wrap.appendChild(cap); cf.appendChild(wrap);
-  });
-}
-function segments(s,years,escal,disc){
-  const capex=s.capex; let opexPV=0,replPV=0,salvPV=0;
-  for(let y=1;y<=years;y++){const base=s.opex*Math.pow(1+escal,y-1); opexPV+=base/Math.pow(1+disc,y);}
-  if(s.repl){const [yr,cost]=s.repl.split(':').map(x=>+x); if(yr>0&&yr<=years) replPV+=cost/Math.pow(1+disc,yr);}
-  if(E('residMethod').value==='straight'){
-    const life=s.repl?+s.repl.split(':')[0]:years;
-    const remaining=Math.max(life-years,0);
-    const salvage=s.capex*(remaining/life);
-    salvPV += salvage/Math.pow(1+disc,years);
-  }
-  return {capex,opexPV,replPV,salvPV};
-}
-
-// Sensitivity tornado
-function drawTornado(){
-  const A=getA(),B=getB(); const years=+val('years')||25;
-  const baseDisc=(+val('discount')||0)/100, baseEsc=(+val('escal')||0)/100;
-  const t=E('tornado'); t.innerHTML='';
-  const baseDelta = NPV(buildFlows(B,years,baseEsc),baseDisc) - NPV(buildFlows(A,years,baseEsc),baseDisc);
-
-  const discSel=+E('s_disc').value/100;
-  const dDisc = NPV(buildFlows(B,years,baseEsc),discSel)-NPV(buildFlows(A,years,baseEsc),discSel)-baseDelta;
-  addT('Discount rate', dDisc);
-
-  const escSel=+E('s_escal').value/100;
-  const dEsc = NPV(buildFlows(B,years,escSel),baseDisc)-NPV(buildFlows(A,years,escSel),baseDisc)-baseDelta;
-  addT('Energy escalation', dEsc);
-
-  const ov=+E('s_ov').value/100;
-  const B_up={...B,opex:B.opex*(1+ov)}, B_dn={...B,opex:B.opex*(1-ov)};
-  const du = NPV(buildFlows(B_up,years,baseEsc),baseDisc)-NPV(buildFlows(A,years,baseEsc),baseDisc);
-  const dd = NPV(buildFlows(B_dn,years,baseEsc),baseDisc)-NPV(buildFlows(A,years,baseEsc),baseDisc);
-  const dOpex = Math.abs(baseDelta-du)>Math.abs(baseDelta-dd)?(du-baseDelta):(dd-baseDelta);
-  addT('OPEX variance (B)', dOpex);
-
-  function addT(label,delta){
-    const row=document.createElement('div');row.className='tw';
-    const lab=document.createElement('div');lab.className='tlabel';lab.textContent=label;row.appendChild(lab);
-    const bar=document.createElement('div');bar.className='tbar'+(delta<0?'':' neg'); bar.style.width=(Math.min(100, Math.abs(delta)/Math.max(1,Math.abs(baseDelta))*100 + 10))+'%'; row.appendChild(bar);
-    const val=document.createElement('div');val.className='tval';val.textContent=(delta>=0?'+':'−')+fmtUSD(Math.abs(delta)).replace('$',''); row.appendChild(val);
-    t.appendChild(row);
-  }
-
-  // slider labels
-  E('s_disc_val').textContent=E('s_disc').value+'%';
-  E('s_escal_val').textContent=E('s_escal').value+'%';
-  E('s_ov_val').textContent='±'+E('s_ov').value+'%';
-}
-['s_disc','s_escal','s_ov'].forEach(id=>E(id).addEventListener('input',drawTornado));
-
-// Data Adapter
 (function(){
-  const modal=E('dataModal');
-  E('dataBtn').addEventListener('click',()=>{modal.style.display='flex'; E('eiaKey').value=localStorage.getItem('EIA_API_KEY')||'';});
-  E('dataClose').addEventListener('click',()=>modal.style.display='none');
-  E('saveEIAKey').addEventListener('click',()=>{localStorage.setItem('EIA_API_KEY',E('eiaKey').value.trim()); alert('Saved locally.');});
-  E('fetchEIA').addEventListener('click', async ()=>{
-    const key=localStorage.getItem('EIA_API_KEY'); if(!key){alert('Add EIA key first.'); return;}
-    const state=E('stateSelect').value;
-    try{
-      const eSeries=`ELEC.PRICE.COM.${state}.M`;
-      const gSeries=`NG.PRICE.COM.${state}.M`;
-      const [eResp,gResp]=await Promise.all([
-        fetch(`https://api.eia.gov/series/?api_key=${key}&series_id=${eSeries}`),
-        fetch(`https://api.eia.gov/series/?api_key=${key}&series_id=${gSeries}`)
-      ]);
-      let msg='Reference rates:';
-      if(eResp.ok){const j=await eResp.json(); const cents=j?.series?.[0]?.data?.[0]?.[1]; if(typeof cents==='number') msg+=` Elec ~${(cents/100).toFixed(3)} $/kWh`; }
-      if(gResp.ok){const j=await gResp.json(); const mcf=j?.series?.[0]?.data?.[0]?.[1]; if(typeof mcf==='number') msg+=`  Gas ~${(mcf/10).toFixed(2)} $/therm`; }
-      alert(msg || 'Fetched. Use these to calibrate OPEX.');
-    }catch(e){alert('Could not fetch from EIA. Open the source then paste.');}
-  });
-  E('applyEscal').addEventListener('click',()=>{
-    const v=E('escalPaste').value.trim(); const num=parseFloat(v.replace(/[^\d.]/g,''));
-    if(Number.isFinite(num)){E('escal').value=num.toFixed(1); update();}
-  });
-})();
+  // error banner
+  var b=document.createElement('div');
+  b.id='errbar';
+  b.style.cssText="display:none;position:fixed;left:0;right:0;top:0;z-index:9999;background:#7f1d1d;color:#fff;padding:8px 12px;font:14px/1.3 system-ui";
+  document.body.appendChild(b);
+  window.onerror=function(m,s,l,c){b.textContent="Script error: "+m+" ("+l+":"+c+")";b.style.display='block';};
 
-// Boot
-document.addEventListener('DOMContentLoaded',()=>{update(); setTimeout(update,50);});
+  function E(id){return document.getElementById(id)}
+  var fmtUSD=function(n){return Number(n).toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});};
+  var pct=function(n){return Number(n).toLocaleString(undefined,{maximumFractionDigits:1})+"%";};
+
+  function setA(o){if(o.name!==undefined)E('nameA').value=o.name; if(o.capex)E('capexA').value=o.capex; if(o.opex)E('opexA').value=o.opex; if(o.repl)E('replA').value=o.repl;}
+  function setB(o){if(o.name!==undefined)E('nameB').value=o.name; if(o.capex)E('capexB').value=o.capex; if(o.opex)E('opexB').value=o.opex; if(o.repl)E('replB').value=o.repl;}
+  function getA(){return {name:E('nameA').value,capex:+E('capexA').value,opex:+E('opexA').value,repl:E('replA').value};}
+  function getB(){return {name:E('nameB').value,capex:+E('capexB').value,opex:+E('opexB').value,repl:E('replB').value};}
+
+  function buildFlows(s,years,escal){
+    var flows=new Array(years+1); for(var i=0;i<flows.length;i++) flows[i]=0;
+    flows[0]=s.capex;
+    for(var y=1;y<=years;y++) flows[y]+= s.opex*Math.pow(1+escal,y-1);
+    if(s.repl){
+      var parts=s.repl.split(':'); var yr=+parts[0], cost=+parts[1];
+      if(yr>0&&yr<=years) flows[yr]+=cost;
+    }
+    if(E('residMethod').value==='straight'){
+      var life=s.repl?+s.repl.split(':')[0]:years;
+      var remaining=Math.max(life-years,0);
+      var salvage=s.capex*(remaining/life);
+      flows[years]-=salvage;
+    }
+    return flows;
+  }
+  function NPV(flows,disc){var acc=0; for(var y=0;y<flows.length;y++) acc+= flows[y]/Math.pow(1+disc,y); return acc;}
+  function cumulativeNPC(flows,disc){var sum=0, out=[]; for(var y=0;y<flows.length;y++){sum+=flows[y]/Math.pow(1+disc,y); out.push(sum);} return out;}
+  function tile(label,value){var d=document.createElement('div'); d.className='tile'; d.innerHTML='<div style="color:#6b7280;font-size:12px">'+label+'</div><div class="big">'+value+'</div>'; return d;}
+
+  function drawBars(containerId,values,labels){
+    var bars=E(containerId); bars.innerHTML='';
+    var max=1; for(var i=0;i<values.length;i++) if(values[i]>max) max=values[i];
+    var innerH=Math.max(0,bars.clientHeight-48);
+    for(var j=0;j<values.length;j++){
+      var wrap=document.createElement('div'); wrap.style.display='flex'; wrap.style.flexDirection='column'; wrap.style.alignItems='center';
+      var b=document.createElement('div'); b.className='bar'+(j===1?' b':'');
+      var px=Math.max(4,(0.1*innerH)+(0.8*innerH)*(values[j]/max));
+      b.style.height=px+'px'; wrap.appendChild(b);
+      var cap=document.createElement('div'); cap.style.textAlign='center'; cap.style.color='#6b7280'; cap.style.fontSize='12px'; cap.style.marginTop='6px'; cap.textContent=labels[j];
+      wrap.appendChild(cap); bars.appendChild(wrap);
+    }
+  }
+
+  function segments(s,years,escal,disc){
+    var capex=s.capex; var opexPV=0,replPV=0,salvPV=0;
+    for(var y=1;y<=years;y++){var base=s.opex*Math.pow(1+escal,y-1); opexPV+=base/Math.pow(1+disc,y);}
+    if(s.repl){var p=s.repl.split(':'), yr=+p[0], cost=+p[1]; if(yr>0&&yr<=years) replPV+=cost/Math.pow(1+disc,yr);}
+    if(E('residMethod').value==='straight'){
+      var life=s.repl?+s.repl.split(':')[0]:years;
+      var remaining=Math.max(life-years,0);
+      var salvage=s.capex*(remaining/life);
+      salvPV += salvage/Math.pow(1+disc,years);
+    }
+    return {capex:capex,opexPV:opexPV,replPV:replPV,salvPV:salvPV};
+  }
+
+  function drawCashFlow(A,B,years,escal,disc){
+    var cf=E('cfBars'); cf.innerHTML='';
+    var segA=segments(A,years,escal,disc);
+    var segB=segments(B,years,escal,disc);
+
+    var k=E('kpis2'); k.innerHTML='';
+    k.appendChild(tile(A.name+' CAPEX',fmtUSD(segA.capex)));
+    k.appendChild(tile(A.name+' OPEX (PV)',fmtUSD(segA.opexPV)));
+    k.appendChild(tile(B.name+' CAPEX',fmtUSD(segB.capex)));
+    k.appendChild(tile(B.name+' OPEX (PV)',fmtUSD(segB.opexPV)));
+
+    var stacks=[
+      {label:A.name, vals:[segA.capex, segA.opexPV, segA.replPV, -segA.salvPV]},
+      {label:B.name, vals:[segB.capex, segB.opexPV, segB.replPV, -segB.salvPV]}
+    ];
+    var sums=[0,0];
+    for(var i=0;i<stacks.length;i++){
+      var s=stacks[i], sum=0;
+      for(var j=0;j<s.vals.length;j++) sum+=Math.max(0,s.vals[j]);
+      sums[i]=sum;
+    }
+    var max=sums[0]>sums[1]?sums[0]:sums[1];
+    var innerH=Math.max(0,cf.clientHeight-48);
+    var colors=['#0ea5e9','#22c55e','#f59e0b','#9ca3af'];
+    for(var si=0;si<stacks.length;si++){
+      var wrap=document.createElement('div'); wrap.style.display='flex';wrap.style.flexDirection='column';wrap.style.alignItems='center';
+      var bar=document.createElement('div'); bar.style.width='60px'; bar.style.borderRadius='10px'; bar.style.overflow='hidden'; bar.style.display='flex'; bar.style.flexDirection='column-reverse';
+      for(var vi=0;vi<stacks[si].vals.length;vi++){
+        var v=stacks[si].vals[vi]; var seg=document.createElement('div');
+        var px=Math.max(3,(v>0? v:0)/max*(0.9*innerH));
+        seg.style.height=px+'px'; seg.style.background=colors[vi]; bar.appendChild(seg);
+      }
+      wrap.appendChild(bar);
+      var cap=document.createElement('div'); cap.style.color='#6b7280'; cap.style.fontSize='12px'; cap.style.marginTop='6px'; cap.textContent=stacks[si].label;
+      wrap.appendChild(cap); cf.appendChild(wrap);
+    }
+  }
+
+  function simplePayback(a,b){
+    var dCap=b[0]-a[0], cum=0;
+    for(var y=1;y<Math.max(a.length,b.length);y++){
+      var sav=(a[y]||0)-(b[y]||0); cum+=sav; if(cum>=dCap) return y.toFixed(1)+' yrs';
+    }
+    return "n/a";
+  }
+
+  function irrOfDelta(a,b){
+    var d=[], len=Math.max(a.length,b.length);
+    for(var i=0;i<len;i++) d.push((b[i]||0)-(a[i]||0));
+    var r=.1;
+    for(var k=0;k<100;k++){
+      var f=0,df=0;
+      for(var t=0;t<d.length;t++){f+=d[t]/Math.pow(1+r,t); df+=-t*d[t]/Math.pow(1+r,t+1);}
+      var nr=r-f/df; if(!isFinite(nr))break; if(Math.abs(nr-r)<1e-6)break; r=nr;
+    }
+    return (!isFinite(r) || isNaN(r)) ? "n/a" : pct(r*100);
+  }
+
+  function drawTornado(){
+    var A=getA(),B=getB(); var years=+E('years').value||25;
+    var baseDisc=(+E('discount').value||0)/100, baseEsc=(+E('escal').value||0)/100;
+    var t=E('tornado'); t.innerHTML='';
+    var baseDelta = NPV(buildFlows(B,years,baseEsc),baseDisc) - NPV(buildFlows(A,years,baseEsc),baseDisc);
+
+    var discSel=+E('s_disc').value/100;
+    var dDisc = NPV(buildFlows(B,years,baseEsc),discSel)-NPV(buildFlows(A,years,baseEsc),discSel)-baseDelta;
+    addT('Discount rate', dDisc);
+
+    var escSel=+E('s_escal').value/100;
+    var dEsc = NPV(buildFlows(B,years,escSel),baseDisc)-NPV(buildFlows(A,years,escSel),baseDisc)-baseDelta;
+    addT('Energy escalation', dEsc);
+
+    var ov=+E('s_ov').value/100;
+    var B_up={name:B.name,capex:B.capex,opex:B.opex*(1+ov),repl:B.repl};
+    var B_dn={name:B.name,capex:B.capex,opex:B.opex*(1-ov),repl:B.repl};
+    var du = NPV(buildFlows(B_up,years,baseEsc),baseDisc)-NPV(buildFlows(A,years,baseEsc),baseDisc);
+    var dd = NPV(buildFlows(B_dn,years,baseEsc),baseDisc)-NPV(buildFlows(A,years,baseEsc),baseDisc);
+    var dOpex = Math.abs(baseDelta-du)>Math.abs(baseDelta-dd)?(du-baseDelta):(dd-baseDelta);
+    addT('OPEX variance (B)', dOpex);
+
+    function addT(label,delta){
+      var row=document.createElement('div');row.className='tw';
+      var lab=document.createElement('div');lab.className='tlabel';lab.textContent=label;row.appendChild(lab);
+      var bar=document.createElement('div');bar.className='tbar'+(delta<0?'':' neg');
+      var widthPct=Math.min(100, (Math.abs(delta)/Math.max(1,Math.abs(baseDelta))*100 + 10));
+      bar.style.width=widthPct+'%'; row.appendChild(bar);
+      var val=document.createElement('div');val.className='tval';val.textContent=(delta>=0?'+':'−')+fmtUSD(Math.abs(delta)).replace('$',''); row.appendChild(val);
+      t.appendChild(row);
+    }
+
+    E('s_disc_val').textContent=E('s_disc').value+'%';
+    E('s_escal_val').textContent=E('s_escal').value+'%';
+    E('s_ov_val').textContent='±'+E('s_ov').value+'%';
+  }
+
+  function update(){
+    var A=getA(),B=getB();
+    var disc=(+E('discount').value||0)/100;
+    var years=+E('years').value||25;
+    var escal=(+E('escal').value||0)/100;
+
+    E('scenarioPill').textContent='Scenarios: '+A.name+' vs '+B.name;
+    E('thA').textContent=A.name; E('thB').textContent=B.name;
+
+    var flowsA=buildFlows(A,years,escal), flowsB=buildFlows(B,years,escal);
+    var npcA=NPV(flowsA,disc), npcB=NPV(flowsB,disc);
+    var cumA=cumulativeNPC(flowsA,disc), cumB=cumulativeNPC(flowsB,disc);
+
+    var k=E('kpis'); k.innerHTML='';
+    k.appendChild(tile('NPC '+A.name,fmtUSD(npcA)));
+    k.appendChild(tile('NPC '+B.name,fmtUSD(npcB)));
+    k.appendChild(tile('Delta NPC (B − A)',fmtUSD(npcB-npcA)));
+    k.appendChild(tile('Simple payback',simplePayback(flowsA,flowsB)));
+    k.appendChild(tile('IRR of delta',irrOfDelta(flowsA,flowsB)));
+
+    var tb=E('tbody'); tb.innerHTML='';
+    for(var y=0;y<=years;y++){
+      var tr=document.createElement('tr');
+      tr.innerHTML='<td>'+y+'</td><td>'+fmtUSD(cumA[y])+'</td><td>'+fmtUSD(cumB[y])+'</td>';
+      tb.appendChild(tr);
+    }
+    E('totA').textContent=fmtUSD(npcA); E('totB').textContent=fmtUSD(npcB);
+
+    var lastA=cumA[cumA.length-1], lastB=cumB[cumB.length-1];
+    drawBars('bars',[lastA,lastB],[A.name,B.name]);
+    drawCashFlow(A,B,years,escal,disc);
+    drawTornado();
+  }
+
+  function initListeners(){
+    // Tabs
+    var tabs=document.querySelectorAll('.tab');
+    for(var i=0;i<tabs.length;i++){
+      tabs[i].addEventListener('click', (function(el){
+        return function(){
+          for(var j=0;j<tabs.length;j++) tabs[j].classList.remove('active');
+          el.classList.add('active');
+          var name=el.getAttribute('data-tab');
+          var ids=['summary','cashflow','sensitivity'];
+          for(var k=0;k<ids.length;k++){
+            var p=document.getElementById('panel-'+ids[k]);
+            p.style.display = ids[k]===name ? 'block' : 'none';
+          }
+        }
+      })(tabs[i]));
+    }
+
+    // Owner view
+    E('ownerToggle').addEventListener('click',function(){document.body.classList.toggle('owner');});
+
+    // Presets
+    E('preset').addEventListener('change',function(e){
+      var v=e.target.value;
+      if(v==='ac_vs_wc'){setA({name:'Air-cooled chiller',capex:2800000,opex:310000,repl:'15:1800000'});setB({name:'Water-cooled chiller + tower',capex:3600000,opex:250000,repl:'18:2300000'});}
+      else if(v==='boiler_vs_hp'){setA({name:'Gas boiler plant',capex:2200000,opex:290000,repl:'18:1500000'});setB({name:'Heat pump plant',capex:3200000,opex:210000,repl:'20:1800000'});}
+      else if(v==='doas_erv'){setA({name:'Conventional AHU',capex:1400000,opex:260000,repl:'15:1000000'});setB({name:'DOAS + ERV',capex:1750000,opex:210000,repl:'18:1000000'});}
+      update();
+    });
+
+    // Inputs
+    ['years','nameA','nameB','discount','escal','capexA','opexA','replA','capexB','opexB','replB','residMethod']
+      .forEach(function(id){
+        var el=E(id);
+        ['input','change','keyup'].forEach(function(ev){ el.addEventListener(ev,update); });
+      });
+
+    // Buttons
+    E('swap').addEventListener('click',function(){var A=getA(),B=getB();setA(B);setB(A);update();});
+    E('share').addEventListener('click',function(){
+      var p=new URLSearchParams(),A=getA(),B=getB();
+      for(var k in A) p.set('A_'+k,A[k]); for(var k2 in B) p.set('B_'+k2,B[k2]);
+      p.set('disc',E('discount').value); p.set('years',E('years').value); p.set('escal',E('escal').value); p.set('resid',E('residMethod').value);
+      var url=location.origin+location.pathname+'?'+p.toString();
+      if(navigator.clipboard && navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(function(){alert('Sharable URL copied.');});}
+      else {prompt("Copy this URL",url);}
+    });
+    E('print').addEventListener('click',function(){window.print();});
+
+    // Modal
+    var modal=E('dataModal');
+    E('dataBtn').addEventListener('click',function(){modal.style.display='flex'; E('eiaKey').value=localStorage.getItem('EIA_API_KEY')||'';});
+    E('dataClose').addEventListener('click',function(){modal.style.display='none';});
+    E('saveEIAKey').addEventListener('click',function(){localStorage.setItem('EIA_API_KEY',E('eiaKey').value.trim()); alert('Saved locally.');});
+    E('fetchEIA').addEventListener('click', function(){
+      var key=localStorage.getItem('EIA_API_KEY'); if(!key){alert('Add EIA key first.'); return;}
+      var state=E('stateSelect').value;
+      Promise.all([
+        fetch('https://api.eia.gov/series/?api_key='+key+'&series_id='+'ELEC.PRICE.COM.'+state+'.M'),
+        fetch('https://api.eia.gov/series/?api_key='+key+'&series_id='+'NG.PRICE.COM.'+state+'.M')
+      ]).then(function(resps){ return Promise.all(resps.map(function(r){return r.json().catch(function(){return {};});})); })
+      .then(function(jsons){
+        var msg='Reference rates:';
+        var ej=jsons[0], gj=jsons[1];
+        // Safely dig values without optional chaining
+        var eSeries = ej && ej.series && ej.series[0] && ej.series[0].data && ej.series[0].data[0];
+        var gSeries = gj && gj.series && gj.series[0] && gj.series[0].data && gj.series[0].data[0];
+        if(eSeries && typeof eSeries[1]==='number'){ msg += ' Elec ~'+ (eSeries[1]/100).toFixed(3) + ' $/kWh'; }
+        if(gSeries && typeof gSeries[1]==='number'){ msg += '  Gas ~'+ (gSeries[1]/10).toFixed(2) + ' $/therm'; }
+        alert(msg || 'Fetched. Use these to calibrate OPEX.');
+      }).catch(function(){ alert('Could not fetch from EIA. Open the source then paste.'); });
+    });
+    E('applyEscal').addEventListener('click',function(){
+      var v=E('escalPaste').value.trim(); var num=parseFloat(v.replace(/[^\d.]/g,''));
+      if(isFinite(num)){E('escal').value=num.toFixed(1); update();}
+    });
+
+    // Sensitivity sliders
+    ['s_disc','s_escal','s_ov'].forEach(function(id){ E(id).addEventListener('input',drawTornado); });
+  }
+
+  function start(){ initListeners(); update(); setTimeout(update,50); }
+
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', start); }
+  else { start(); }
+})();
 </script>
 </body>
 </html>
