@@ -2,141 +2,191 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>BSA • Paint Color Lookup, Sherwin-Williams (V4)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>BSA • Paint Color Lookup, Sherwin-Williams</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>
-  :root{--bg:#0B0C0F;--panel:#111319;--muted:#9aa3af;--line:#222633;--ink:#ECEDEE;}
-  *{box-sizing:border-box} html,body{height:100%}
-  body{margin:0;background:linear-gradient(180deg,#0B0C0F 0%,#0E1116 100%);color:var(--ink);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;}
-  .wrap{max-width:1200px;margin:0 auto;padding:16px}
-  .header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-  .badge{font-size:12px;background:#17212B;border:1px solid #223040;padding:4px 8px;border-radius:999px;color:#9bd}
-  h1{font-size:20px;margin:0 8px 0 0}
-  .grid{display:grid;grid-template-columns:360px 1fr;gap:14px}
+  :root{
+    --ink:#0A0A0A;
+    --muted:#6b7280;
+    --line:#e5e7eb;
+    --bg:#fafafa;
+    --panel:#ffffff;
+    --brand:#de1c28; /* BSA red from SVG */
+    --charcoal:#555555; /* requested header color */
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    margin:0;
+    color:var(--ink);
+    background:var(--bg);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    line-height:1.4;
+  }
+  .app{max-width:1200px;margin:0 auto;padding:16px}
+  /* Header bar */
+  .topbar{
+    position:sticky;top:0;z-index:50;
+    background:var(--charcoal);
+    color:#fff;
+    border-bottom:1px solid rgba(0,0,0,.15);
+  }
+  .topbar .inner{
+    max-width:1200px;margin:0 auto;padding:10px 16px;
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap
+  }
+  .bsalogo{height:40px;width:auto;display:block}
+  .brandtitle{font-weight:700;font-size:16px;letter-spacing:.02em}
+  .chip{font-size:12px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);padding:4px 8px;border-radius:999px}
+  /* Layout */
+  .grid{display:grid;grid-template-columns:360px 1fr;gap:14px;margin-top:12px}
   @media (max-width:980px){.grid{grid-template-columns:1fr}}
-  .card{background:linear-gradient(180deg,#121722 0%,#0E121A 100%);border:1px solid var(--line);border-radius:12px;padding:12px}
-  .card h2{margin:0 0 8px 0;font-size:14px;letter-spacing:.02em;text-transform:uppercase;color:#AAB4C0}
+  /* Cards */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .card h2{margin:0 0 8px 0;font-size:14px;letter-spacing:.02em;text-transform:uppercase;color:#374151}
   label{display:block;font-size:12px;color:var(--muted);margin:8px 0 6px}
-  input,select{width:100%;background:#0C1018;color:var(--ink);border:1px solid #23283A;border-radius:8px;padding:10px 12px}
+  input,select{width:100%;background:#fff;color:var(--ink);border:1px solid #d1d5db;border-radius:8px;padding:10px 12px;font-size:16px}
+  input[type="number"]{appearance:textfield}
+  input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{appearance:none;margin:0}
   .row{display:flex;gap:8px}.row>*{flex:1}
   .muted{color:var(--muted);font-size:12px}
   .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-  button{background:#1A2333;color:#cfe7ff;border:1px solid #2A3752;border-radius:10px;padding:10px 12px;cursor:pointer}
-  button.small{padding:6px 8px;border-radius:8px}
-  button.primary{background:#1C2B45;border-color:#2E497A;color:#E6F1FF}
+  button{background:#f3f4f6;color:#111827;border:1px solid #d1d5db;border-radius:10px;padding:10px 12px;cursor:pointer;font-size:14px}
+  button.small{padding:6px 8px;border-radius:8px;font-size:12px}
+  button.primary{background:#1f2937;border-color:#111827;color:#fff}
+  button:active{transform:translateY(1px)}
   .preview{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
-  .chipLarge{aspect-ratio:3/2;border-radius:12px;border:1px solid rgba(255,255,255,.08);position:relative;overflow:hidden}
-  .chipLarge .meta{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,transparent,rgba(0,0,0,.55));padding:10px;font-size:12px}
+  .chipLarge{aspect-ratio:3/2;border-radius:12px;border:1px solid #e5e7eb;position:relative;overflow:hidden}
+  .chipLarge .meta{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,transparent,rgba(0,0,0,.55));padding:10px;font-size:12px;color:#fff}
   .kpi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}
-  .kpi .b{background:#0C1118;border:1px solid #1E2533;border-radius:10px;padding:10px;text-align:center}
-  .gridlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
-  .swtile{border:1px solid #1e2533;border-radius:10px;overflow:hidden;background:#0C1118}
-  .swtile .swatch{height:70px}.swtile .txt{padding:8px;font-size:12px}
-  .dropzone{border:1.5px dashed #2C3952;background:#0B1018;color:#9fb2ca;border-radius:12px;padding:12px;text-align:center}
-  .status{font-size:12px;color:#a9b6c8;margin-top:6px}
+  .kpi .b{background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:10px;text-align:center}
+  .kpi .v{font-weight:700}
+  .gridlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+  .swtile{border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;background:#fff;cursor:pointer}
+  .swtile .swatch{height:86px}.swtile .txt{padding:8px;font-size:12px;display:flex;justify-content:space-between;gap:6px}
+  .swtile .txt .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .dropzone{border:1.5px dashed #9ca3af;background:#fbfdff;color:#374151;border-radius:12px;padding:12px;text-align:center}
+  .status{font-size:12px;color:#6b7280;margin-top:6px}
   .sectionTitle{font-weight:700;margin-top:10px}
   .harm{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}
-  .hchip{height:52px;border-radius:10px;border:1px solid #1e2533;position:relative;overflow:hidden;cursor:pointer}
-  .hchip span{position:absolute;bottom:4px;left:6px;font-size:11px;background:#0b1018cc;border:1px solid #2a2f40;border-radius:999px;padding:2px 6px;color:#cfe7ff}
+  .hchip{height:52px;border-radius:10px;border:1px solid #e5e7eb;position:relative;overflow:hidden;cursor:pointer}
+  .hchip span{position:absolute;bottom:4px;left:6px;font-size:11px;background:rgba(17,24,39,.85);border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:2px 6px;color:#e5f0ff}
   .palette{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
-  .pitem{border:1px solid #1e2533;border-radius:10px;background:#0c1118;overflow:hidden}
+  .pitem{border:1px solid #e5e7eb;border-radius:10px;background:#fff;overflow:hidden}
   .pitem .sw{height:60px}.pitem .tx{padding:8px;font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .pitem .tx .meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pitem .tx .meta div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  @media print{body{background:#fff;color:#000}.card,.dropzone{border:1px solid #ccc;background:#fff}.grid{grid-template-columns:1fr 2fr}}
+  @media print{
+    body{background:#fff;color:#000}
+    .topbar{position:relative}
+    .card,.dropzone{border:1px solid #ccc;background:#fff;box-shadow:none}
+    .grid{grid-template-columns:1fr 2fr}
+    button,.dropzone input{display:none !important}
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="header">
-    <span class="badge">BSA | Design Utility</span>
-    <h1>Paint Color Lookup, Sherwin-Williams</h1>
-    <span class="badge">V4, offline library</span>
-  </div>
-
-  <div class="grid">
-    <!-- LEFT COLUMN -->
-    <div class="card">
-      <h2>Find a color</h2>
-      <div class="row">
-        <div><label>SW number</label><input id="code" placeholder="7008" inputmode="numeric"/></div>
-        <div><label>Name contains</label><input id="name" placeholder="Alabaster"/></div>
+  <!-- Charcoal header with inline BSA SVG for crisp iPad rendering -->
+  <div class="topbar">
+    <div class="inner">
+      <div aria-hidden="true" class="bsalogo">
+        <!-- Inline SVG Logo provided by user -->
+        <svg class="bsalogo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 489.48" role="img" aria-label="BSA LifeStructures">
+          <defs><style>.cls-1{fill:#de1c28;}</style></defs>
+          <g id="Layer_1-2" data-name="Layer 1">
+            <g>
+              <path class="cls-1" d="M293.75,274.14c-18.01-17.42-43.03-29.48-74.49-35.97,10.29-3.5,19.76-7.87,28.31-13.06,12.42-7.55,23.01-16.55,31.47-26.76,8.49-10.23,15.1-21.55,19.63-33.64,4.55-12.12,6.86-24.88,6.86-37.94,0-19.6-3.3-37.44-9.8-53.02-6.55-15.65-16.73-29.1-30.28-39.96-13.45-10.79-30.68-19.07-51.24-24.62C193.81,3.67,169.47.89,141.87.89H0v488.17h159.56c25.83,0,49.28-3.08,69.68-9.16,20.53-6.11,38.1-15.08,52.22-26.65,14.19-11.63,25.15-26.02,32.59-42.76,7.42-16.69,11.19-35.7,11.19-56.5,0-32.78-10.59-59.65-31.5-79.85ZM41.9,35.3h99.98c41.85,0,73.1,8.15,92.9,24.23,19.59,15.9,29.52,39.78,29.52,70.98,0,12-2.32,23.81-6.9,35.11-4.54,11.26-11.75,21.49-21.42,30.39-9.7,8.94-22.36,16.26-37.61,21.75-15.31,5.51-34.09,8.3-55.81,8.3H41.9V35.3ZM252.76,427.72c-20.92,17.63-52.4,26.58-93.55,26.58H41.9v-195.87h117.67c19.75,0,37.63,2.24,53.13,6.67,15.39,4.4,28.5,10.78,38.97,18.96,10.41,8.14,18.49,18.14,24.01,29.73,5.53,11.59,8.34,24.88,8.34,39.51,0,31.89-10.51,56.93-31.25,74.42Z"/>
+              <path class="cls-1" d="M760.26.89h-38.97l-199.75,488.17h31.64c3.97,0,7.43-1.17,10.31-3.47,2.77-2.21,4.73-4.9,5.8-7.86l55.59-137.65h231.77l55.61,137.69c1.35,3.24,3.28,5.91,5.74,7.94,2.66,2.22,6.03,3.35,10.01,3.35h31.98L760.26.89ZM633.11,310.79l97.96-242.86c1.82-4.08,3.52-8.56,5.1-13.44,1.59-4.88,3.07-10.04,4.42-15.48,3.18,11.11,6.46,20.64,9.86,28.57l97.96,243.2h-215.31Z"/>
+              <g>
+                <path class="cls-1" d="M558.1,287.83l-14.66-7.98c-9.68-5.11-20.2-9.77-31.25-13.83-11.28-4.15-22.99-8.05-34.8-11.6-12.38-3.71-24.67-7.86-36.49-12.33-12.2-4.61-23.83-9.92-34.54-15.8-11.41-6.26-21.56-13.98-30.16-22.97-8.87-9.23-15.97-20.34-21.1-33.01-5.15-12.66-7.76-27.65-7.76-44.54s3.11-32.42,9.25-47.51c6.17-15.19,15.31-28.78,27.17-40.39,11.8-11.55,26.46-20.86,43.58-27.67,17.05-6.76,36.66-10.2,58.29-10.2,24.14,0,45.94,4.02,64.79,11.95,18.91,7.95,36.81,20.66,53.2,37.76l7.6,7.93-7.14,10.75c-2.98,5.24-8.62,8.48-14.98,8.48-5.25,0-10.17-2.26-15.06-6.91-2.13-2.03-4.91-4.59-8.33-7.7-3.1-2.8-7.08-5.97-11.85-9.43-4.35-3.15-9.77-6.15-16.09-8.93-6.38-2.8-13.95-5.18-22.49-7.07-8.42-1.86-18.4-2.8-29.65-2.8-17.05,0-32.26,2.61-45.17,7.76-12.85,5.12-23.7,11.95-32.23,20.29-8.49,8.3-15.03,18.04-19.45,28.95-4.48,11.03-6.75,22.71-6.75,34.72,0,15.24,2.86,27.88,8.51,37.57,5.93,10.16,13.8,18.84,23.39,25.79,10.14,7.36,22.01,13.59,35.28,18.51,14.26,5.29,28.96,10.45,43.7,15.32,15,4.97,30.04,10.3,44.7,15.85,7.88,2.99,15.48,6.47,22.6,10.36l10.55,5.76-12.65,32.89Z"/>
+                <path class="cls-1" d="M470.51,489.48h-9.6c-16.61,0-31.74-1.49-44.94-4.44-13.35-2.98-25.79-7.35-36.98-13-10.81-5.46-20.95-12.19-30.16-20l-11.16-9.47 10.17-10.53c1.15-1.19,2.2-2.48,3.25-3.75l10.21-12.24 10.54,8.94c1.94,1.64,3.94,3.32,6.14,5.04,5.37,4.22,12.08,8.3,19.96,12.15,7.85,3.83,17.07,7.04,27.37,9.54,10.19,2.48,22.13,3.74,35.48,3.74l2.61-.12,20.35-.35-13.25,34.5Z"/>
+              </g>
+            </g>
+          </g>
+        </svg>
       </div>
-      <div class="row">
-        <div><label>HEX</label><input id="hex" placeholder="#EDEAE0"/></div>
-        <div>
-          <label>Sort</label>
-          <select id="sort">
-            <option value="code">By number</option>
-            <option value="name">By name</option>
-            <option value="hue">By hue</option>
-            <option value="value">By value</option>
-          </select>
-        </div>
-      </div>
-      <div class="btns">
-        <button id="searchBtn" class="primary">Search</button>
-        <button id="clearBtn">Clear</button>
-        <button id="printBtn">Print</button>
-        <span class="muted" id="count">0 colors</span>
-      </div>
-
-      <div style="margin-top:10px">
-        <div class="dropzone" id="drop">
-          Drop a Sherwin-Williams JSON file here, or
-          <label style="cursor:pointer;text-decoration:underline">
-            choose a file
-            <input id="file" type="file" accept=".json,.txt,application/json,text/plain" style="display:none"/>
-          </label>
-          <div class="status" id="status">Library not loaded</div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:10px">
-        <h2>Selected</h2>
-        <div class="preview">
-          <div class="chipLarge" id="chip1"><div class="meta" id="meta1"></div></div>
-          <div class="chipLarge" id="chip2"><div class="meta" id="meta2"></div></div>
-        </div>
-        <div class="kpi">
-          <div class="b"><div class="v" id="rgbKpi">—</div><div class="muted">RGB</div></div>
-          <div class="b"><div class="v" id="hslKpi">—</div><div class="muted">H, S, L</div></div>
-          <div class="b"><div class="v" id="lrvKpi">—</div><div class="muted">Approx LRV</div></div>
-        </div>
-        <div class="btns">
-          <button id="copyHex" class="small">Copy HEX</button>
-          <button id="copyRGB" class="small">Copy RGB</button>
-          <button id="copyName" class="small">Copy SW label and name</button>
-        </div>
-        <div class="sectionTitle">Harmonies</div>
-        <div class="harm" id="harmonies"></div>
-      </div>
-
-      <div class="card" style="margin-top:10px">
-        <h2>Palette</h2>
-        <div class="btns">
-          <button id="addSelected" class="small">Add selected</button>
-          <button id="palClear" class="small">Clear</button>
-          <button id="palPng" class="small">Export PNG</button>
-          <button id="palCsv" class="small">Export CSV</button>
-          <button id="palShare" class="small">Copy shareable URL</button>
-        </div>
-        <div class="palette" id="palette"></div>
-        <div class="muted" id="palNote">0 saved, max about 12 is comfy</div>
-      </div>
-    </div>
-
-    <!-- RIGHT COLUMN -->
-    <div class="card">
-      <h2>Results</h2>
-      <div class="muted" style="margin-bottom:8px">Tap a tile to select and preview</div>
-      <div class="gridlist" id="list"></div>
+      <div class="brandtitle">BSA • Paint Color Lookup, Sherwin-Williams</div>
+      <span class="chip">BSA brand</span>
+      <span class="chip">Embedded JSON</span>
     </div>
   </div>
-</div>
+
+  <div class="app">
+    <div class="grid">
+      <!-- LEFT COLUMN -->
+      <div class="card">
+        <h2>Find a color</h2>
+        <div class="row">
+          <div><label>SW number</label><input id="code" placeholder="7008" inputmode="numeric" pattern="[0-9]*"/></div>
+          <div><label>Name contains</label><input id="name" placeholder="Alabaster"/></div>
+        </div>
+        <div class="row">
+          <div><label>HEX</label><input id="hex" placeholder="#EDEAE0"/></div>
+          <div>
+            <label>Sort</label>
+            <select id="sort">
+              <option value="code">By number</option>
+              <option value="name">By name</option>
+              <option value="hue">By hue</option>
+              <option value="value">By value</option>
+            </select>
+          </div>
+        </div>
+        <div class="btns">
+          <button id="searchBtn" class="primary">Search</button>
+          <button id="clearBtn">Clear</button>
+          <button id="printBtn">Print</button>
+          <span class="muted" id="count">0 colors</span>
+        </div>
+
+        <div class="card" style="margin-top:10px">
+          <h2>Selected</h2>
+          <div class="preview">
+            <div class="chipLarge" id="chip1"><div class="meta" id="meta1"></div></div>
+            <div class="chipLarge" id="chip2"><div class="meta" id="meta2"></div></div>
+          </div>
+          <div class="kpi">
+            <div class="b"><div class="v" id="rgbKpi">—</div><div class="muted">RGB</div></div>
+            <div class="b"><div class="v" id="hslKpi">—</div><div class="muted">H, S, L</div></div>
+            <div class="b"><div class="v" id="lrvKpi">—</div><div class="muted">Approx LRV</div></div>
+          </div>
+          <div class="btns">
+            <button id="copyHex" class="small">Copy HEX</button>
+            <button id="copyRGB" class="small">Copy RGB</button>
+            <button id="copyName" class="small">Copy SW label and name</button>
+          </div>
+          <div class="sectionTitle">Harmonies</div>
+          <div class="harm" id="harmonies"></div>
+        </div>
+
+        <div class="card" style="margin-top:10px">
+          <h2>Palette</h2>
+          <div class="btns">
+            <button id="addSelected" class="small">Add selected</button>
+            <button id="palClear" class="small">Clear</button>
+            <button id="palPng" class="small">Export PNG</button>
+            <button id="palCsv" class="small">Export CSV</button>
+            <button id="palShare" class="small">Copy shareable URL</button>
+          </div>
+          <div class="palette" id="palette"></div>
+          <div class="muted" id="palNote">0 saved, max about 12 is comfy</div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="card">
+        <h2>Results</h2>
+        <div class="muted" style="margin-bottom:8px">Tap a tile to select and preview</div>
+        <div class="gridlist" id="list"></div>
+      </div>
+    </div>
+  </div>
 
 <!-- ================== SHERWIN WILLIAMS LIBRARY ==================
-   Paste your full sherwin-williams.json.txt contents here.
-   Replace the sample array entirely, keep the script tag.
+   FULL library embedded below so it works offline immediately.
+   You can still drag-drop a different JSON if you want to swap.
 ================================================================= -->
 <script id="sw-json" type="application/json">
 [
@@ -7772,319 +7822,310 @@
  }
 ]
 </script>
-<!-- ================== END LIBRARY ================== -->
 
 <script>
-/* ========= Helpers ========= */
-const qs = s => document.querySelector(s);
-const qsa = s => Array.from(document.querySelectorAll(s));
-const status = m => qs('#status').textContent = m;
-
-function hexToRgb(hex){
-  if(!hex) return null;
-  let h = hex.trim().toUpperCase();
-  if(!h.startsWith('#')) h = '#'+h;
-  if(!/^#([0-9A-F]{6})$/.test(h)) return null;
-  const n = parseInt(h.slice(1),16);
-  return {r:(n>>16)&255, g:(n>>8)&255, b:n&255};
-}
-function rgbToHsl(r,g,b){
-  r/=255; g/=255; b/=255;
-  const max=Math.max(r,g,b), min=Math.min(r,g,b);
-  let h,s,l=(max+min)/2;
-  if(max===min){ h=s=0; }
-  else{
-    const d=max-min;
-    s=l>0.5 ? d/(2-max-min) : d/(max+min);
-    switch(max){
-      case r: h=(g-b)/d + (g<b?6:0); break;
-      case g: h=(b-r)/d + 2; break;
-      case b: h=(r-g)/d + 4; break;
-    }
-    h/=6;
-  }
-  return {h:Math.round(h*360), s:Math.round(s*100), l:Math.round(l*100)};
-}
-function hslToRgb(h,s,l){
-  h/=360; s/=100; l/=100;
-  if(s===0){ const v=Math.round(l*255); return {r:v,g:v,b:v}; }
-  const hue2rgb=(p,q,t)=>{ if(t<0)t+=1; if(t>1)t-=1; if(t<1/6)return p+(q-p)*6*t; if(t<1/2)return q; if(t<2/3)return p+(q-p)*(2/3-t)*6; return p; };
-  const q=l<.5? l*(1+s): l+s-l*s, p=2*l-q;
-  const r=Math.round(hue2rgb(p,q,h+1/3)*255);
-  const g=Math.round(hue2rgb(p,q,h)*255);
-  const b=Math.round(hue2rgb(p,q,h-1/3)*255);
-  return {r,g,b};
-}
-function rgbToHex(r,g,b){
-  const h = v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0').toUpperCase();
-  return '#'+h(r)+h(g)+h(b);
-}
-function hexFromHSL(h,s,l){ const {r,g,b}=hslToRgb(h,s,l); return rgbToHex(r,g,b); }
-function approxLRV(hex){
-  const rgb = hexToRgb(hex); if(!rgb) return null;
-  const lin = v => { v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4); };
-  const Y = 0.2126*lin(rgb.r)+0.7152*lin(rgb.g)+0.0722*lin(rgb.b);
-  return Math.round(Y*100);
-}
-function escapeHtml(s){ return String(s||'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-function shade(hex, amt){
-  const rgb=hexToRgb(hex); if(!rgb) return hex;
-  const adj=v=>Math.max(0,Math.min(255,v+Math.round(amt/100*255)));
-  return rgbToHex(adj(rgb.r),adj(rgb.g),adj(rgb.b));
-}
-
-/* ========= Data cleaning ========= */
-function cleanRec(rec){
-  const hex=(rec.hex||'').toUpperCase();
-  const rgb=hexToRgb(hex);
-  const label=String(rec.label||'').trim();
-  const name=String(rec.name||'').trim();
-  if(!rgb || !label) return null;
-  return {brand:'Sherwin-Williams', label, name, hex, rgb};
-}
-function dedupeMerge(base, incoming){
-  const key=r=>`SW-${r.label}`;
-  const map=new Map(base.map(r=>[key(r),r]));
-  for(const r of incoming) map.set(key(r), r);
-  return Array.from(map.values());
-}
-
-/* ========= Library load ========= */
-let LIB=[];
-async function loadFromEmbedded(){
-  const tag=qs('#sw-json');
-  if(!tag) return false;
-  const raw=tag.textContent.trim();
-  if(!raw) return false;
-  try{
-    const arr=JSON.parse(raw);
-    const clean=arr.map(cleanRec).filter(Boolean);
-    if(clean.length){ LIB=dedupeMerge(LIB,clean); return true; }
-  }catch(e){ console.warn('Embedded JSON parse failed', e); }
-  return false;
-}
-async function loadFromLocalFile(){
-  try{
-    const res=await fetch('./sherwin-williams.json.txt',{cache:'no-store'});
-    if(!res.ok) return false;
-    const txt=await res.text();
-    const arr=JSON.parse(txt);
-    const clean=arr.map(cleanRec).filter(Boolean);
-    if(clean.length){ LIB=dedupeMerge(LIB,clean); return true; }
-  }catch(e){ /* ignore */ }
-  return false;
-}
-function wireDropzone(){
-  const dz=qs('#drop'), fi=qs('#file');
-  const onFiles=async files=>{
-    let added=0;
-    for(const f of files){
-      const txt=await f.text();
-      const arr=JSON.parse(txt).map(cleanRec).filter(Boolean);
-      LIB=dedupeMerge(LIB,arr);
-      added+=arr.length;
-    }
-    status(`Imported ${added} colors`);
-    renderList();
+(() => {
+  // ------------- Utility: color conversions -------------
+  const clamp = (v,min,max)=>Math.min(max,Math.max(min,v));
+  const hexToRgb = (hex) => {
+    if(!hex) return null;
+    hex = hex.replace('#','').trim();
+    if(hex.length===3){hex = hex.split('').map(c=>c+c).join('');}
+    if(hex.length!==6) return null;
+    const num = parseInt(hex,16);
+    return {r:(num>>16)&255,g:(num>>8)&255,b:num&255};
   };
-  dz.addEventListener('dragover', e=>{ e.preventDefault(); dz.style.borderColor='#3C78CF'; });
-  dz.addEventListener('dragleave', ()=>{ dz.style.borderColor='#2C3952'; });
-  dz.addEventListener('drop', e=>{ e.preventDefault(); dz.style.borderColor='#2C3952'; if(e.dataTransfer?.files?.length) onFiles(e.dataTransfer.files); });
-  fi.addEventListener('change', e=>{ if(e.target.files?.length) onFiles(e.target.files); });
-}
+  const rgbToHex = ({r,g,b}) => '#' + [r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase();
+  const rgbToHsl = ({r,g,b}) => {
+    r/=255; g/=255; b/=255;
+    const max=Math.max(r,g,b), min=Math.min(r,g,b);
+    let h,s,l=(max+min)/2;
+    if(max===min){h=s=0;}
+    else{
+      const d=max-min;
+      s = l>0.5 ? d/(2-max-min) : d/(max+min);
+      switch(max){
+        case r: h=(g-b)/d+(g<b?6:0); break;
+        case g: h=(b-r)/d+2; break;
+        case b: h=(r-g)/d+4; break;
+      }
+      h/=6;
+    }
+    return {h:Math.round(h*360), s:Math.round(s*100), l:Math.round(l*100)};
+  };
+  const hslToRgb = (h,s,l) => {
+    h/=360; s/=100; l/=100;
+    const hue2rgb=(p,q,t)=>{ if(t<0) t+=1; if(t>1) t-=1; if(t<1/6) return p+(q-p)*6*t; if(t<1/2) return q; if(t<2/3) return p+(q-p)*(2/3 - t)*6; return p; };
+    let r,g,b;
+    if(s===0){ r=g=b=l; }
+    else{
+      const q = l < .5 ? l*(1+s) : l + s - l*s;
+      const p = 2*l - q;
+      r = hue2rgb(p,q,h+1/3);
+      g = hue2rgb(p,q,h);
+      b = hue2rgb(p,q,h-1/3);
+    }
+    return {r:Math.round(r*255), g:Math.round(g*255), b:Math.round(b*255)};
+  };
+  const approxLRV = ({r,g,b}) => {
+    const srgb = [r,g,b].map(v=>v/255).map(v => v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4));
+    const Y = 0.2126*srgb[0] + 0.7152*srgb[1] + 0.0722*srgb[2];
+    return Math.round(Y*100);
+  };
 
-/* ========= Search/render ========= */
-function hueOf(hex){ const rgb=hexToRgb(hex); if(!rgb) return 0; return rgbToHsl(rgb.r,rgb.g,rgb.b).h; }
-function valOf(hex){ const rgb=hexToRgb(hex); if(!rgb) return 0; return rgbToHsl(rgb.r,rgb.g,rgb.b).l; }
+  // ------------- State -------------
+  let LIB = [];
+  const els = {
+    code: document.getElementById('code'),
+    name: document.getElementById('name'),
+    hex: document.getElementById('hex'),
+    sort: document.getElementById('sort'),
+    list: document.getElementById('list'),
+    count: document.getElementById('count'),
+    chip1: document.getElementById('chip1'),
+    chip2: document.getElementById('chip2'),
+    meta1: document.getElementById('meta1'),
+    meta2: document.getElementById('meta2'),
+    rgbKpi: document.getElementById('rgbKpi'),
+    hslKpi: document.getElementById('hslKpi'),
+    lrvKpi: document.getElementById('lrvKpi'),
+    harmonies: document.getElementById('harmonies'),
+    pal: document.getElementById('palette'),
+    palNote: document.getElementById('palNote'),
+    addSelected: document.getElementById('addSelected'),
+    palClear: document.getElementById('palClear'),
+    palPng: document.getElementById('palPng'),
+    palCsv: document.getElementById('palCsv'),
+    palShare: document.getElementById('palShare'),
+    searchBtn: document.getElementById('searchBtn'),
+    clearBtn: document.getElementById('clearBtn'),
+    printBtn: document.getElementById('printBtn'),
+    copyHex: document.getElementById('copyHex'),
+    copyRGB: document.getElementById('copyRGB'),
+    copyName: document.getElementById('copyName'),
+  };
+  let selected = null, lastSelected = null;
+  let palette = [];
 
-function renderList(items){
-  const list=qs('#list');
-  const code=qs('#code').value.trim();
-  const name=qs('#name').value.trim().toLowerCase();
-  const hex=qs('#hex').value.trim().toUpperCase();
+  // ------------- Library loading -------------
+  const loadEmbedded = () => {
+    try{
+      const raw = document.getElementById('sw-json').textContent.trim();
+      const arr = JSON.parse(raw);
+      if(Array.isArray(arr)) LIB = arr;
+    }catch(e){ console.warn('No embedded library'); }
+    updateCount(LIB.length);
+    renderResults(LIB);
+  };
 
-  let arr=items||LIB;
-  if(code) arr=arr.filter(r=>String(r.label).includes(code));
-  if(name) arr=arr.filter(r=>r.name.toLowerCase().includes(name));
-  if(hex){ const rgb=hexToRgb(hex); if(rgb) arr=arr.filter(r=>r.hex===(hex.startsWith('#')?hex:'#'+hex)); }
+  // ------------- Search and sort -------------
+  const updateCount = (n)=> els.count.textContent = n + ' colors';
+  const doSearch = () => {
+    const qCode = els.code.value.trim();
+    const qName = els.name.value.trim().toLowerCase();
+    const qHex  = els.hex.value.trim().toUpperCase();
+    let out = LIB.filter(x=>{
+      const codeOk = qCode ? String(x.label).includes(qCode) : true;
+      const nameOk = qName ? x.name.toLowerCase().includes(qName) : true;
+      const hexOk  = qHex ? x.hex.toUpperCase().includes(qHex.replace('#','')) : true;
+      return codeOk && nameOk && hexOk;
+    });
+    const sort = els.sort.value;
+    out.sort((a,b)=>{
+      if(sort==='code') return a.label - b.label;
+      if(sort==='name') return a.name.localeCompare(b.name);
+      if(sort==='hue'){
+        const ha = rgbToHsl(hexToRgb(a.hex)).h;
+        const hb = rgbToHsl(hexToRgb(b.hex)).h;
+        return ha - hb;
+      }
+      if(sort==='value'){
+        const va = approxLRV(hexToRgb(a.hex));
+        const vb = approxLRV(hexToRgb(b.hex));
+        return vb - va; // brighter first
+      }
+      return 0;
+    });
+    renderResults(out);
+    updateCount(out.length);
+  };
 
-  const sort=qs('#sort').value;
-  arr=arr.slice();
-  if(sort==='name') arr.sort((a,b)=>a.name.localeCompare(b.name));
-  else if(sort==='hue') arr.sort((a,b)=>hueOf(a.hex)-hueOf(b.hex));
-  else if(sort==='value') arr.sort((a,b)=>valOf(a.hex)-valOf(b.hex));
-  else arr.sort((a,b)=>Number(a.label)-Number(b.label));
+  els.searchBtn.addEventListener('click', doSearch);
+  [els.code,els.name,els.hex,els.sort].forEach(el => el.addEventListener('input', doSearch));
+  els.clearBtn.addEventListener('click', ()=>{els.code.value='';els.name.value='';els.hex.value='';doSearch();});
+  els.printBtn.addEventListener('click', ()=>window.print());
 
-  qs('#count').textContent=`${arr.length} colors`;
-  list.innerHTML='';
-  const frag=document.createDocumentFragment();
-  arr.forEach(r=>{
-    const tile=document.createElement('div');
-    tile.className='swtile';
-    tile.innerHTML=`
-      <div class="swatch" style="background:${r.hex}"></div>
-      <div class="txt">
-        <div><strong>SW ${r.label}</strong></div>
-        <div>${escapeHtml(r.name||'')}</div>
-        <div class="muted">${r.hex}</div>
-      </div>`;
-    tile.addEventListener('click',()=>select(r));
-    frag.appendChild(tile);
-  });
-  list.appendChild(frag);
-}
+  // ------------- Rendering -------------
+  const renderResults = (arr) => {
+    els.list.innerHTML = '';
+    const frag = document.createDocumentFragment();
+    arr.forEach(x => {
+      const tile = document.createElement('div');
+      tile.className = 'swtile';
+      tile.innerHTML = `
+        <div class="swatch" style="background:${x.hex}"></div>
+        <div class="txt"><div class="nm">${x.name}</div><div>#${x.label}</div></div>
+      `;
+      tile.addEventListener('click', ()=>selectColor(x));
+      frag.appendChild(tile);
+    });
+    els.list.appendChild(frag);
+  };
 
-/* ========= Selected + harmonies ========= */
-function hexFromHSLWrap(h,s,l){ return hexFromHSL(h,s,l); }
-function renderHarmonies(rec){
-  const wrap=qs('#harmonies');
-  if(!rec){ wrap.innerHTML=''; return; }
-  const {r,g,b}=rec.rgb;
-  const base=rgbToHsl(r,g,b);
-  const set=[
-    {label:'Base',       hex:rec.hex},
-    {label:'Complement', hex:hexFromHSLWrap((base.h+180)%360, base.s, base.l)},
-    {label:'Triad 1',    hex:hexFromHSLWrap((base.h+120)%360, base.s, base.l)},
-    {label:'Triad 2',    hex:hexFromHSLWrap((base.h+240)%360, base.s, base.l)},
-    {label:'Analogous',  hex:hexFromHSLWrap((base.h+30)%360,  base.s, base.l)}
-  ];
-  wrap.innerHTML='';
-  set.forEach(s=>{
-    const d=document.createElement('div'); d.className='hchip'; d.style.background=s.hex;
-    const tag=document.createElement('span'); tag.textContent=s.label; d.appendChild(tag);
-    d.title=s.hex;
-    d.onclick=()=>select({brand:'Sherwin-Williams', label:rec.label, name:`${rec.name} (${s.label})`, hex:s.hex, rgb:hexToRgb(s.hex)});
-    wrap.appendChild(d);
-  });
-}
+  const selectColor = (x) => {
+    lastSelected = selected;
+    selected = x;
+    if(selected){
+      els.chip1.style.background = selected.hex;
+      els.meta1.innerHTML = `${selected.name} • SW ${selected.label} • ${selected.hex}`;
+      if(lastSelected){
+        els.chip2.style.background = lastSelected.hex;
+        els.meta2.innerHTML = `${lastSelected.name} • SW ${lastSelected.label} • ${lastSelected.hex}`;
+      }
+      const rgb = hexToRgb(selected.hex);
+      const hsl = rgbToHsl(rgb);
+      els.rgbKpi.textContent = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
+      els.hslKpi.textContent = `${hsl.h}°, ${hsl.s}%, ${hsl.l}%`;
+      els.lrvKpi.textContent = approxLRV(rgb);
+      renderHarmonies(selected.hex);
+      try{ history.replaceState({},'',location.pathname + buildQS()); }catch{}
+    }
+  };
 
-function select(rec){
-  const chip1=qs('#chip1'), chip2=qs('#chip2');
-  const meta1=qs('#meta1'), meta2=qs('#meta2');
-  chip1.style.background=rec.hex;
-  chip2.style.background=`linear-gradient(135deg, ${rec.hex} 0%, ${shade(rec.hex,-18)} 100%)`;
-  meta1.innerHTML=`<strong>SW ${rec.label}</strong> ${escapeHtml(rec.name||'')} • ${rec.hex}`;
-  meta2.innerHTML=`Sherwin-Williams`;
-  const {r,g,b}=rec.rgb; const hsl=rgbToHsl(r,g,b);
-  qs('#rgbKpi').textContent=`${r}, ${g}, ${b}`;
-  qs('#hslKpi').textContent=`${hsl.h}°, ${hsl.s}%, ${hsl.l}%`;
-  qs('#lrvKpi').textContent=`${approxLRV(rec.hex)}%`;
-  qs('#copyHex').onclick=()=>navigator.clipboard.writeText(rec.hex);
-  qs('#copyRGB').onclick=()=>navigator.clipboard.writeText(`${r}, ${g}, ${b}`);
-  qs('#copyName').onclick=()=>navigator.clipboard.writeText(`SW ${rec.label} ${rec.name||''}`.trim());
-  window.LAST_SELECTED=rec;
-  renderHarmonies(rec);
-}
-
-/* ========= Palette ========= */
-const PAL_KEY='sw_palette';
-function getPalette(){ try{ return JSON.parse(localStorage.getItem(PAL_KEY))||[]; }catch{ return []; } }
-function setPalette(arr){ localStorage.setItem(PAL_KEY, JSON.stringify(arr)); renderPalette(); }
-function addSelectedToPalette(){
-  if(!window.LAST_SELECTED) return;
-  const rec=window.LAST_SELECTED;
-  const pal=getPalette();
-  if(pal.length>=18) pal.shift();
-  pal.push({label:rec.label, name:rec.name, hex:rec.hex});
-  setPalette(pal);
-}
-function renderPalette(){
-  const pal=getPalette();
-  const grid=qs('#palette'); const note=qs('#palNote');
-  grid.innerHTML='';
-  pal.forEach((p,i)=>{
-    const d=document.createElement('div'); d.className='pitem';
-    d.innerHTML=`
-      <div class="sw" style="background:${p.hex}"></div>
-      <div class="tx">
-        <div class="meta">
-          <div><strong>SW ${p.label}</strong> ${escapeHtml(p.name||'')}</div>
-          <div class="muted">${p.hex}</div>
-        </div>
-        <div class="btns">
-          <button class="small" data-act="up" data-i="${i}">↑</button>
-          <button class="small" data-act="down" data-i="${i}">↓</button>
-          <button class="small" data-act="go" data-i="${i}">•</button>
-          <button class="small" data-act="del" data-i="${i}">✕</button>
-        </div>
-      </div>`;
-    grid.appendChild(d);
-  });
-  note.textContent=`${pal.length} saved, max about 12 is comfy`;
-  grid.querySelectorAll('button').forEach(b=>{
-    b.onclick=()=>{
-      const i=+b.dataset.i; const act=b.dataset.act; const arr=getPalette();
-      if(act==='del'){ arr.splice(i,1); setPalette(arr); }
-      if(act==='up' && i>0){ const t=arr[i-1]; arr[i-1]=arr[i]; arr[i]=t; setPalette(arr); }
-      if(act==='down' && i<arr.length-1){ const t=arr[i+1]; arr[i+1]=arr[i]; setPalette(arr); }
-      if(act==='go'){ const p=arr[i]; select({brand:'Sherwin-Williams', label:p.label, name:p.name, hex:p.hex, rgb:hexToRgb(p.hex)}); }
+  // ------------- Harmonies -------------
+  const renderHarmonies = (hex) => {
+    const rgb = hexToRgb(hex), hsl = rgbToHsl(rgb);
+    const make = (h,s,l) => rgbToHex(hslToRgb(h,s,l));
+    const wrap = (hex,label) => {
+      const div = document.createElement('div');
+      div.className = 'hchip';
+      div.style.background = hex;
+      const tag = document.createElement('span');
+      tag.textContent = label;
+      div.appendChild(tag);
+      div.addEventListener('click', ()=> selectColor({name:label, label:'—', hex}));
+      return div;
     };
-  });
-}
-qs('#addSelected').onclick=addSelectedToPalette;
-qs('#palClear').onclick=()=>{ if(confirm('Clear palette?')) setPalette([]); };
-qs('#palCsv').onclick=()=>{
-  const rows=[['brand','code','name','hex'], ...getPalette().map(x=>['Sherwin-Williams','SW '+x.label,x.name||'',x.hex])];
-  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download='palette.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-};
-qs('#palPng').onclick=()=>{
-  const pal=getPalette(); if(!pal.length) return;
-  const cols=3, cellW=320, cellH=110, pad=20;
-  const rows=Math.ceil(pal.length/cols);
-  const w=cols*cellW+pad*2, h=rows*cellH+pad*2+40;
-  const cnv=document.createElement('canvas'); cnv.width=w; cnv.height=h; const ctx=cnv.getContext('2d');
-  ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,w,h);
-  ctx.fillStyle='#111827'; ctx.font='20px system-ui'; ctx.fillText('BSA Palette', pad, pad+20);
-  ctx.font='14px system-ui';
-  pal.forEach((c,idx)=>{
-    const r=Math.floor(idx/cols), col=idx%cols;
-    const x=pad+col*cellW, y=pad+40+r*cellH;
-    ctx.fillStyle=c.hex; ctx.fillRect(x, y, 150, 80); ctx.strokeStyle='#E5E7EB'; ctx.strokeRect(x, y, 150, 80);
-    ctx.fillStyle='#111827';
-    ctx.fillText(`SW ${c.label}`, x+160, y+20);
-    ctx.fillText(`${c.name||''}`, x+160, y+38);
-    ctx.fillText(`${c.hex}`, x+160, y+56);
-  });
-  const url=cnv.toDataURL('image/png'); const a=document.createElement('a'); a.href=url; a.download='palette.png'; document.body.appendChild(a); a.click(); a.remove();
-};
-qs('#palShare').onclick=()=>{
-  const payload=JSON.stringify(getPalette());
-  const b64=btoa(unescape(encodeURIComponent(payload)));
-  const url=location.origin+location.pathname+'?pal='+b64;
-  navigator.clipboard.writeText(url);
-  alert('Shareable URL copied');
-};
-function importPaletteFromUrl(){
-  const u=new URL(location.href);
-  const b64=u.searchParams.get('pal'); if(!b64) return;
-  try{
-    const json=decodeURIComponent(escape(atob(b64)));
-    const arr=JSON.parse(json);
-    if(Array.isArray(arr)) setPalette(arr);
-  }catch(e){ /* ignore */ }
-}
+    const items = [];
+    items.push(wrap(make((hsl.h+180)%360,hsl.s,hsl.l),'Complement'));
+    items.push(wrap(make((hsl.h+150)%360,hsl.s,hsl.l),'Split 150'));
+    items.push(wrap(make((hsl.h+210)%360,hsl.s,hsl.l),'Split 210'));
+    items.push(wrap(make((hsl.h+120)%360,hsl.s,hsl.l),'Triad 120'));
+    items.push(wrap(make((hsl.h+240)%360,hsl.s,hsl.l),'Triad 240'));
+    els.harmonies.innerHTML='';
+    items.forEach(n=>els.harmonies.appendChild(n));
+  };
 
-/* ========= Events ========= */
-qs('#searchBtn').addEventListener('click', ()=>renderList());
-qs('#clearBtn').addEventListener('click', ()=>{ qs('#code').value=''; qs('#name').value=''; qs('#hex').value=''; renderList(); });
-qs('#printBtn').addEventListener('click', ()=>window.print());
-['code','name','hex','sort'].forEach(id=> qs('#'+id).addEventListener('input', ()=>renderList()) );
+  // ------------- Palette -------------
+  const savePalette = () => { try{ localStorage.setItem('bsa-sw-palette', JSON.stringify(palette)); }catch{} };
+  const loadPalette = () => {
+    try{ palette = JSON.parse(localStorage.getItem('bsa-sw-palette')||'[]') || []; }catch{ palette = []; }
+    renderPalette();
+  };
+  const renderPalette = () => {
+    els.pal.innerHTML = '';
+    palette.forEach((p,i)=>{
+      const div = document.createElement('div');
+      div.className = 'pitem';
+      div.innerHTML = `
+        <div class="sw" style="background:${p.hex}"></div>
+        <div class="tx"><div class="meta"><div>${p.name}</div><div>SW ${p.label} • ${p.hex}</div></div>
+        <button class="small" aria-label="Remove">Remove</button></div>`;
+      div.querySelector('button').addEventListener('click', ()=>{ palette.splice(i,1); renderPalette(); savePalette(); });
+      els.pal.appendChild(div);
+    });
+    els.palNote.textContent = `${palette.length} saved, max about 12 is comfy`;
+  };
+  els.addSelected.addEventListener('click', ()=>{
+    if(!selected) return;
+    if(palette.length>=24) return alert('Palette is full');
+    if(!palette.find(p=>p.hex===selected.hex)) palette.push({...selected});
+    renderPalette(); savePalette(); try{ history.replaceState({},'',location.pathname + buildQS()); }catch{}
+  });
+  els.palClear.addEventListener('click', ()=>{ palette=[]; renderPalette(); savePalette(); try{ history.replaceState({},'',location.pathname); }catch{} });
 
-/* ========= Init ========= */
-(async function init(){
-  wireDropzone();
-  renderPalette();
-  importPaletteFromUrl();
-  status('Looking for embedded library...');
-  let ok=await loadFromEmbedded();
-  if(ok){ status(`Loaded ${LIB.length} colors from embedded JSON`); renderList(); return; }
-  status('Trying local sherwin-williams.json.txt...');
-  ok=await loadFromLocalFile();
-  if(ok){ status(`Loaded ${LIB.length} colors from file`); renderList(); return; }
-  status('No library found yet. Drop a JSON file to load.');
-  renderList([]);
+  // PNG export
+  els.palPng.addEventListener('click', ()=>{
+    if(palette.length===0) return;
+    const W = 1200, H = 400, pad = 20, cols = Math.min(6, Math.max(3, Math.ceil(Math.sqrt(palette.length))));
+    const rows = Math.ceil(palette.length / cols);
+    const cellW = Math.floor((W - pad*2) / cols);
+    const cellH = Math.floor((H - pad*2) / rows);
+    const canvas = Object.assign(document.createElement('canvas'), {width:W, height:H});
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,W,H);
+    ctx.font = '14px ui-sans-serif, -apple-system, Segoe UI, Roboto';
+    ctx.fillStyle = '#111827';
+    palette.forEach((p,idx)=>{
+      const r = Math.floor(idx / cols), c = idx % cols;
+      const x = pad + c*cellW, y = pad + r*cellH;
+      ctx.fillStyle = p.hex; ctx.fillRect(x, y, cellW, Math.floor(cellH*.65));
+      ctx.fillStyle = '#111827';
+      const ty = y + Math.floor(cellH*.65) + 18;
+      ctx.fillText(p.name, x+4, ty);
+      ctx.fillText('SW '+p.label+' • '+p.hex, x+4, ty+18);
+    });
+    const a = document.createElement('a');
+    a.download = 'BSA_palette.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  });
+
+  // CSV export
+  els.palCsv.addEventListener('click', ()=>{
+    if(palette.length===0) return;
+    const rows = [['Name','SW Label','HEX','R','G','B','H','S','L','Approx LRV']];
+    palette.forEach(p=>{
+      const rgb = hexToRgb(p.hex);
+      const hsl = rgbToHsl(rgb);
+      rows.push([p.name,p.label,p.hex,rgb.r,rgb.g,rgb.b,hsl.h,hsl.s,hsl.l,approxLRV(rgb)]);
+    });
+    const data = rows.map(r=>r.join(',')).join('\n');
+    const a = document.createElement('a');
+    a.download = 'BSA_palette.csv';
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(data);
+    a.click();
+  });
+
+  // Share URL
+  const buildQS = () => {
+    const pal = palette.map(p=>p.hex.replace('#','')).join('-');
+    const sel = selected ? selected.hex.replace('#','') : '';
+    const qs = new URLSearchParams();
+    if(pal) qs.set('pal', pal);
+    if(sel) qs.set('sel', sel);
+    return qs.toString() ? ('?'+qs.toString()) : '';
+  };
+  els.palShare.addEventListener('click', async ()=>{
+    const url = location.origin + location.pathname + buildQS();
+    try{
+      await navigator.clipboard.writeText(url);
+      alert('Shareable URL copied');
+    }catch{
+      prompt('Copy URL', url);
+    }
+  });
+
+  // ------------- URL params and init -------------
+  const initFromQS = () => {
+    const sp = new URLSearchParams(location.search);
+    const pal = (sp.get('pal')||'').split('-').filter(Boolean).map(h=>('#'+h).toUpperCase());
+    const sel = sp.get('sel');
+    if(pal.length){
+      palette = pal.map(h=>({name:h,label:'',hex:h}));
+      renderPalette(); savePalette();
+    }
+    if(sel){
+      const hx = ('#'+sel).toUpperCase();
+      const found = LIB.find(x=>x.hex.toUpperCase()===hx);
+      selectColor(found || {name:hx,label:'',hex:hx});
+    }
+  };
+
+  // Kick off
+  loadEmbedded();
+  initFromQS();
+  doSearch();
 })();
 </script>
 </body>
