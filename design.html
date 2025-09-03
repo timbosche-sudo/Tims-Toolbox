@@ -54,7 +54,7 @@
   .parkGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
   .parkOut{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
   .chip{border:1px solid var(--line);border-radius:10px;padding:8px;background:#fff}
-  .chip b{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+  .chip b{display:block;font-size:12px;color:{--muted};margin-bottom:4px}
   .chip .val{font-family:ui-monospace,Menlo,Consolas,monospace}
 </style>
 </head>
@@ -83,8 +83,8 @@
       </div>
 
       <div style="margin-top:10px" class="row">
-        <div><label>Floorplate width (ft)</label><br><input type="number" id="fpW" value="220" step="10"></div>
-        <div><label>Floorplate depth (ft)</label><br><input type="number" id="fpD" value="180" step="10"></div>
+        <div><label>Floorplate width (ft)</label><br><input type="number" id="fpW" value="150" step="10"></div>
+        <div><label>Floorplate depth (ft)</label><br><input type="number" id="fpD" value="100" step="10"></div>
         <div><label>Floors</label><br><input type="number" id="floors" value="3" min="1" max="30"></div>
       </div>
 
@@ -174,7 +174,6 @@ let legendMode = 'nsf';
 
 /* ================= CSV utils (FIX) ================= */
 function toNumber(val){
-  // strip commas, spaces, currency, and any non-numeric (keeps . and -)
   const s = String(val).replace(/[^0-9.\-]/g,'');
   const n = Number(s);
   return Number.isFinite(n) ? n : 0;
@@ -316,7 +315,7 @@ function autoAssign(){
   renderAssignmentMatrix(); analyze();
 }
 
-/* core calc */
+/* ========= core calc (stores NSF & GROSS; adds plateNSF) ========= */
 function analyze(){
   const floors=Math.max(1, Number($('#floors').value||1));
   syncFloorPlates();
@@ -331,20 +330,23 @@ function analyze(){
   const deptMap={}; program.forEach(r=>{ deptMap[r.dept]=(deptMap[r.dept]||0)+r.total; });
   const floorsArr=Array.from({length:floors}, (_,i)=>{
     const plateW=floorPlates[i].w, plateD=floorPlates[i].d, plateArea=plateW*plateD;
-    return {floor:i+1, plateW, plateD, plateArea, remaining:plateArea, bands:[]};
-  });
-  Object.entries(deptMap).forEach(([dept,nsf])=>{
-    const gross=nsf*gf; const f=(assignment[dept]||1)-1;
-    floorsArr[f].bands.push({dept, area:Math.round(gross)});
-    floorsArr[f].remaining-=Math.round(gross);
+    const plateNSF = plateArea / gf; // available program capacity shown in the bar
+    return {floor:i+1, plateW, plateD, plateArea, plateNSF, remaining:plateArea, bands:[]};
   });
 
-  const busiest=floorsArr.reduce((a,b)=> (sumAreas(b.bands)>sumAreas(a.bands)?b:a), floorsArr[0]);
+  Object.entries(deptMap).forEach(([dept,nsf])=>{
+    const gross=nsf*gf; const f=(assignment[dept]||1)-1;
+    floorsArr[f].bands.push({dept, nsf:Math.round(nsf), gross:Math.round(gross)});
+    floorsArr[f].remaining-=Math.round(gross); // keep remaining/score logic on GSF
+  });
+
+  const busiest=floorsArr.reduce((a,b)=> (sumAreas(b.bands.map(x=>({area:x.gross})))>sumAreas(a.bands.map(x=>({area:x.gross})))?b:a), floorsArr[0]);
   const blocks=[]; let x=0,y=0,shelfH=module;
   const fpW=busiest.plateW, fpD=busiest.plateD;
-  busiest.bands.sort((a,b)=>b.area-a.area).forEach(b=>{
-    const w=Math.max(module, Math.round(Math.sqrt(b.area*(fpW/fpD))/module)*module);
-    const h=Math.max(module, Math.round((b.area/w)/module)*module);
+  busiest.bands.sort((a,b)=>b.gross-a.gross).forEach(b=>{
+    const area=b.gross;
+    const w=Math.max(module, Math.round(Math.sqrt(area*(fpW/fpD))/module)*module);
+    const h=Math.max(module, Math.round((area/w)/module)*module);
     if(x+w>fpW){ x=0; y+=shelfH; shelfH=module; }
     if(y+h>fpD){ x=0; y=0; }
     blocks.push({dept:b.dept, x,y,w,h}); x+=w; shelfH=Math.max(shelfH,h);
@@ -364,9 +366,9 @@ function analyze(){
   $('#kCost').textContent=`$${summary.cost.toLocaleString()}`;
   renderLegend(); drawStack(); drawBlock();
 
-  updateParking(); // ensure parking reflects latest areas
+  updateParking();
 }
-function sumAreas(bands){return bands.reduce((a,b)=>a+b.area,0);}
+function sumAreas(bands){return bands.reduce((a,b)=>a+(b.area||b.gross||0),0);}
 
 /* Parking */
 function accessibleRequired(total){
@@ -394,32 +396,53 @@ function updateParking(){
   $('#pkVan').textContent=van.toLocaleString();
 }
 
-/* Drawing (stack + axon) — unchanged from previous message for brevity */
+/* Drawing */
 const AX=Math.PI/6;
 function isoProject(x,y,z){return {x:(x-y)*Math.cos(AX), y:(x+y)*Math.sin(AX)-z};}
 function shade(hex,f){const n=parseInt(hex.slice(1),16);let r=(n>>16)&255,g=(n>>8)&255,b=n&255;r=Math.max(0,Math.min(255,Math.round(r+(255-r)*f)));g=Math.max(0,Math.min(255,Math.round(g+(255-g)*f)));b=Math.max(0,Math.min(255,Math.round(b+(255-b)*f)));const h=v=>v.toString(16).padStart(2,'0');return `#${h(r)}${h(g)}${h(b)}`;}
 function colorHexFor(key){return toHex(colorFor(key));}
-function drawStack(){ /* (same as previous; uses summary values) */ 
+
+/* ====== drawStack now renders NSF against plateNSF ====== */
+function drawStack(){
   const c=$('#stack'); const ctx=c.getContext('2d'); if(!summary) return;
   const margin=40*devicePixelRatio,minRowPx=44*devicePixelRatio,n=summary.floors;
   const innerH=n*minRowPx,H=innerH+margin*2,W=c.clientWidth*devicePixelRatio;
   c.width=W;c.height=H;c.style.height=(H/devicePixelRatio)+'px';ctx.clearRect(0,0,W,H);
+
   const innerW=W-margin*2,rowH=innerH/n;
+
   summary.floorsArr.forEach((fl,i)=>{
     const y=margin+(n-1-i)*rowH;
-    ctx.fillStyle='#e5e7eb';ctx.fillRect(margin,y+8*devicePixelRatio,innerW,rowH-16*devicePixelRatio);
-    ctx.strokeStyle='#bbb';ctx.strokeRect(margin,y+8*devicePixelRatio,innerW,rowH-16*devicePixelRatio);
-    let x=margin, plate=fl.plateArea;
-    fl.bands.sort((a,b)=>b.area-a.area).forEach(b=>{
-      const w=innerW*(b.area/plate); ctx.fillStyle=colorFor(b.dept);
+
+    // background track equals NSF capacity of the plate
+    ctx.fillStyle='#e5e7eb';
+    ctx.fillRect(margin,y+8*devicePixelRatio,innerW,rowH-16*devicePixelRatio);
+    ctx.strokeStyle='#bbb';
+    ctx.strokeRect(margin,y+8*devicePixelRatio,innerW,rowH-16*devicePixelRatio);
+
+    // draw bands by NSF proportion of plateNSF
+    const plateNSF = Math.max(1, fl.plateNSF);
+    let x=margin;
+    const bandsNSF = [...fl.bands].sort((a,b)=>b.nsf-a.nsf);
+    bandsNSF.forEach(b=>{
+      const w=innerW*(b.nsf/plateNSF);
+      ctx.fillStyle=colorFor(b.dept);
       ctx.fillRect(x,y+8*devicePixelRatio,w,rowH-16*devicePixelRatio);
-      ctx.strokeStyle='#bbb';ctx.strokeRect(x,y+8*devicePixelRatio,w,rowH-16*devicePixelRatio); x+=w;
+      ctx.strokeStyle='#bbb';
+      ctx.strokeRect(x,y+8*devicePixelRatio,w,rowH-16*devicePixelRatio);
+      x+=w;
     });
-    ctx.fillStyle='#111';ctx.font=`${12*devicePixelRatio}px system-ui`;ctx.fillText(`Floor ${fl.floor}`,6*devicePixelRatio,y+14*devicePixelRatio);
+
+    ctx.fillStyle='#111';
+    ctx.font=`${12*devicePixelRatio}px system-ui`;
+    ctx.fillText(`Floor ${fl.floor}`,6*devicePixelRatio,y+14*devicePixelRatio);
   });
-  ctx.fillStyle='#111';ctx.font=`${12*devicePixelRatio}px system-ui`;
+
+  ctx.fillStyle='#111';
+  ctx.font=`${12*devicePixelRatio}px system-ui`;
   ctx.fillText(`Floor Fit Score: ${summary.score.toFixed(0)}/100`, W-180*devicePixelRatio, margin-10*devicePixelRatio);
 }
+
 function drawBlock(){
   const c=$('#block'); const ctx=c.getContext('2d'); const W=c.width=c.clientWidth*devicePixelRatio; const H=c.height=c.clientHeight*devicePixelRatio;
   ctx.clearRect(0,0,W,H); if(!summary) return;
@@ -464,7 +487,7 @@ $('#csv').addEventListener('change', async e=>{
   const file=e.target.files[0]; if(!file) return;
   const txt=await file.text();
   program.length=0; parseCSV(txt).forEach(r=>program.push(r));
-  recompute(); autoAssign(); analyze();   // populates KPIs + charts
+  recompute(); autoAssign(); analyze();
 });
 $('#loadSample').onclick=()=>{
   const sample=`Department,Space,Count,NSF
