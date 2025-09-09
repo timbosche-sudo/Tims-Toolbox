@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BSA | Goal Dashboard — Raleigh August 2025 (Live + Toggles + Drawer Editor)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --bsa:#de1c28; --ink:#1a1c1e; --muted:#6d7178; --steel:#3a6ea5; --teal:#46a6c6;
+    --good:#2db57b; --gray:#e6eaef; --bg:#ffffff; --page:#f6f7fb;
+    --shadow:0 1px 2px rgba(0,0,0,.05),0 10px 30px rgba(0,0,0,.08);
+  }
+  html,body{margin:0;height:100%;background:var(--page);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif}
+  .wrap{max-width:1200px;margin:24px auto;padding:0 16px}
+
+  /* Header */
+  .top{display:flex;align-items:flex-end;gap:16px;margin-bottom:18px}
+  .logo{display:flex;align-items:center}
+  .logo svg{height:56px;width:auto;display:block}
+  .title h1{margin:0;font-size:36px;letter-spacing:.04em}
+  .title small{display:block;color:var(--muted);letter-spacing:.12em}
+
+  /* Grid */
+  .grid{display:grid;grid-template-columns:1.15fr 1fr .9fr;gap:14px}
+  @media (max-width:980px){.grid{grid-template-columns:1fr}}
+  .panel{background:#fff;border:1px solid var(--gray);border-radius:12px;box-shadow:var(--shadow);padding:12px 12px 8px;display:grid;grid-template-rows:auto 1fr;gap:8px}
+  .panel h2{margin:0 0 2px 0;font-size:18px;letter-spacing:.08em}
+  .subgrid{display:grid;grid-template-columns:1fr;gap:10px}
+  .box{border:1px solid var(--gray);border-radius:10px;padding:10px}
+  .box h3{margin:0 0 8px 0;font-size:12px;letter-spacing:.12em;color:#42474f}
+
+  .kv{display:flex;justify-content:space-between;gap:10px;font-size:13px;align-items:center}
+  .minitxt{font-size:11px;color:var(--muted)}
+  .tag{display:inline-block;background:#eef1f6;border:1px solid #e1e6ed;color:#4a4f57;font-size:11px;padding:2px 8px;border-radius:999px}
+
+  /* Bars & charts */
+  .bar-bg{height:16px;background:#eef1f6;border-radius:999px;position:relative;overflow:hidden;border:1px solid #e3e7ed}
+  .seg{height:100%;position:absolute;left:0;top:0}
+  .seg.above{background:#f3caa6} .seg.active{background:#8ac2d5} .seg.potential{background:#d1d5db} .seg.gap{background:#f7f9fb}
+  .legend{display:flex;flex-wrap:wrap;gap:10px 16px;margin-top:8px}
+  .leg-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#42474f}
+  .sw{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.06);display:inline-block}
+  .sw-above{background:#f3caa6}.sw-active{background:#8ac2d5}.sw-pot{background:#d1d5db}.sw-gap{background:#f7f9fb}
+
+  .tinybar{height:12px;background:#eef1f6;border-radius:999px;position:relative;overflow:hidden;width:100%}
+  .fill{position:absolute;left:0;top:0;bottom:0;background:var(--steel)}
+  .fill.teal{background:var(--teal)} .fill.gray{background:#93a1b0} .fill.orange{background:#f2a34b}
+
+  .cols{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:end;height:110px}
+  .cbar{background:#7fb8d0;border-radius:4px 4px 0 0}
+  .cbar.gray{background:#c9d1da}
+  .xlabel{font-size:11px;text-align:center;color:#556}
+
+  .mini-col{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+
+  .twin{display:flex;align-items:flex-end;gap:22px;height:160px}
+  .tbar{width:28px;background:#2e6ea6;border-radius:6px 6px 0 0}
+  .tbar.target{background:#8da3b8}
+  .tbn{font-size:12px;text-align:center;margin-top:6px}
+
+  /* Interactive “change” chips */
+  .chip{display:inline-grid;place-items:center;min-width:20px;height:20px;border-radius:999px;font-size:11px;font-weight:800;color:#fff;border:0;cursor:pointer;padding:0 .3rem}
+  .chip.up{background:var(--good)} .chip.down{background:var(--bsa)} .chip.flat{background:#99a2ad}
+  .chip:focus{outline:none;box-shadow:0 0 0 3px rgba(70,166,198,.25)}
+  .center{display:grid;place-items:center}
+  .btn{appearance:none;border:0;background:var(--steel);color:#fff;padding:10px 12px;border-radius:10px;font-weight:700;cursor:pointer}
+  .btn.ghost{background:#fff;color:#2f3a45;border:1px solid var(--gray)}
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap}
+
+  /* Floating edit button */
+  .fab{position:fixed;right:18px;bottom:18px;z-index:30;background:var(--steel);color:#fff;border:0;border-radius:999px;padding:12px 14px;font-weight:800;box-shadow:var(--shadow);cursor:pointer}
+  .fab:focus{outline:none;box-shadow:0 0 0 3px rgba(58,110,165,.25)}
+
+  /* Drawer editor */
+  .drawer-backdrop{position:fixed;inset:0;background:rgba(17,20,23,.28);backdrop-filter:saturate(120%) blur(2px);display:none;z-index:40}
+  .drawer{position:absolute;top:0;right:0;height:100%;width:min(720px,92vw);background:#fff;border-left:1px solid var(--gray);box-shadow:var(--shadow);transform:translateX(100%);transition:transform .2s ease}
+  .drawer.open{transform:translateX(0)}
+  .drawer-backdrop.open{display:block}
+  .dr-head{display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid var(--gray)}
+  .tabs{display:flex;gap:6px}
+  .tab{appearance:none;border:1px solid var(--gray);background:#fff;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:700}
+  .tab[aria-selected="true"]{background:#eef4fa;border-color:#d5e1f1}
+  .dr-body{display:grid;grid-template-rows:auto 1fr;gap:12px;height:calc(100% - 54px)}
+  .pane{display:none;height:100%}
+  .pane.active{display:block}
+  .form{height:100%;overflow:auto;padding:8px 12px}
+  .sec{border:1px solid var(--gray);border-radius:10px;margin:0 0 10px 0}
+  .sec summary{padding:10px 12px;font-weight:800;cursor:pointer}
+  .sec .content{padding:10px 12px}
+  .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  label.s{display:flex;flex-direction:column;gap:4px;font-size:12px}
+  input[type="number"]{width:100%;padding:8px 10px;border:1px solid var(--gray);border-radius:8px;font:inherit}
+  input[type="number"]:focus{outline:none;box-shadow:0 0 0 3px rgba(70,166,198,.22);border-color:#8fb8de}
+  .row-actions{display:flex;justify-content:space-between;gap:10px;padding:8px 12px;border-top:1px solid var(--gray)}
+  textarea.code{width:100%;height:100%;border:0;outline:none;padding:12px;font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#f7f9fc;border-top:1px solid var(--gray)}
+  .note{color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <!-- Official BSA SVG logo -->
+    <div class="logo" aria-label="BSA LifeStructures">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 489.48" role="img" aria-hidden="false">
+        <g fill="#de1c28">
+          <path d="M293.75,274.14c-18.01-17.42-43.03-29.48-74.49-35.97,10.29-3.5,19.76-7.87,28.31-13.06,12.42-7.55,23.01-16.55,31.47-26.76,8.49-10.23,15.1-21.55,19.63-33.64,4.55-12.12,6.86-24.88,6.86-37.94,0-19.6-3.3-37.44-9.8-53.02-6.55-15.65-16.73-29.1-30.28-39.96-13.45-10.79-30.68-19.07-51.24-24.62C193.81,3.67,169.47.89,141.87.89H0v488.17h159.56c25.83,0,49.28-3.08,69.68-9.16,20.53-6.11,38.1-15.08,52.22-26.65,14.19-11.63,25.15-26.02,32.59-42.76,7.42-16.69,11.19-35.7,11.19-56.5,0-32.78-10.59-59.65-31.5-79.85ZM41.9,35.3h99.98c41.85,0,73.1,8.15,92.9,24.23,19.59,15.9,29.52,39.78,29.52,70.98,0,12-2.32,23.81-6.9,35.11-4.54,11.26-11.75,21.49-21.42,30.39-9.7,8.94-22.36,16.26-37.61,21.75-15.31,5.51-34.09,8.3-55.81,8.3H41.9V35.3ZM252.76,427.72c-20.92,17.63-52.4,26.58-93.55,26.58H41.9v-195.87h117.67c19.75,0,37.63,2.24,53.13,6.67,15.39,4.4,28.5,10.78,38.97,18.96,10.41,8.14,18.49,18.14,24.01,29.73,5.53,11.59,8.34,24.88,8.34,39.51,0,31.89-10.51,56.93-31.25,74.42Z"/>
+          <path d="M760.26.89h-38.97l-199.75,488.17h31.64c3.97,0,7.43-1.17,10.31-3.47,2.77-2.21,4.73-4.9,5.8-7.86l55.59-137.65h231.77l55.61,137.69c1.35,3.24,3.28,5.91,5.74,7.94,2.66,2.22,6.03,3.35,10.01,3.35h31.98L760.26.89ZM633.11,310.79l97.96-242.86c1.82-4.08,3.52-8.56,5.1-13.44,1.59-4.88,3.07-10.04,4.42-15.48,3.18,11.11,6.46,20.64,9.86,28.57l97.96,243.2h-215.31Z"/>
+          <g><path d="M558.1,287.83l-14.66-7.98c-9.68-5.11-20.2-9.77-31.25-13.83-11.28-4.15-22.99-8.05-34.8-11.6-12.38-3.71-24.67-7.86-36.49-12.33-12.2-4.61-23.83-9.92-34.54-15.8-11.41-6.26-21.56-13.98-30.16-22.97-8.87-9.23-15.97-20.34-21.1-33.01-5.15-12.66-7.76-27.65-7.76-44.54s3.11-32.42,9.25-47.51c6.17-15.19,15.31-28.78,27.17-40.39,11.8-11.55,26.46-20.86,43.58-27.67,17.05-6.76,36.66-10.2,58.29-10.2,24.14,0,45.94,4.02,64.79,11.95,18.91,7.95,36.81,20.66,53.2,37.76l7.6,7.93-7.14,10.75c-2.98,5.24-8.62,8.48-14.98,8.48-5.25,0-10.17-2.26-15.06-6.91-2.13-2.03-4.91-4.59-8.33-7.7-3.1-2.8-7.08-5.97-11.85-9.43-4.35-3.15-9.77-6.15-16.09-8.93-6.38-2.8-13.95-5.18-22.49-7.07-8.42-1.86-18.4-2.8-29.65-2.8-17.05,0-32.26,2.61-45.17,7.76-12.85,5.12-23.7,11.95-32.23,20.29-8.49,8.3-15.03,18.04-19.45,28.95-4.48,11.03-6.75,22.71-6.75,34.72,0,15.24,2.86,27.88,8.51,37.57,5.93,10.16,13.8,18.84,23.39,25.79,10.14,7.36,22.01,13.59,35.28,18.51,14.26,5.29,28.96,10.45,43.7,15.32,15,4.97,30.04,10.3,44.7,15.85,7.88,2.99,15.48,6.47,22.6,10.36l10.55,5.76-12.65,32.89Z"/>
+          <path d="M470.51,489.48h-9.6c-16.61,0-31.74-1.49-44.94-4.44-13.35-2.98-25.79-7.35-36.98-13-10.81-5.46-20.95-12.19-30.16-20l-11.16-9.47 10.17-10.53c1.15-1.19,2.2-2.48,3.25-3.75l10.21-12.24 10.54,8.94c1.94,1.64,3.94,3.32,6.14,5.04,5.37,4.22,12.08,8.3,19.96,12.15,7.85,3.83,17.07,7.04,27.37,9.54,10.19,2.48,22.13,3.74,35.48,3.74l2.61-.12,20.35-.35-13.25,34.5Z"/></g>
+        </g>
+      </svg>
+    </div>
+    <div class="title">
+      <h1>GOAL <strong>DASHBOARD</strong></h1>
+      <small>RALEIGH • AUGUST 2025</small>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- SALES -->
+    <section class="panel">
+      <h2>SALES</h2>
+      <div class="subgrid">
+
+        <div class="box">
+          <h3>REVENUE GOAL <span class="tag" id="goalTag">$10M</span></h3>
+          <div class="kv" style="margin-bottom:6px">
+            <div id="amtActive">$9.04M <button class="chip up toggle" title="Larger than last month" aria-pressed="true">✓</button></div>
+            <div id="amtAbove">$633K <button class="chip up toggle" title="Larger than last month" aria-pressed="true">✓</button></div>
+            <div id="amtPotential">$326K <button class="chip down toggle" title="Smaller than last month" aria-pressed="true">●</button></div>
+          </div>
+          <div class="bar-bg" aria-label="revenue pipeline">
+            <div class="seg above" id="segAbove" style="width:5%"></div>
+            <div class="seg active" id="segActive" style="width:90%"></div>
+            <div class="seg potential" id="segPotential" style="width:97%;opacity:.55"></div>
+            <div class="seg gap" id="segGap" style="left:97%;width:3%"></div>
+          </div>
+          <div class="legend">
+            <span class="leg-item"><span class="sw sw-above"></span>Potential Above Goal</span>
+            <span class="leg-item"><span class="sw sw-active"></span>Active Above Goal</span>
+            <span class="leg-item"><span class="sw sw-pot"></span>Potential</span>
+            <span class="leg-item"><span class="sw sw-gap"></span>Gap</span>
+          </div>
+        </div>
+
+        <div class="box">
+          <h3>NET TO GROSS REVENUE</h3>
+          <div class="kv"><span class="minitxt">YTD ACTUAL</span><strong id="ntgActualLbl">62%</strong> <button class="chip flat toggle" title="No change" aria-pressed="true">•</button></div>
+          <div class="tinybar" style="margin-bottom:6px"><div class="fill teal" id="ntgActual" style="width:62%"></div></div>
+          <div class="kv"><span class="minitxt">YTD TARGET</span><strong id="ntgTargetLbl">68%</strong> <button class="chip flat toggle" title="No change" aria-pressed="true">•</button></div>
+          <div class="tinybar"><div class="fill gray" id="ntgTarget" style="width:68%"></div></div>
+        </div>
+
+        <div class="box">
+          <h3>% REVENUE BY PRACTICE</h3>
+          <div class="kv"><strong>HEALING</strong> <span id="pHealing">60%</span> <button class="chip up toggle" aria-pressed="true">✓</button></div>
+          <div class="kv"><strong>LEARNING</strong> <span id="pLearning">36%</span> <button class="chip down toggle" aria-pressed="true">●</button></div>
+          <div class="kv"><strong>DISCOVERY</strong> <span id="pDiscovery">4%</span> <button class="chip flat toggle" aria-pressed="true">•</button></div>
+          <div class="kv"><strong>OTHER</strong> <span id="pOther">0%</span> <button class="chip flat toggle" aria-pressed="true">•</button></div>
+        </div>
+
+        <div class="box">
+          <h3>PROJECTS BY SIZE</h3>
+          <div class="cols" style="margin-bottom:8px">
+            <div class="cbar" id="countLt10Bar" style="height:82%"></div>
+            <div class="cbar" id="countMidBar" style="height:64%"></div>
+            <div class="cbar" id="countGt100Bar" style="height:15%"></div>
+            <div class="cbar gray" style="height:6%"></div>
+          </div>
+          <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:12px">
+            <div class="xlabel">&lt;$10M<br><strong id="countLt10">15</strong></div>
+            <div class="xlabel">$10–$100M<br><strong id="countMid">11</strong></div>
+            <div class="xlabel">&gt;$100M<br><strong id="countGt100">2</strong></div>
+          </div>
+        </div>
+
+        <div class="box">
+          <h3>% OF NET REVENUE BASED ON PROJECTS SIZE <span class="minitxt">(IDEAL STATE)</span></h3>
+          <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:16px">
+            <div>
+              <div class="minitxt">&lt;$10M • <strong id="idealLt10">20%</strong></div>
+              <div class="tinybar"><div class="fill" id="revLt10" style="width:11%"></div></div>
+              <div class="minitxt" style="margin-top:4px"><strong id="revLt10Lbl">11%</strong></div>
+            </div>
+            <div>
+              <div class="minitxt">$10–$100M • <strong id="idealMid">40%</strong></div>
+              <div class="tinybar"><div class="fill" id="revMid" style="width:58%"></div></div>
+              <div class="minitxt" style="margin-top:4px"><strong id="revMidLbl">58%</strong></div>
+            </div>
+            <div>
+              <div class="minitxt">&gt;$100M • <strong id="idealGt100">40%</strong></div>
+              <div class="tinybar"><div class="fill" id="revGt100" style="width:31%"></div></div>
+              <div class="minitxt" style="margin-top:4px"><strong id="revGt100Lbl">31%</strong></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- OPS -->
+    <section class="panel">
+      <h2>OPS</h2>
+      <div class="subgrid">
+
+        <div class="box">
+          <h3>UTILIZATION</h3>
+          <div class="kv"><span class="minitxt">YTD ACTUAL</span><strong id="utilActualLbl">63%</strong> <button class="chip up toggle" aria-pressed="true">✓</button></div>
+          <div class="tinybar" style="margin-bottom:8px"><div class="fill orange" id="utilActual" style="width:63%"></div></div>
+          <div class="kv"><span class="minitxt">YTD TARGET</span><strong id="utilTargetLbl">62%</strong> <button class="chip flat toggle" aria-pressed="true">•</button></div>
+          <div class="tinybar"><div class="fill" id="utilTarget" style="width:62%"></div></div>
+        </div>
+
+        <div class="box">
+          <h3>12-MONTH CAPACITY</h3>
+          <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:12px">
+            <div>
+              <div class="tinybar"><div class="fill" id="capAvail" style="width:67%"></div></div>
+              <div class="minitxt" style="margin-top:4px"><strong id="capAvailLbl">$6.7M</strong><br>AVAILABLE</div>
+            </div>
+            <div>
+              <div class="tinybar"><div class="fill" id="capActive" style="width:76%"></div></div>
+              <div class="minitxt" style="margin-top:4px"><strong id="capActiveLbl">$7.6M</strong><br>ACTIVE</div>
+            </div>
+            <div>
+              <div class="tinybar"><div class="fill" id="capPotential" style="width:45%"></div></div>
+              <div class="minitxt" style="margin-top:4px"><strong id="capPotentialLbl">$4.5M</strong><br>POTENTIAL</div>
+            </div>
+          </div>
+          <div class="kv" style="margin-top:8px"><span class="tag">E&O PERCENT TO DATE</span><strong id="eoLbl">0%</strong> <button class="chip flat toggle" aria-pressed="true">•</button> <span class="minitxt">Goal ≤ 1% of Net Revenue</span></div>
+        </div>
+
+        <div class="box">
+          <h3>LOANED RESOURCES</h3>
+          <div class="mini-col">
+            <div><div class="tinybar"><div class="fill" id="loanAUS"></div></div><div class="minitxt" id="loanAUSLbl">$297K • AUS</div></div>
+            <div><div class="tinybar"><div class="fill" id="loanDEN"></div></div><div class="minitxt" id="loanDENLbl">$2K • DEN</div></div>
+            <div><div class="tinybar"><div class="fill" id="loanIND"></div></div><div class="minitxt" id="loanINDLbl">$212K • IND</div></div>
+            <div><div class="tinybar"><div class="fill" id="loanSTL"></div></div><div class="minitxt" id="loanSTLLbl">$72K • STL</div></div>
+            <div><div class="tinybar"><div class="fill" id="loanTPA"></div></div><div class="minitxt" id="loanTPALbl">-$11K • TPA</div></div>
+          </div>
+        </div>
+
+        <div class="box">
+          <h3>BORROWED RESOURCES</h3>
+          <div class="mini-col">
+            <div><div class="tinybar"><div class="fill" id="borAUS"></div></div><div class="minitxt" id="borAUSLbl">$0 • AUS</div></div>
+            <div><div class="tinybar"><div class="fill" id="borDEN"></div></div><div class="minitxt" id="borDENLbl">$138K • DEN</div></div>
+            <div><div class="tinybar"><div class="fill" id="borIND"></div></div><div class="minitxt" id="borINDLbl">$555K • IND</div></div>
+            <div><div class="tinybar"><div class="fill" id="borSTL"></div></div><div class="minitxt" id="borSTLLbl">$1K • STL</div></div>
+            <div><div class="tinybar"><div class="fill" id="borTPA"></div></div><div class="minitxt" id="borTPALbl">$266K • TPA</div></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- FINANCE -->
+    <section class="panel">
+      <h2>FINANCE</h2>
+      <div class="subgrid">
+
+        <div class="box center">
+          <h3>% OF PROFITABLE CLIENTS (TOP 5)</h3>
+          <svg viewBox="0 0 160 160" width="160" height="160" role="img" aria-label="donut">
+            <circle cx="80" cy="80" r="60" fill="none" stroke="#e4ebf2" stroke-width="20"/>
+            <circle id="donutArc" cx="80" cy="80" r="60" fill="none" stroke="#46a6c6" stroke-width="20" stroke-linecap="round" stroke-dasharray="0 999" transform="rotate(-90 80 80)"/>
+            <text id="donutPct" x="80" y="86" text-anchor="middle" font-size="28" font-weight="800">80%</text>
+          </svg>
+        </div>
+
+        <div class="box">
+          <h3>STUDIO PROFIT</h3>
+          <div class="twin">
+            <div>
+              <div class="tbar" id="profitActualBar" style="height:140px"></div>
+              <div class="tbn">YTD ACTUAL<br><strong id="profitActualLbl">26%</strong> <button class="chip up toggle" aria-pressed="true">✓</button></div>
+            </div>
+            <div>
+              <div class="tbar target" id="profitTargetBar" style="height:86px"></div>
+              <div class="tbn">GOAL<br><strong id="profitTargetLbl">16%</strong> <button class="chip flat toggle" aria-pressed="true">•</button></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="box">
+          <h3>NOTES</h3>
+          <div class="minitxt" style="margin-bottom:8px">Tap any round chip to toggle Larger, Smaller, or No Change.</div>
+          <div class="btnrow" role="group" aria-label="Change all indicators">
+            <button class="btn ghost" id="setAllUp">Set all: Larger</button>
+            <button class="btn ghost" id="setAllDown">Set all: Smaller</button>
+            <button class="btn ghost" id="setAllFlat">Set all: No Change</button>
+            <button class="btn" id="cycleAll">Cycle all</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Floating edit button -->
+<button class="fab" id="openEditor" title="Edit Data">Edit Data</button>
+
+<!-- Drawer Editor -->
+<div class="drawer-backdrop" id="drawerBackdrop" aria-hidden="true">
+  <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="edTitle">
+    <div class="dr-head">
+      <strong id="edTitle">Edit Data</strong>
+      <div class="tabs" role="tablist">
+        <button class="tab" id="tabForm" role="tab" aria-selected="true" aria-controls="paneForm">Form</button>
+        <button class="tab" id="tabJson" role="tab" aria-selected="false" aria-controls="paneJson">JSON</button>
+        <button class="tab" id="closeDrawer" title="Close">✕</button>
+      </div>
+    </div>
+    <div class="dr-body">
+      <!-- Form pane -->
+      <div class="pane active" id="paneForm" role="tabpanel" aria-labelledby="tabForm">
+        <div class="form" id="formRoot">
+          <details class="sec" open>
+            <summary>Sales</summary>
+            <div class="content grid2">
+              <label class="s">Goal ($)<input type="number" id="f_sales_goal"></label>
+              <label class="s">Active ($)<input type="number" id="f_sales_active"></label>
+              <label class="s">Active Above Goal ($)<input type="number" id="f_sales_activeAbove"></label>
+              <label class="s">Potential ($)<input type="number" id="f_sales_potential"></label>
+              <label class="s">Net→Gross Actual (%)<input type="number" id="f_ntg_actual" min="0" max="100" step="0.1"></label>
+              <label class="s">Net→Gross Target (%)<input type="number" id="f_ntg_target" min="0" max="100" step="0.1"></label>
+            </div>
+            <div class="content grid2">
+              <label class="s">Practice Healing (%)<input type="number" id="f_pr_heal" min="0" max="100" step="0.1"></label>
+              <label class="s">Learning (%)<input type="number" id="f_pr_learn" min="0" max="100" step="0.1"></label>
+              <label class="s">Discovery (%)<input type="number" id="f_pr_disc" min="0" max="100" step="0.1"></label>
+              <label class="s">Other (%)<input type="number" id="f_pr_other" min="0" max="100" step="0.1"></label>
+            </div>
+            <div class="content grid3">
+              <label class="s">Projects &lt;$10M (count)<input type="number" id="f_cnt_lt10" min="0" step="1"></label>
+              <label class="s">Projects $10–$100M (count)<input type="number" id="f_cnt_mid" min="0" step="1"></label>
+              <label class="s">Projects &gt;$100M (count)<input type="number" id="f_cnt_gt100" min="0" step="1"></label>
+            </div>
+            <div class="content grid3">
+              <label class="s">% Net Rev &lt;$10M<input type="number" id="f_rev_lt10" min="0" max="100" step="0.1"></label>
+              <label class="s">% Net Rev $10–$100M<input type="number" id="f_rev_mid" min="0" max="100" step="0.1"></label>
+              <label class="s">% Net Rev &gt;$100M<input type="number" id="f_rev_gt100" min="0" max="100" step="0.1"></label>
+              <label class="s">Ideal &lt;$10M (%)<input type="number" id="f_ideal_lt10" min="0" max="100" step="0.1"></label>
+              <label class="s">Ideal $10–$100M (%)<input type="number" id="f_ideal_mid" min="0" max="100" step="0.1"></label>
+              <label class="s">Ideal &gt;$100M (%)<input type="number" id="f_ideal_gt100" min="0" max="100" step="0.1"></label>
+            </div>
+          </details>
+
+          <details class="sec" open>
+            <summary>Ops</summary>
+            <div class="content grid3">
+              <label class="s">Utilization Actual (%)<input type="number" id="f_util_actual" min="0" max="100" step="0.1"></label>
+              <label class="s">Utilization Target (%)<input type="number" id="f_util_target" min="0" max="100" step="0.1"></label>
+              <label class="s">E&O Percent (%)<input type="number" id="f_eo_pct" min="0" max="100" step="0.1"></label>
+            </div>
+            <div class="content grid3">
+              <label class="s">Capacity Available ($)<input type="number" id="f_cap_avail"></label>
+              <label class="s">Capacity Active ($)<input type="number" id="f_cap_active"></label>
+              <label class="s">Capacity Potential ($)<input type="number" id="f_cap_potential"></label>
+            </div>
+            <div class="content grid3">
+              <label class="s">Loaned AUS ($)<input type="number" id="f_loan_aus"></label>
+              <label class="s">Loaned DEN ($)<input type="number" id="f_loan_den"></label>
+              <label class="s">Loaned IND ($)<input type="number" id="f_loan_ind"></label>
+              <label class="s">Loaned STL ($)<input type="number" id="f_loan_stl"></label>
+              <label class="s">Loaned TPA ($)<input type="number" id="f_loan_tpa"></label>
+            </div>
+            <div class="content grid3">
+              <label class="s">Borrowed AUS ($)<input type="number" id="f_bor_aus"></label>
+              <label class="s">Borrowed DEN ($)<input type="number" id="f_bor_den"></label>
+              <label class="s">Borrowed IND ($)<input type="number" id="f_bor_ind"></label>
+              <label class="s">Borrowed STL ($)<input type="number" id="f_bor_stl"></label>
+              <label class="s">Borrowed TPA ($)<input type="number" id="f_bor_tpa"></label>
+            </div>
+          </details>
+
+          <details class="sec" open>
+            <summary>Finance</summary>
+            <div class="content grid2">
+              <label class="s">Profitable Clients (%)<input type="number" id="f_fin_prof" min="0" max="100" step="0.1"></label>
+              <label class="s">Studio Profit Actual (%)<input type="number" id="f_sp_actual" min="0" max="100" step="0.1"></label>
+              <label class="s">Studio Profit Goal (%)<input type="number" id="f_sp_goal" min="0" max="100" step="0.1"></label>
+            </div>
+            <div class="content note">Tip: numbers are raw units, percents, or dollars. Use negative for outflows when needed.</div>
+          </details>
+        </div>
+
+        <div class="row-actions">
+          <div class="btnrow">
+            <button class="btn" id="applyForm">Apply</button>
+            <button class="btn ghost" id="resetDefaults">Reset</button>
+          </div>
+          <div class="btnrow">
+            <button class="btn ghost" id="exportJson">Export</button>
+            <label class="btn ghost" for="importJson" style="cursor:pointer">Import</label>
+            <input id="importJson" type="file" accept="application/json" style="display:none">
+          </div>
+        </div>
+      </div>
+
+      <!-- JSON pane -->
+      <div class="pane" id="paneJson" role="tabpanel" aria-labelledby="tabJson">
+        <textarea class="code" id="dataInput" spellcheck="false"></textarea>
+        <div class="row-actions">
+          <div class="note" id="parseStatus">Ready.</div>
+          <div class="btnrow">
+            <button class="btn" id="applyJson">Apply</button>
+            <button class="btn ghost" id="copyJson">Copy</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+</div>
+
+<script>
+/* ---------- Helpers ---------- */
+const $ = (id)=>document.getElementById(id);
+const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
+const fmtMoney = v => { const neg=v<0; v=Math.abs(v); if(v>=1e6)return(neg?'-':'')+'$'+(v/1e6).toFixed(1).replace(/\.0$/,'')+'M'; if(v>=1e3)return(neg?'-':'')+'$'+(v/1e3).toFixed(0)+'K'; return(neg?'-':'')+'$'+Math.round(v); };
+const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
+const pct = v => { if (v<=1) return v*100; if (v<=100) return v; return 0; };
+
+/* ---------- Default Data ---------- */
+const DEFAULTS = {
+  sales:{goal:10000000,active:9040000,activeAbove:633000,potential:9700000},
+  netToGross:{actual:62,target:68},
+  practice:{healing:60,learning:36,discovery:4,other:0},
+  projectsCounts:{lt10:15,mid:11,gt100:2},
+  netRevenueBySize:{lt10:11,mid:58,gt100:31,ideal:{lt10:20,mid:40,gt100:40}},
+  ops:{utilization:{actual:63,target:62},capacity:{available:6700000,active:7600000,potential:4500000},eoPct:0,loaned:{AUS:297000,DEN:2000,IND:212000,STL:72000,TPA:-11000},borrowed:{AUS:0,DEN:138000,IND:555000,STL:1000,TPA:266000}},
+  finance:{profitableClientsPct:80,studioProfit:{actual:26,goal:16}}
+};
+let data = JSON.parse(localStorage.getItem('bsa_goal_dash_v1')||'null') || structuredClone(DEFAULTS);
+
+/* ---------- Drawer + Tabs ---------- */
+const backdrop = $('drawerBackdrop'), drawer = backdrop.querySelector('.drawer');
+function openDrawer(){ backdrop.classList.add('open'); drawer.classList.add('open'); backdrop.removeAttribute('aria-hidden'); setTimeout(()=>$('#f_sales_goal').focus(),100); }
+function closeDrawer(){ backdrop.classList.remove('open'); drawer.classList.remove('open'); backdrop.setAttribute('aria-hidden','true'); }
+$('openEditor').addEventListener('click',openDrawer);
+$('closeDrawer').addEventListener('click',closeDrawer);
+backdrop.addEventListener('click',e=>{ if(e.target===backdrop) closeDrawer(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && backdrop.classList.contains('open')) closeDrawer(); });
+
+function setTab(which){
+  const isForm = which==='form';
+  $('tabForm').setAttribute('aria-selected', isForm?'true':'false');
+  $('tabJson').setAttribute('aria-selected', !isForm?'true':'false');
+  $('paneForm').classList.toggle('active', isForm);
+  $('paneJson').classList.toggle('active', !isForm);
+}
+$('tabForm').addEventListener('click', ()=>setTab('form'));
+$('tabJson').addEventListener('click', ()=>{ $('dataInput').value = JSON.stringify(data,null,2); setTab('json'); });
+
+/* ---------- Form <-> Data ---------- */
+function fillForm(d){
+  $('#f_sales_goal').value = d.sales.goal;
+  $('#f_sales_active').value = d.sales.active;
+  $('#f_sales_activeAbove').value = d.sales.activeAbove;
+  $('#f_sales_potential').value = d.sales.potential;
+  $('#f_ntg_actual').value = d.netToGross.actual;
+  $('#f_ntg_target').value = d.netToGross.target;
+  $('#f_pr_heal').value = d.practice.healing;
+  $('#f_pr_learn').value = d.practice.learning;
+  $('#f_pr_disc').value = d.practice.discovery;
+  $('#f_pr_other').value = d.practice.other;
+  $('#f_cnt_lt10').value = d.projectsCounts.lt10;
+  $('#f_cnt_mid').value = d.projectsCounts.mid;
+  $('#f_cnt_gt100').value = d.projectsCounts.gt100;
+  $('#f_rev_lt10').value = d.netRevenueBySize.lt10;
+  $('#f_rev_mid').value = d.netRevenueBySize.mid;
+  $('#f_rev_gt100').value = d.netRevenueBySize.gt100;
+  $('#f_ideal_lt10').value = d.netRevenueBySize.ideal.lt10;
+  $('#f_ideal_mid').value = d.netRevenueBySize.ideal.mid;
+  $('#f_ideal_gt100').value = d.netRevenueBySize.ideal.gt100;
+  $('#f_util_actual').value = d.ops.utilization.actual;
+  $('#f_util_target').value = d.ops.utilization.target;
+  $('#f_eo_pct').value = d.ops.eoPct;
+  $('#f_cap_avail').value = d.ops.capacity.available;
+  $('#f_cap_active').value = d.ops.capacity.active;
+  $('#f_cap_potential').value = d.ops.capacity.potential;
+  $('#f_loan_aus').value = d.ops.loaned.AUS; $('#f_loan_den').value = d.ops.loaned.DEN; $('#f_loan_ind').value = d.ops.loaned.IND; $('#f_loan_stl').value = d.ops.loaned.STL; $('#f_loan_tpa').value = d.ops.loaned.TPA;
+  $('#f_bor_aus').value = d.ops.borrowed.AUS; $('#f_bor_den').value = d.ops.borrowed.DEN; $('#f_bor_ind').value = d.ops.borrowed.IND; $('#f_bor_stl').value = d.ops.borrowed.STL; $('#f_bor_tpa').value = d.ops.borrowed.TPA;
+  $('#f_fin_prof').value = d.finance.profitableClientsPct;
+  $('#f_sp_actual').value = d.finance.studioProfit.actual;
+  $('#f_sp_goal').value = d.finance.studioProfit.goal;
+}
+function readForm(){
+  const v = n=>Number(n);
+  return {
+    sales:{goal:v($('#f_sales_goal').value),active:v($('#f_sales_active').value),activeAbove:v($('#f_sales_activeAbove').value),potential:v($('#f_sales_potential').value)},
+    netToGross:{actual:v($('#f_ntg_actual').value),target:v($('#f_ntg_target').value)},
+    practice:{healing:v($('#f_pr_heal').value),learning:v($('#f_pr_learn').value),discovery:v($('#f_pr_disc').value),other:v($('#f_pr_other').value)},
+    projectsCounts:{lt10:v($('#f_cnt_lt10').value),mid:v($('#f_cnt_mid').value),gt100:v($('#f_cnt_gt100').value)},
+    netRevenueBySize:{lt10:v($('#f_rev_lt10').value),mid:v($('#f_rev_mid').value),gt100:v($('#f_rev_gt100').value),ideal:{lt10:v($('#f_ideal_lt10').value),mid:v($('#f_ideal_mid').value),gt100:v($('#f_ideal_gt100').value)}},
+    ops:{utilization:{actual:v($('#f_util_actual').value),target:v($('#f_util_target').value)},capacity:{available:v($('#f_cap_avail').value),active:v($('#f_cap_active').value),potential:v($('#f_cap_potential').value)},eoPct:v($('#f_eo_pct').value),
+      loaned:{AUS:v($('#f_loan_aus').value),DEN:v($('#f_loan_den').value),IND:v($('#f_loan_ind').value),STL:v($('#f_loan_stl').value),TPA:v($('#f_loan_tpa').value)},
+      borrowed:{AUS:v($('#f_bor_aus').value),DEN:v($('#f_bor_den').value),IND:v($('#f_bor_ind').value),STL:v($('#f_bor_stl').value),TPA:v($('#f_bor_tpa').value)}},
+    finance:{profitableClientsPct:v($('#f_fin_prof').value),studioProfit:{actual:v($('#f_sp_actual').value),goal:v($('#f_sp_goal').value)}}
+  };
+}
+
+/* ---------- JSON pane actions ---------- */
+$('applyJson').addEventListener('click', ()=>{
+  try{ const obj = JSON.parse($('dataInput').value); data = obj; localStorage.setItem('bsa_goal_dash_v1', JSON.stringify(data)); $('parseStatus').textContent='Applied ✓'; render(); }
+  catch(e){ $('parseStatus').textContent='JSON error: '+e.message; }
+});
+$('copyJson').addEventListener('click', async ()=>{
+  await navigator.clipboard.writeText(JSON.stringify(data,null,2));
+  $('parseStatus').textContent='Copied to clipboard.';
+});
+
+/* ---------- Form actions ---------- */
+$('applyForm').addEventListener('click', ()=>{
+  data = readForm();
+  localStorage.setItem('bsa_goal_dash_v1', JSON.stringify(data));
+  render();
+});
+$('resetDefaults').addEventListener('click', ()=>{
+  data = structuredClone(DEFAULTS);
+  localStorage.setItem('bsa_goal_dash_v1', JSON.stringify(data));
+  fillForm(data); $('dataInput').value = JSON.stringify(data,null,2); render();
+});
+$('exportJson').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'bsa-goal-dashboard.json'; a.click(); URL.revokeObjectURL(a.href);
+});
+$('importJson').addEventListener('change', async (e)=>{
+  const file = e.target.files[0]; if(!file) return;
+  const text = await file.text();
+  try{ data = JSON.parse(text); localStorage.setItem('bsa_goal_dash_v1', JSON.stringify(data)); fillForm(data); $('dataInput').value = JSON.stringify(data,null,2); render(); }
+  catch(err){ alert('Import failed: '+err.message); }
+});
+
+/* ---------- Toggle chips ---------- */
+function cycleState(el){
+  if(el.classList.contains('up')) { el.classList.remove('up'); el.classList.add('down'); el.textContent='●'; el.title='Smaller than last month'; }
+  else if(el.classList.contains('down')) { el.classList.remove('down'); el.classList.add('flat'); el.textContent='•'; el.title='No change'; }
+  else { el.classList.remove('flat'); el.classList.add('up'); el.textContent='✓'; el.title='Larger than last month'; }
+}
+function setState(el, state){
+  el.classList.remove('up','down','flat');
+  if(state==='up'){ el.classList.add('up'); el.textContent='✓'; el.title='Larger than last month'; }
+  if(state==='down'){ el.classList.add('down'); el.textContent='●'; el.title='Smaller than last month'; }
+  if(state==='flat'){ el.classList.add('flat'); el.textContent='•'; el.title='No change'; }
+}
+function hookToggles(){
+  $$('.toggle').forEach(btn=>btn.onclick=()=>cycleState(btn));
+  $('setAllUp').onclick = ()=>$$('.toggle').forEach(b=>setState(b,'up'));
+  $('setAllDown').onclick = ()=>$$('.toggle').forEach(b=>setState(b,'down'));
+  $('setAllFlat').onclick = ()=>$$('.toggle').forEach(b=>setState(b,'flat'));
+  $('cycleAll').onclick = ()=>$$('.toggle').forEach(cycleState);
+}
+
+/* ---------- Render ---------- */
+function render(){
+  /* SALES */
+  $('#goalTag').textContent = fmtMoney(data.sales.goal);
+  $('#amtActive').firstChild.nodeValue = fmtMoney(data.sales.active) + ' ';
+  $('#amtAbove').firstChild.nodeValue  = fmtMoney(data.sales.activeAbove||0) + ' ';
+  $('#amtPotential').firstChild.nodeValue = fmtMoney(data.sales.potential - data.sales.active) + ' ';
+
+  const g = Math.max(1, data.sales.goal);
+  const pActive = clamp((data.sales.active/g)*100, 0, 100);
+  const pPot    = clamp((data.sales.potential/g)*100, 0, 100);
+  const pAbove  = clamp((data.sales.activeAbove/g)*100, 0, 100);
+  const pGap    = clamp(100 - pPot, 0, 100);
+
+  $('#segActive').style.width = pActive + '%';
+  $('#segAbove').style.width  = pAbove + '%';
+  $('#segPotential').style.width = pPot + '%';
+  $('#segGap').style.left = (100 - pGap) + '%';
+  $('#segGap').style.width = pGap + '%';
+
+  $('#ntgActual').style.width = clamp(pct(data.netToGross.actual),0,100) + '%';
+  $('#ntgTarget').style.width = clamp(pct(data.netToGross.target),0,100) + '%';
+  $('#ntgActualLbl').textContent = clamp(pct(data.netToGross.actual),0,100).toFixed(0) + '%';
+  $('#ntgTargetLbl').textContent = clamp(pct(data.netToGross.target),0,100).toFixed(0) + '%';
+
+  $('#pHealing').textContent   = data.practice.healing + '%';
+  $('#pLearning').textContent  = data.practice.learning + '%';
+  $('#pDiscovery').textContent = data.practice.discovery + '%';
+  $('#pOther').textContent     = data.practice.other + '%';
+
+  const c = data.projectsCounts; const maxC = Math.max(1, c.lt10, c.mid, c.gt100);
+  $('#countLt10Bar').style.height = (10 + 90*(c.lt10/maxC)) + '%';
+  $('#countMidBar').style.height  = (10 + 90*(c.mid/maxC)) + '%';
+  $('#countGt100Bar').style.height= (10 + 90*(c.gt100/maxC)) + '%';
+  $('#countLt10').textContent = c.lt10; $('#countMid').textContent  = c.mid; $('#countGt100').textContent= c.gt100;
+
+  const nrs = data.netRevenueBySize;
+  const setPct = (idBar, idLbl, v)=>{ $(idBar).style.width = clamp(pct(v||0),0,100) + '%'; $(idLbl).textContent = clamp(pct(v||0),0,100).toFixed(0) + '%'; };
+  $('#idealLt10').textContent = clamp(pct(nrs.ideal.lt10),0,100).toFixed(0)+'%';
+  $('#idealMid').textContent  = clamp(pct(nrs.ideal.mid),0,100).toFixed(0)+'%';
+  $('#idealGt100').textContent= clamp(pct(nrs.ideal.gt100),0,100).toFixed(0)+'%';
+  setPct('revLt10','revLt10Lbl', nrs.lt10);
+  setPct('revMid','revMidLbl',   nrs.mid);
+  setPct('revGt100','revGt100Lbl',nrs.gt100);
+
+  /* OPS */
+  $('#utilActual').style.width = clamp(pct(data.ops.utilization.actual),0,100) + '%';
+  $('#utilTarget').style.width = clamp(pct(data.ops.utilization.target),0,100) + '%';
+  $('#utilActualLbl').textContent = clamp(pct(data.ops.utilization.actual),0,100).toFixed(0) + '%';
+  $('#utilTargetLbl').textContent = clamp(pct(data.ops.utilization.target),0,100).toFixed(0) + '%';
+
+  const cap = data.ops.capacity, maxCap = Math.max(cap.available, cap.active, cap.potential, 1);
+  $('#capAvail').style.width = (100*cap.available/maxCap) + '%';
+  $('#capActive').style.width= (100*cap.active/maxCap) + '%';
+  $('#capPotential').style.width=(100*cap.potential/maxCap) + '%';
+  $('#capAvailLbl').textContent = fmtMoney(cap.available);
+  $('#capActiveLbl').textContent= fmtMoney(cap.active);
+  $('#capPotentialLbl').textContent= fmtMoney(cap.potential);
+  $('#eoLbl').textContent = clamp(pct(data.ops.eoPct),0,100).toFixed(0) + '%';
+
+  const loan = data.ops.loaned, bor = data.ops.borrowed;
+  const absMax = Math.max(...Object.values({...loan,...bor}).map(v=>Math.abs(v)),1);
+  const setMoneyBar = (idBar,idLbl,val,label)=>{ $(idBar).style.width = (100*Math.abs(val)/absMax)+'%'; $(idLbl).textContent = fmtMoney(val)+' • '+label; };
+  setMoneyBar('loanAUS','loanAUSLbl',loan.AUS,'AUS');
+  setMoneyBar('loanDEN','loanDENLbl',loan.DEN,'DEN');
+  setMoneyBar('loanIND','loanINDLbl',loan.IND,'IND');
+  setMoneyBar('loanSTL','loanSTLLbl',loan.STL,'STL');
+  setMoneyBar('loanTPA','loanTPALbl',loan.TPA,'TPA');
+  setMoneyBar('borAUS','borAUSLbl',bor.AUS,'AUS');
+  setMoneyBar('borDEN','borDENLbl',bor.DEN,'DEN');
+  setMoneyBar('borIND','borINDLbl',bor.IND,'IND');
+  setMoneyBar('borSTL','borSTLLbl',bor.STL,'STL');
+  setMoneyBar('borTPA','borTPALbl',bor.TPA,'TPA');
+
+  /* FINANCE */
+  const donut = clamp(pct(data.finance.profitableClientsPct),0,100);
+  const circ = 2*Math.PI*60;
+  $('#donutArc').setAttribute('stroke-dasharray', `${(donut/100)*circ} ${circ}`);
+  $('#donutPct').textContent = donut.toFixed(0)+'%';
+
+  const prof = data.finance.studioProfit;
+  $('#profitActualLbl').textContent = clamp(pct(prof.actual),0,100).toFixed(0)+'%';
+  $('#profitTargetLbl').textContent = clamp(pct(prof.goal),0,100).toFixed(0)+'%';
+  const scale = v => 160 * clamp(pct(v),0,100) / 40;
+  $('#profitActualBar').style.height = scale(prof.actual)+'px';
+  $('#profitTargetBar').style.height = scale(prof.goal)+'px';
+
+  /* sync editor panes */
+  fillForm(data);
+  $('dataInput').value = JSON.stringify(data,null,2);
+
+  hookToggles();
+  // Persist
+  localStorage.setItem('bsa_goal_dash_v1', JSON.stringify(data));
+}
+
+/* ---------- Initial ---------- */
+render();
+</script>
+</body>
+</html>
