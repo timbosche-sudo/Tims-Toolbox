@@ -19,7 +19,7 @@
   .app-header{ background:var(--charcoal); color:#fff; box-shadow:var(--shadow); }
   .header-inner{ max-width:1120px; margin:0 auto; padding:12px 20px; display:flex; align-items:center; gap:16px; }
   .brand{ display:flex; align-items:center; gap:14px; min-width:0; flex:1; }
-  .brand-logo{ height:40px; width:auto; display:block; } /* scales your SVG */
+  .brand-logo{ height:40px; width:auto; display:block; }
   .brand-title{ font-size:24px; line-height:1; font-weight:750; letter-spacing:.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
   /* Header actions */
@@ -125,7 +125,7 @@
   <header class="app-header">
     <div class="header-inner">
       <div class="brand" aria-label="BSA LifeStructures">
-        <!-- YOUR EXACT BSA SVG -->
+        <!-- BSA SVG -->
         <svg class="brand-logo" viewBox="0 0 960 489.48" xmlns="http://www.w3.org/2000/svg" aria-label="BSA Logo" role="img">
           <g fill="#de1c28">
             <path d="M293.75,274.14c-18.01-17.42-43.03-29.48-74.49-35.97,10.29-3.5,19.76-7.87,28.31-13.06,12.42-7.55,23.01-16.55,31.47-26.76,8.49-10.23,15.1-21.55,19.63-33.64,4.55-12.12,6.86-24.88,6.86-37.94,0-19.6-3.3-37.44-9.8-53.02-6.55-15.65-16.73-29.1-30.28-39.96-13.45-10.79-30.68-19.07-51.24-24.62C193.81,3.67,169.47.89,141.87.89H0v488.17h159.56c25.83,0,49.28-3.08,69.68-9.16,20.53-6.11,38.1-15.08,52.22-26.65,14.19-11.63,25.15-26.02,32.59-42.76,7.42-16.69,11.19-35.7,11.19-56.5,0-32.78-10.59-59.65-31.5-79.85ZM41.9,35.3h99.98c41.85,0,73.1,8.15,92.9,24.23,19.59,15.9,29.52,39.78,29.52,70.98,0,12-2.32,23.81-6.9,35.11-4.54,11.26-11.75,21.49-21.42,30.39-9.7,8.94-22.36,16.26-37.61,21.75-15.31,5.51-34.09,8.3-55.81,8.3H41.9V35.3ZM252.76,427.72c-20.92,17.63-52.4,26.58-93.55,26.58H41.9v-195.87h117.67c19.75,0,37.63,2.24,53.13,6.67,15.39,4.4,28.5,10.78,38.97,18.96,10.41,8.14,18.49,18.14,24.01,29.73,5.53,11.59,8.34,24.88,8.34,39.51,0,31.89-10.51,56.93-31.25,74.42Z"/>
@@ -185,16 +185,171 @@
   </div>
 
 <script>
-/* ===== Helpers & Tiny Charts ===== */
+/* ===== Helpers & Tiny Charts (expanded palette) ===== */
 const LAST_UPDATED = new Date().toLocaleDateString([], {year:'numeric', month:'short', day:'2-digit'});
 const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 const legend = items => `<ul class="legend">${items.map(i=>`<li class="legend-item"><span class="chip ${i.color}"></span>${i.label}</li>`).join('')}</ul>`;
-function barChart(v=[30,60,45,80,50],max=100){const w=260,h=100,p=16,bw=(w-2*p)/v.length-6;return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="120"><rect x="0" y="0" width="${w}" height="${h}" fill="#fff"/>${v.map((x,i)=>{const bh=(h-26)*(x/max);return `<rect x="${p+i*(bw+6)}" y="${h-10-bh}" width="${bw}" height="${bh}" rx="3" fill="var(--accent)"></rect>`}).join('')}<line x1="${p}" y1="${h-10}" x2="${w-p}" y2="${h-10}" stroke="var(--accent-3)" stroke-width="1"/></svg>`}
-function sparkline(points=[5,9,6,10,7,12,8]){const w=260,h=60,p=6,dx=(w-2*p)/(points.length-1);const mx=Math.max(...points),mn=Math.min(...points);const y=v=>h-p-((v-mn)/(mx-mn||1))*(h-2*p);return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="70"><polyline points="${points.map((v,i)=>`${p+i*dx},${y(v)}`).join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>`}
-function donut(pct=72,label="Utilization"){const r=40,cx=55,cy=55,circ=2*Math.PI*r,off=circ*(1-pct/100);return `<svg viewBox="0 0 110 110" width="110" height="110"><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--accent-3)" stroke-width="12" opacity=".35"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--accent)" stroke-width="12" stroke-dasharray="${circ} ${circ}" stroke-dashoffset="${off}" transform="rotate(-90 ${cx} ${cy})"/><text x="${cx}" y="${cy-2}" text-anchor="middle" font-size="18" font-weight="800">${pct}%</text><text x="${cx}" y="${cy+16}" text-anchor="middle" font-size="9" fill="var(--muted)">${label}</text></svg>`}
+
+/* Core color tokens used inside SVG where CSS vars apply */
+const C = {
+  accent: 'var(--accent)', ink:'var(--ink)', grid:'var(--accent-3)',
+  good:'var(--good)', warn:'var(--warn)', neutral:'var(--accent-3)', fg:'var(--accent-2)'
+};
+
+/* Simple bar (kept) */
+function barChart(v=[30,60,45,80,50],max=100){
+  const w=260,h=100,p=16,bw=(w-2*p)/v.length-6;
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="120">
+    <rect x="0" y="0" width="${w}" height="${h}" fill="#fff"/>
+    ${v.map((x,i)=>{const bh=(h-26)*(x/max); return `<rect x="${p+i*(bw+6)}" y="${h-10-bh}" width="${bw}" height="${bh}" rx="3" fill="${C.accent}"></rect>`}).join('')}
+    <line x1="${p}" y1="${h-10}" x2="${w-p}" y2="${h-10}" stroke="${C.grid}" stroke-width="1"/>
+  </svg>`;
+}
+
+/* Sparkline (kept) */
+function sparkline(points=[5,9,6,10,7,12,8]){
+  const w=260,h=60,p=6,dx=(w-2*p)/(points.length-1);
+  const mx=Math.max(...points),mn=Math.min(...points);
+  const y=v=>h-p-((v-mn)/(mx-mn||1))*(h-2*p);
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="70">
+    <polyline points="${points.map((v,i)=>`${p+i*dx},${y(v)}`).join(' ')}" fill="none" stroke="${C.accent}" stroke-width="2"/>
+  </svg>`;
+}
+
+/* Donut (kept) */
+function donut(pct=72,label="Utilization"){
+  const r=40,cx=55,cy=55,circ=2*Math.PI*r,off=circ*(1-pct/100);
+  return `<svg viewBox="0 0 110 110" width="110" height="110">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${C.neutral}" stroke-width="12" opacity=".35"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${C.accent}" stroke-width="12" stroke-dasharray="${circ} ${circ}" stroke-dashoffset="${off}" transform="rotate(-90 ${cx} ${cy})"/>
+    <text x="${cx}" y="${cy-2}" text-anchor="middle" font-size="18" font-weight="800">${pct}%</text>
+    <text x="${cx}" y="${cy+16}" text-anchor="middle" font-size="9" fill="var(--muted)">${label}</text>
+  </svg>`;
+}
+
+/* NEW: Area chart */
+function areaChart(points=[10,18,12,22,16,26,20]){
+  const w=260,h=100,p=10,dx=(w-2*p)/(points.length-1);
+  const mx=Math.max(...points),mn=Math.min(...points);
+  const y=v=>h-p-((v-mn)/(mx-mn||1))*(h-2*p);
+  const line=points.map((v,i)=>`${p+i*dx},${y(v)}`).join(' ');
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="110">
+    <polyline points="${p},${h-p} ${line} ${w-p},${h-p}" fill="rgba(222,28,40,.15)" stroke="none"/>
+    <polyline points="${line}" fill="none" stroke="${C.accent}" stroke-width="2"/>
+  </svg>`;
+}
+
+/* NEW: Lollipop chart */
+function lollipopChart(values=[55,85,60,90,75],max=100){
+  const w=300,h=120,p=24,step=(w-2*p)/(values.length-1);
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="120">
+    ${values.map((v,i)=>{const x=p+i*step,y=h-20,tx=p+i*step; const len=(v/max)*(w-2*p); return `
+      <line x1="${p}" y1="${y}" x2="${p+len}" y2="${y}" stroke="${C.neutral}" stroke-width="2" opacity=".5"/>
+      <circle cx="${p+len}" cy="${y}" r="6" fill="${C.accent}"/>
+    `}).join('')}
+  </svg>`;
+}
+
+/* NEW: Bullet chart (target vs actual) */
+function bulletChart(actual=72,target=85,max=100,label="Performance"){
+  const w=300,h=40,p=10,aw=(actual/max)*(w-2*p),tw=(target/max)*(w-2*p);
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="54">
+    <rect x="${p}" y="14" width="${w-2*p}" height="12" rx="6" fill="rgba(0,0,0,.06)"/>
+    <rect x="${p}" y="16" width="${aw}" height="8" rx="4" fill="${C.accent}"/>
+    <line x1="${p+tw}" y1="12" x2="${p+tw}" y2="28" stroke="${C.fg}" stroke-width="2"/>
+    <text x="${p}" y="10" font-size="10" fill="var(--muted)">${label}</text>
+  </svg>`;
+}
+
+/* NEW: Stacked bar (categories across segments) */
+function stackedBar(stacks=[[30,20,10],[10,15,35],[25,5,20]],max=70){
+  const colors=[C.accent,'var(--good)','var(--accent-2)'];
+  const w=300,h=120,p=16,bh=20,g=12;
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="120">
+    ${stacks.map((arr,i)=>{
+      let x=p,y=p+i*(bh+g);
+      const total=arr.reduce((a,b)=>a+b,0);
+      return arr.map((v,j)=>{
+        const wSeg=((v)/max)*(w-2*p);
+        const rect=`<rect x="${x}" y="${y}" width="${wSeg}" height="${bh}" rx="4" fill="${colors[j%colors.length]}" opacity="${0.9-j*0.1}"></rect>`;
+        x+=wSeg; return rect;
+      }).join('');
+    }).join('')}
+  </svg>`;
+}
+
+/* NEW: Heatmap grid */
+function heatmap(matrix=[[2,4,6,3,1],[1,2,5,6,4],[3,5,6,2,1]],scale=6){
+  const w=260,h=100,p=8,rows=matrix.length,cols=matrix[0].length,cellW=(w-2*p)/cols,cellH=(h-2*p)/rows;
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="110">
+    ${matrix.flatMap((row,r)=>row.map((v,c)=>{
+      const o=0.2+(v/scale)*0.7;
+      return `<rect x="${p+c*cellW}" y="${p+r*cellH}" width="${cellW-2}" height="${cellH-2}" rx="3" fill="${C.accent}" opacity="${o}"></rect>`;
+    })).join('')}
+  </svg>`;
+}
+
+/* NEW: Radar chart */
+function radarChart(series=[0.7,0.55,0.9,0.6,0.8],labels=["Air","Noise","Light","Temp","Clean"]){
+  const size=140,cx=size/2,cy=size/2,r=58,axes=series.length;
+  const angle=i=>-Math.PI/2 + (2*Math.PI*i/axes);
+  const pts = series.map((v,i)=>`${cx+r*v*Math.cos(angle(i))},${cy+r*v*Math.sin(angle(i))}`).join(' ');
+  return `<svg viewBox="0 0 ${size} ${size}" width="100%" height="160">
+    ${[0.3,0.6,1].map(t=>`<polygon points="${labels.map((_,i)=>`${cx+r*t*Math.cos(angle(i))},${cy+r*t*Math.sin(angle(i))}`).join(' ')}" fill="none" stroke="${C.neutral}" opacity="${0.4}" />`).join('')}
+    <polygon points="${pts}" fill="rgba(222,28,40,.18)" stroke="${C.accent}" stroke-width="2"/>
+  </svg>`;
+}
+
+/* NEW: Semi gauge */
+function gaugeSemi(pct=76,label="Utilization"){
+  const w=180,h=100,cx=w/2,cy=h, r=78, a=-Math.PI, b=0, t=a+(b-a)*pct/100;
+  const arc=(ang)=>`${cx+r*Math.cos(ang)},${cy+r*Math.sin(ang)}`;
+  const path=`M ${arc(a)} A ${r} ${r} 0 0 1 ${arc(b)}`;
+  const needle=`M ${cx} ${cy} L ${cx+r*Math.cos(t)} ${cy+r*Math.sin(t)}`;
+  return `<svg viewBox="0 0 ${w} ${h+10}" width="100%" height="120">
+    <path d="${path}" fill="none" stroke="${C.neutral}" stroke-width="12" opacity=".35"/>
+    <path d="${path}" fill="none" stroke="${C.accent}" stroke-width="12" stroke-dasharray="${Math.PI*r} ${Math.PI*r}" stroke-dashoffset="${(1-pct/100)*Math.PI*r}"/>
+    <line x1="${cx}" y1="${cy}" x2="${cx+r*Math.cos(t)}" y2="${cy+r*Math.sin(t)}" stroke="${C.fg}" stroke-width="3"/>
+    <circle cx="${cx}" cy="${cy}" r="4" fill="${C.fg}"/>
+    <text x="${cx}" y="${h-8}" text-anchor="middle" font-size="12" fill="var(--muted)">${label} • ${pct}%</text>
+  </svg>`;
+}
+
+/* NEW: Waterfall chart */
+function waterfall(values=[-50,120,30,-20,40], labels=["Cost","Savings","Productivity","Maint.","Net"]){
+  const w=300,h=140,p=18,bw=28,g=10;
+  const min=Math.min(0,values.reduce((acc,v,i)=>i<labels.length-1?Math.min(acc,acc+v):acc,0));
+  const max=Math.max(...[...values.reduce((a,v,i)=>{a.push((a[i-1]||0)+v); return a;},[])]);
+  const scale=v=>p+(h-40)*((max-v)/(max-min||1));
+  let running=0;
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="150">
+    ${values.map((v,i)=>{
+      const y0=scale(running), y1=scale(running+v);
+      const y=Math.min(y0,y1), height=Math.max(2,Math.abs(y1-y0));
+      const x=p+i*(bw+g);
+      running+=v;
+      const col=v>=0?C.good:C.accent;
+      return `<rect x="${x}" y="${y}" width="${bw}" height="${height}" rx="4" fill="${col}"></rect>`;
+    }).join('')}
+  </svg>`;
+}
+
+/* NEW: Waffle chart */
+function waffle(pct=73, size=10){
+  const total=size*size, filled=Math.round(total*pct/100), cell=12, p=6, w=size*cell+2*p, h=w;
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}">
+    ${Array.from({length:total}).map((_,i)=>{
+      const r=Math.floor(i/size), c=i%size, x=p+c*cell, y=p+r*cell;
+      const fill=i<filled?C.accent:'rgba(0,0,0,.06)';
+      return `<rect x="${x}" y="${y}" width="${cell-2}" height="${cell-2}" rx="2" fill="${fill}"></rect>`;
+    }).join('')}
+  </svg>`;
+}
+
+/* Progress bar utility */
 function progressBar(id,pct){const el=document.getElementById(id); if(el) el.style.width=Math.max(0,Math.min(100,pct))+'%';}
 
-/* ===== Calculators ===== */
+/* ===== Calculators (unchanged) ===== */
 function factorial(n){let r=1; for(let i=2;i<=n;i++) r*=i; return r;}
 function erlangC(lambda,mu,s){if(mu<=0||s<=0||lambda<=0) return {Wq_min:0,W_min:0,rho:0,valid:false}; const a=lambda/mu,rho=a/s; if(rho>=1) return {Wq_min:Infinity,W_min:Infinity,rho,valid:false}; let sum=0; for(let k=0;k<s;k++) sum+=Math.pow(a,k)/factorial(k); const term=Math.pow(a,s)/(factorial(s)*(1-rho)); const P0=1/(sum+term); const Pc=term*P0; const Wq=Pc/(s*mu-lambda); const W=Wq+1/mu; return {Wq_min:Wq*60,W_min:W*60,rho,valid:true};}
 function staffingCalc(p){const a=+document.getElementById(`${p}-staff-arr`).value||0; const sT=+document.getElementById(`${p}-staff-svc`).value||0; const u=+document.getElementById(`${p}-staff-util`).value||85; const d=a*(sT/60); const need=sT>0?Math.ceil(d/(u/100)):0; const cap=sT>0?(60/sT):0; document.getElementById(`${p}-staff-out`).textContent=`${need} provider${need===1?'':'s'}`; progressBar(`${p}-staff-bar`, sT? Math.min(100,(d/(need||1))*(100/u)):0); document.getElementById(`${p}-staff-note`).textContent=`At ${u}% util and ${a}/hr demand, each provider sees ~${cap.toFixed(1)} pts/hr.`;}
@@ -204,7 +359,7 @@ function roiCalc(p){const cost=+document.getElementById(`${p}-roi-cost`).value||
 function uptimeCalc(p){const up=+document.getElementById(`${p}-up-upt`).value||0, days=+document.getElementById(`${p}-up-days`).value||30; const down=(1-up/100)*days*24*60; document.getElementById(`${p}-up-out`).textContent=Math.round(down)+' min'; progressBar(`${p}-up-bar`, Math.min(100,(down/(days*24*60))*100)); document.getElementById(`${p}-up-note`).textContent=`Over ${days} days at ${up}% uptime.`;}
 function achCalc(p){const L=+document.getElementById(`${p}-ach-len`).value||0,W=+document.getElementById(`${p}-ach-wid`).value||0,H=+document.getElementById(`${p}-ach-ht`).value||0,cfm=+document.getElementById(`${p}-ach-cfm`).value||0; const vol=L*W*H, ach=vol?(cfm*60)/vol:0; document.getElementById(`${p}-ach-out`).textContent=ach.toFixed(1)+' ACH'; progressBar(`${p}-ach-bar`, Math.min(100,(ach/12)*100)); document.getElementById(`${p}-ach-note`).textContent=`Volume ${vol.toLocaleString()} ft³ (target 12 ACH)`;}
 
-/* ===== “7 flows” HTML helper ===== */
+/* ===== “7 flows” tiles ===== */
 function flowsTiles(){
   const items=[
     {k:'PATIENT',desc:'Processes that directly impact patient care.', cls:'bg-red',   icon:'🛏️'},
@@ -227,9 +382,9 @@ function flowsTiles(){
   </div>`;
 }
 
-/* ===== Content map (ALL 9) ===== */
+/* ===== Content map with diversified visuals ===== */
 const reportData={
-  /* Interactive 5 */
+  /* Patient Care */
   "Patient Care":{title:"Patient Care",description:"Benchmarks related to patient outcomes, satisfaction, and throughput.",
     legendItems:[{color:'red',label:'Demand / Wait Time'},{color:'charcoal',label:'Capacity / Providers'},{color:'good',label:'Positive signal'},{color:'gray',label:'Target / Baseline'}],
     visuals(prefix){return `
@@ -242,13 +397,24 @@ const reportData={
             <div class="kpi"><div class="label">No-Show</div><div class="value">4.8%</div></div>
           </div>
         </div>
-        <div class="viz half"><h4>Arrival Peaks</h4>${barChart([55,85,60,90,75,65,40],100)}</div>
-        <div class="viz half"><h4>Utilization</h4>
-          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-            ${donut(76,"Rooms")}${donut(68,"Providers")}
-            <div style="flex:1;min-width:180px"><div class="bar-wrap"><div class="bar" style="width:58%"></div></div><div class="mini-note">Wait Time vs Target</div></div>
+
+        <div class="viz half"><h4>Arrival Peaks (lollipop)</h4>${lollipopChart([55,85,60,90,75,65,40],100)}</div>
+        <div class="viz half"><h4>Wait Time Trend (area)</h4>${areaChart([22,18,20,26,19,24,18])}</div>
+
+        <div class="viz half">
+          <h4>Capacity vs Target (bullet)</h4>
+          ${bulletChart(72,85,100,"Provider Capacity")}
+          ${bulletChart(58,60,100,"Room Turnaround")}
+        </div>
+
+        <div class="viz half">
+          <h4>Utilization Gauge</h4>
+          <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+            ${gaugeSemi(76,"Rooms")}
+            ${gaugeSemi(68,"Providers")}
           </div>
         </div>
+
         <div class="viz half" data-calc="wait" data-prefix="${prefix}">
           <h4>Wait-Time (Erlang-C)</h4>
           <div class="mini-form">
@@ -260,8 +426,9 @@ const reportData={
           <div class="bar-wrap"><div id="${prefix}-wait-bar" class="bar"></div></div>
           <div class="mini-note" id="${prefix}-wait-note"></div>
         </div>
+
         <div class="viz half" data-calc="staffing" data-prefix="${prefix}">
-          <h4>Staffing Estimator (quick)</h4>
+          <h4>Staffing Estimator</h4>
           <div class="mini-form">
             <div class="f"><label>Arrivals / hr</label><input id="${prefix}-staff-arr" type="number" value="18" min="0" oninput="staffingCalc('${prefix}')"></div>
             <div class="f"><label>Service time (min / patient)</label><input id="${prefix}-staff-svc" type="number" value="20" min="1" oninput="staffingCalc('${prefix}')"></div>
@@ -274,6 +441,7 @@ const reportData={
       </div>`;}
   },
 
+  /* Medication Management */
   "Medication Management":{title:"Medication Management",description:"Benchmarks for medication storage, controls, and administration.",
     legendItems:[{color:'good',label:'Accuracy'},{color:'red',label:'Exceptions'},{color:'gray',label:'Target'}],
     visuals(prefix){return `
@@ -292,11 +460,15 @@ const reportData={
           <div class="mini-note" id="${prefix}-pick-note"></div>
           <div class="mini-note"><strong id="${prefix}-pick-out2">—</strong> · <strong id="${prefix}-pick-out3">—</strong></div>
         </div>
-        <div class="viz half"><h4>Dispense Accuracy</h4>${donut(99,"Accuracy")}</div>
-        <div class="viz half"><h4>Pyxis Open Events</h4>${sparkline([5,4,6,7,9,8,6,7,5,4])}</div>
+
+        <div class="viz half"><h4>Dispense Accuracy (waffle)</h4>${waffle(99,10)}</div>
+        <div class="viz half"><h4>Open Events (heatmap)</h4>${heatmap([[2,1,0,3,2,1,0],[1,0,2,4,3,1,1],[0,1,1,2,2,3,2]],6)}</div>
+
+        <div class="viz full"><h4>Process Mix (stacked)</h4>${stackedBar([[30,20,10],[10,15,35],[25,5,20]],70)}</div>
       </div>`;}
   },
 
+  /* Evidence-Based Design */
   "Evidence-Based Design":{title:"Evidence-Based Design",description:"Design strategies supported by research and best practices.",
     legendItems:[{color:'good',label:'Adoption / Gains'},{color:'red',label:'Gaps'},{color:'gray',label:'Evidence strength'}],
     visuals(prefix){return `
@@ -314,11 +486,13 @@ const reportData={
           <div class="mini-note" id="${prefix}-roi-note"></div>
           <div class="mini-note"><strong>NPV:</strong> <span id="${prefix}-roi-out2">—</span> · <strong>ROI:</strong> <span id="${prefix}-roi-out3">—</span></div>
         </div>
-        <div class="viz half"><h4>Interventions Adoption</h4>${barChart([20,35,50,65,80],100)}</div>
-        <div class="viz half"><h4>Post-Occupancy Gains</h4>${sparkline([2,4,5,7,8,10,12,13])}</div>
+
+        <div class="viz half"><h4>Interventions Adoption (area)</h4>${areaChart([20,35,50,65,80])}</div>
+        <div class="viz half"><h4>Benefit Breakdown (waterfall)</h4>${waterfall([-50,120,30,-20,40],["Cost","Savings","Productivity","Maint.","Net"])}</div>
       </div>`;}
   },
 
+  /* IT & Technology */
   "IT & Technology":{title:"IT & Technology",description:"Benchmarks for digital infrastructure and downtime processes.",
     legendItems:[{color:'good',label:'Uptime'},{color:'red',label:'Incidents'},{color:'gray',label:'Baseline / Hours'}],
     visuals(prefix){return `
@@ -333,11 +507,15 @@ const reportData={
           <div class="bar-wrap"><div id="${prefix}-up-bar" class="bar"></div></div>
           <div class="mini-note" id="${prefix}-up-note"></div>
         </div>
-        <div class="viz half"><h4>Tickets Closed</h4>${sparkline([12,14,18,17,20,22,24])}</div>
-        <div class="viz half"><h4>Critical Incidents</h4><div class="bar-wrap"><div class="bar" style="width:6%"></div></div><div class="mini-note">MTTR Hours</div></div>
+
+        <div class="viz half"><h4>Tickets Closed (sparkline)</h4>${sparkline([12,14,18,17,20,22,24])}</div>
+        <div class="viz half"><h4>Critical Incidents (bullet)</h4>${bulletChart(6,4,24,"Mean Time To Resolve (hrs)")}</div>
+
+        <div class="viz full"><h4>Service Mix (stacked)</h4>${stackedBar([[18,6,2],[15,9,4],[20,8,3]],32)}</div>
       </div>`;}
   },
 
+  /* Building Metrics */
   "Building Metrics":{title:"Building Metrics",description:"Physical environment benchmarks including air exchanges and acoustics.",
     legendItems:[{color:'red',label:'Hot / High'},{color:'good',label:'On Target'},{color:'gray',label:'Baseline'}],
     visuals(prefix){return `
@@ -354,50 +532,52 @@ const reportData={
           <div class="bar-wrap"><div id="${prefix}-ach-bar" class="bar"></div></div>
           <div class="mini-note" id="${prefix}-ach-note"></div>
         </div>
-        <div class="viz third"><h4>Air Changes (target)</h4>${donut(12,"ACH / hr")}</div>
-        <div class="viz third"><h4>Noise (dBA)</h4>${sparkline([58,56,55,60,62,59,57])}</div>
-        <div class="viz third"><h4>Energy vs Target</h4><div class="bar-wrap"><div class="bar" style="width:74%"></div></div><div class="mini-note">EUI</div></div>
+
+        <div class="viz third"><h4>Environmental Radar</h4>${radarChart([0.8,0.55,0.7,0.65,0.9])}</div>
+        <div class="viz third"><h4>Noise Heatmap</h4>${heatmap([[5,4,6,7,6],[6,5,5,6,7],[7,6,5,6,6]],7)}</div>
+        <div class="viz third"><h4>Energy vs Target (bullet)</h4>${bulletChart(74,70,100,"EUI Progress")}</div>
       </div>`;}
   },
 
-  /* Placeholder 4 (simple visuals, fully functional selection) */
+  /* Staff Safety */
   "Staff Safety":{title:"Staff Safety",description:"Safety events, injuries, and exposure tracking.",
     legendItems:[{color:'red',label:'Incidents'},{color:'good',label:'Safe days'},{color:'gray',label:'Target'}],
     visuals(){return `
       <div class="viz-grid">
-        <div class="viz half"><h4>Recordables (12 mo)</h4>${sparkline([3,2,4,3,5,4,3,2,3,2,1,2])}</div>
-        <div class="viz half"><h4>Safe Days</h4><div class="bar-wrap"><div class="bar" style="width:92%"></div></div><div class="mini-note">TRIR trending down</div></div>
+        <div class="viz half"><h4>Recordables (sparkline)</h4>${sparkline([3,2,4,3,5,4,3,2,3,2,1,2])}</div>
+        <div class="viz half"><h4>Safe Days (waffle)</h4>${waffle(92,10)}</div>
       </div>`;}
   },
 
+  /* Family Experience */
   "Family Experience":{title:"Family Experience",description:"Family accommodations, amenities, and satisfaction.",
     legendItems:[{color:'good',label:'Positive'},{color:'red',label:'Negative'},{color:'gray',label:'Target'}],
     visuals(){return `
       <div class="viz-grid">
-        <div class="viz half"><h4>Family Satisfaction</h4>${donut(88,"Top-box")}</div>
-        <div class="viz half"><h4>Amenities Usage</h4>${barChart([20,35,28,42,30,24,18],60)}</div>
+        <div class="viz half"><h4>Family Satisfaction (donut)</h4>${donut(88,"Top-box")}</div>
+        <div class="viz half"><h4>Amenities Use (lollipop)</h4>${lollipopChart([20,35,28,42,30,24,18],60)}</div>
       </div>`;}
   },
 
+  /* Supply Chain */
   "Supply Chain":{title:"Supply Chain",description:"Materials management and logistics.",
     legendItems:[{color:'red',label:'Delays'},{color:'good',label:'On-time'},{color:'gray',label:'Baseline'}],
     visuals(){return `
       <div class="viz-grid">
-        <div class="viz half"><h4>On-time Deliveries</h4>${donut(93,"OTIF")}</div>
-        <div class="viz half"><h4>Backorders</h4>${sparkline([2,1,1,3,2,4,2,1,2])}</div>
+        <div class="viz half"><h4>On-time Deliveries (donut)</h4>${donut(93,"OTIF")}</div>
+        <div class="viz half"><h4>Backorders (area)</h4>${areaChart([2,1,1,3,2,4,2,1,2])}</div>
+        <div class="viz full"><h4>Lane Risk (heatmap)</h4>${heatmap([[1,2,3,4,5],[2,3,4,3,2],[3,4,5,2,1]],5)}</div>
       </div>`;}
   },
 
+  /* Clinical Metrics */
   "Clinical Metrics":{title:"Clinical Metrics",description:"Performance indicators for clinical outcomes and efficiency.",
     legendItems:[{color:'red',label:'Readmit'},{color:'charcoal',label:'Throughput'},{color:'gray',label:'Target'}],
     visuals(prefix){return `
       <div class="viz-grid">
-        <div class="viz half"><h4>LOS Trend</h4>${sparkline([3.1,3.0,2.8,2.9,3.2,3.0,2.7])}</div>
-        <div class="viz half"><h4>Readmission Rate</h4>${donut(9,"30-Day")}</div>
-        <div class="viz full"><h4>Throughput</h4>
-          <div class="bar-wrap"><div class="bar" style="width:82%"></div></div>
-          <div class="mini-note">Patients / Day</div>
-        </div>
+        <div class="viz half"><h4>LOS Trend (sparkline)</h4>${sparkline([3.1,3.0,2.8,2.9,3.2,3.0,2.7])}</div>
+        <div class="viz half"><h4>Readmission Rate (donut)</h4>${donut(9,"30-Day")}</div>
+        <div class="viz full"><h4>Throughput (stacked)</h4>${stackedBar([[40,20,10],[50,15,12],[60,18,10]],80)}</div>
         ${flowsTiles()}
       </div>`;}
   }
