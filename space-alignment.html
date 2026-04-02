@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Space Alignment Tracker</title>
+  <style>
+    :root {
+      --bg: #eef3f8;
+      --surface: rgba(255,255,255,0.92);
+      --line: #dbe3ec;
+      --ink: #17324d;
+      --muted: #687c91;
+      --brand: #2b5aa6;
+      --brand-dark: #1d468a;
+      --saved: #7fa7d8;
+      --band: #d5e5b1;
+      --within: #ead46a;
+      --beyond: #de7d63;
+      --good: #2d8f57;
+      --shadow: 0 18px 36px rgba(24, 42, 67, 0.08);
+      --radius-xl: 22px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 12px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #fbfdff 0%, transparent 28%),
+        linear-gradient(180deg, #f6f9fc 0%, var(--bg) 100%);
+      overflow: hidden;
+    }
+
+    .shell {
+      width: min(1540px, calc(100vw - 16px));
+      height: calc(100vh - 16px);
+      margin: 8px auto;
+      background: rgba(255,255,255,0.74);
+      border: 1px solid #dde5ee;
+      border-radius: 26px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: 112px 52px 1fr;
+    }
+
+    .header {
+      display: grid;
+      grid-template-columns: 230px 1fr 330px;
+      border-bottom: 1px solid #e5ecf3;
+      background: linear-gradient(180deg, rgba(255,255,255,0.76) 0%, rgba(248,251,255,0.95) 100%);
+      min-height: 0;
+    }
+
+    .logo-panel {
+      padding: 18px 18px;
+      border-right: 1px solid #e5ecf3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(180deg, rgba(248,251,255,0.92) 0%, rgba(241,246,252,0.78) 100%);
+    }
+
+    .logo-box {
+      position: relative;
+      width: 100%;
+      height: 76px;
+      border: 1px solid #dbe5ef;
+      border-radius: 18px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 16px;
+      box-shadow: 0 8px 18px rgba(26, 45, 70, 0.05);
+      overflow: hidden;
+    }
+
+    .client-logo {
+      width: 100%;
+      max-width: 210px;
+      max-height: 48px;
+      height: auto;
+      display: block;
+      object-fit: contain;
+    }
+
+    .logo-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      color: #6f8194;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: 1px dashed #cdd8e4;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #fcfdff 0%, #f4f8fc 100%);
+    }
+
+    .logo-actions {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      display: flex;
+      gap: 6px;
+    }
+
+    .logo-btn {
+      border: 1px solid #ccd8e6;
+      background: rgba(255,255,255,0.96);
+      color: var(--brand);
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(32,55,87,0.08);
+    }
+
+    .logo-btn.secondary {
+      color: #667b90;
+    }
+
+    .title-panel {
+      padding: 12px 22px 14px;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .eyebrow {
+      margin: 0 0 4px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 3vw, 52px);
+      line-height: 1.0;
+      color: var(--brand);
+      letter-spacing: 0.01em;
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      font-size: 13px;
+      line-height: 1.28;
+      color: #38506b;
+      max-width: 760px;
+      overflow: visible;
+    }
+
+    .project-panel {
+      padding: 12px 20px 12px 4px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .project-panel input {
+      width: 100%;
+      border: 1px solid #ced9e6;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.94);
+      padding: 11px 14px;
+      font-size: 15px;
+      color: var(--ink);
+      outline: none;
+    }
+
+    .tabs-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 14px;
+      border-bottom: 1px solid #e5ecf3;
+      background: linear-gradient(180deg, #f8fafc 0%, #eef3f8 100%);
+    }
+
+    .tabs {
+      display: inline-flex;
+      gap: 8px;
+      padding: 4px;
+      border: 1px solid #dbe4ee;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.78);
+    }
+
+    .tab-btn {
+      border: none;
+      background: transparent;
+      color: var(--brand);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      color: #fff;
+      background: linear-gradient(135deg, var(--brand) 0%, #2b6ec1 100%);
+      box-shadow: 0 8px 18px rgba(31, 93, 168, 0.24);
+    }
+
+    .tabs-note {
+      font-size: 12px;
+      color: var(--muted);
+      padding-right: 6px;
+    }
+
+    .view-host {
+      min-height: 0;
+      background: linear-gradient(180deg, #f4f7fb 0%, #eef3f8 100%);
+      overflow: hidden;
+      padding: 12px;
+    }
+
+    .view { display: none; width: 100%; height: 100%; }
+    .view.active { display: block; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid rgba(218,226,236,0.96);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 10px 26px rgba(32, 55, 87, 0.05);
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .presentation-grid {
+      display: grid;
+      grid-template-rows: 112px 1fr;
+      gap: 12px;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .summary-card {
+      padding: 12px 16px;
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .sliders {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      align-content: center;
+    }
+
+    .slider-group {
+      display: grid;
+      gap: 8px;
+      align-content: center;
+    }
+
+    .mini-label {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .slider-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--brand);
+    }
+
+    .slider-value {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--brand);
+      min-width: 48px;
+      text-align: right;
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .metric-card {
+      border: 1px solid #d9e3ed;
+      border-radius: var(--radius-lg);
+      background: rgba(255,255,255,0.82);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      min-height: 78px;
+    }
+
+    .metric-card .value {
+      font-size: clamp(18px, 1.6vw, 26px);
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .value.good { color: var(--good); }
+    .value.warn { color: #8a6500; }
+    .value.bad { color: #b25340; }
+
+    .metric-card .note {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.25;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.85fr) minmax(290px, 0.9fr);
+      gap: 12px;
+      min-height: 0;
+      height: 100%;
+    }
+
+    .chart-card {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 0;
+    }
+
+    .card-head {
+      padding: 14px 18px 8px;
+      border-bottom: 1px solid #edf2f7;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--ink);
+      margin: 0;
+    }
+
+    .card-copy {
+      margin-top: 4px;
+      font-size: 13px;
+      color: #50657c;
+      line-height: 1.32;
+      max-width: 620px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      font-size: 12px;
+      color: var(--muted);
+      padding-top: 2px;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+    }
+
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 5px;
+      border: 1px solid rgba(0,0,0,0.06);
+      flex: 0 0 auto;
+    }
+
+    .chart-wrap {
+      min-height: 0;
+      padding: 8px 16px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .chart-svg {
+      width: 100%;
+      height: 100%;
+      min-height: 520px;
+      display: block;
+    }
+
+    .chart-foot {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.35;
+      padding: 0 4px 2px;
+    }
+
+    .narrative-card {
+      padding: 14px 16px;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 10px;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .position-box,
+    .story-box,
+    .list-box {
+      border: 1px solid #dce4ee;
+      border-radius: var(--radius-lg);
+      background: rgba(255,255,255,0.86);
+    }
+
+    .position-box { padding: 14px; }
+
+    .position-box .value {
+      font-size: clamp(28px, 2.8vw, 46px);
+      font-weight: 900;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      color: var(--good);
+    }
+
+    .position-box .support {
+      margin-top: 8px;
+      font-size: 14px;
+      line-height: 1.3;
+      color: #50657c;
+    }
+
+    .story-box {
+      padding: 14px;
+      overflow: auto;
+      min-height: 0;
+      max-height: none;
+    }
+
+    .story-box h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      line-height: 1.1;
+    }
+
+    .story-box p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.45;
+      color: #27415e;
+    }
+
+    .list-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      min-height: 0;
+    }
+
+    .list-box {
+      padding: 12px 14px;
+      min-height: 0;
+      overflow: auto;
+    }
+
+    .list-box h4 {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .list-box ul {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 13px;
+      line-height: 1.42;
+      color: #26415d;
+    }
+
+    .list-box li + li { margin-top: 8px; }
+
+    .talk-track {
+      border-top: 1px solid #ebf1f7;
+      padding-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.35;
+      min-height: 0;
+    }
+
+    .editor-view {
+      height: 100%;
+      min-height: 0;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .editor-layout {
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 12px;
+      min-height: 100%;
+    }
+
+    .editor-tools {
+      padding: 16px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .editor-copy {
+      font-size: 14px;
+      color: #4f6580;
+      max-width: 760px;
+      line-height: 1.4;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 1px solid #cbd8e6;
+      background: #fff;
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, var(--brand) 0%, #2b6ec1 100%);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .editor-summary {
+      padding: 14px 18px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .mini-metric {
+      border: 1px solid #d9e3ed;
+      border-radius: var(--radius-lg);
+      background: rgba(255,255,255,0.84);
+      padding: 12px 14px;
+      min-width: 0;
+    }
+
+    .mini-metric .value {
+      font-size: 26px;
+      line-height: 1;
+      font-weight: 800;
+      margin-top: 4px;
+    }
+
+    .table-card {
+      padding: 0;
+      overflow: hidden;
+      min-height: 520px;
+    }
+
+    .table-head, .row {
+      display: grid;
+      grid-template-columns: minmax(260px, 1.8fr) minmax(130px, 0.9fr) minmax(130px, 0.9fr) minmax(160px, 1fr) 96px;
+      gap: 12px;
+      align-items: center;
+      padding: 14px 18px;
+    }
+
+    .table-head {
+      background: #f7fafe;
+      border-bottom: 1px solid #e8eef5;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .table-body {
+      max-height: 100%;
+      overflow: auto;
+    }
+
+    .row + .row { border-top: 1px solid #eef2f7; }
+
+    .row input {
+      width: 100%;
+      border: 1px solid #cad7e5;
+      border-radius: 12px;
+      background: #fff;
+      padding: 11px 12px;
+      font-size: 16px;
+      color: var(--ink);
+      outline: none;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 800;
+      text-align: center;
+      border: 1px solid transparent;
+    }
+
+    .pill.saved { background: rgba(127,167,216,0.18); color: #205893; border-color: rgba(127,167,216,0.35); }
+    .pill.added { background: rgba(234,212,106,0.24); color: #7a6300; border-color: rgba(234,212,106,0.36); }
+    .pill.beyond { background: rgba(222,125,99,0.18); color: #a14b39; border-color: rgba(222,125,99,0.34); }
+    .pill.neutral { background: rgba(225,232,241,0.72); color: #5c6d80; border-color: rgba(201,214,228,0.9); }
+
+    .danger {
+      border: 1px solid #efd1ca;
+      background: #fff7f5;
+      color: #b04b38;
+      border-radius: 999px;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .good { color: var(--good); }
+    .warn { color: #8a6500; }
+    .bad { color: #b25340; }
+
+    @media (max-width: 1180px) {
+      .shell { width: calc(100vw - 8px); height: calc(100vh - 8px); margin: 4px auto; }
+      .header { grid-template-columns: 200px 1fr 270px; }
+      .subtitle { max-width: 520px; font-size: 13px; }
+      .summary-card { grid-template-columns: 260px 1fr; }
+      .tabs-note { display: none; }
+      .chart-svg { min-height: 470px; }
+    }
+
+    @media (max-width: 1024px) {
+      .header { grid-template-columns: 182px 1fr 242px; }
+      .logo-box { height: 68px; }
+      .client-logo { max-width: 168px; max-height: 40px; }
+      h1 { font-size: 34px; }
+      .subtitle { font-size: 12px; max-width: 430px; }
+      .presentation-grid { grid-template-rows: 104px 1fr; }
+      .summary-card { grid-template-columns: 220px 1fr; padding: 10px 12px; }
+      .sliders { gap: 10px; }
+      .metric-card { min-height: 72px; padding: 10px 12px; }
+      .metric-card .value { font-size: 18px; }
+      .hero-grid { grid-template-columns: minmax(0, 1.7fr) 320px; }
+      .chart-svg { min-height: 430px; }
+      .card-copy { max-width: 440px; }
+      .list-box ul, .story-box p { font-size: 13px; }
+      .table-head, .row { grid-template-columns: minmax(220px, 1.6fr) minmax(120px, 0.9fr) minmax(120px, 0.9fr) minmax(150px, 0.9fr) 88px; }
+      .brand-card { grid-template-columns: 1fr; }
+      .brand-actions { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="header">
+      <div class="logo-panel">
+        <div class="logo-box" aria-label="Client logo area">
+          <img id="clientLogo" class="client-logo" alt="Client logo" style="display:none" />
+          <div id="logoPlaceholder" class="logo-placeholder">Client logo</div>
+          <input id="logoInput" type="file" accept="image/png,image/svg+xml,image/webp,image/jpeg" hidden />
+        </div>
+      </div>
+      <div class="title-panel">
+        <p class="eyebrow">Space planning dashboard</p>
+        <h1>SPACE ALIGNMENT TRACKER</h1>
+        <div class="subtitle">Track space saved, space growth, and strategic reinvestment against the original program, with a live scale that adjusts as project values change.</div>
+      </div>
+      <div class="project-panel">
+        <div class="mini-label">Current project</div>
+        <input id="projectName" value="Ambulatory Care Center Prototype" />
+      </div>
+    </header>
+
+    <div class="tabs-bar">
+      <div class="tabs">
+        <button class="tab-btn active" data-view="presentationView">Presentation View</button>
+        <button class="tab-btn" data-view="editorView">Data Editor</button>
+      </div>
+      <div class="tabs-note">Built for client conversation first, editing second.</div>
+    </div>
+
+    <div class="view-host">
+      <section class="view active" id="presentationView">
+        <div class="presentation-grid">
+          <div class="summary-card card">
+            <div class="sliders">
+              <div class="slider-group">
+                <div class="mini-label">Per-department acceptable range</div>
+                <div class="slider-row">
+                  <input id="toleranceSlider" type="range" min="4" max="18" value="10" />
+                  <div class="slider-value"><span id="toleranceValue">10</span>%</div>
+                </div>
+              </div>
+              <div class="slider-group">
+                <div class="mini-label">Overall project target band</div>
+                <div class="slider-row">
+                  <input id="netSlider" type="range" min="2" max="12" value="5" />
+                  <div class="slider-value"><span id="netValue">5</span>%</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="metric-row">
+              <div class="metric-card">
+                <div class="mini-label">Programmed</div>
+                <div class="value" id="totalProgrammed">0 SF</div>
+                <div class="note">Original baseline</div>
+              </div>
+              <div class="metric-card">
+                <div class="mini-label">Current</div>
+                <div class="value" id="totalCurrent">0 SF</div>
+                <div class="note">Live design</div>
+              </div>
+              <div class="metric-card">
+                <div class="mini-label">Space saved</div>
+                <div class="value good" id="spaceSaved">0 SF</div>
+                <div class="note">Available to reallocate</div>
+              </div>
+              <div class="metric-card">
+                <div class="mini-label">Net variance</div>
+                <div class="value" id="netVariance">0 SF</div>
+                <div class="note" id="netStatus">Within overall target band</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-grid">
+            <div class="chart-card card">
+              <div class="card-head">
+                <div>
+                  <div class="card-title">Department Alignment</div>
+                  <div class="card-copy">Blue shows efficiency gained back from the program. Gold and coral show where that space is being strategically reinvested.</div>
+                </div>
+                <div class="legend">
+                  <span><i class="swatch" style="background: var(--saved)"></i>Saved</span>
+                  <span><i class="swatch" style="background: var(--band)"></i>Target band</span>
+                  <span><i class="swatch" style="background: var(--within)"></i>Added within band</span>
+                  <span><i class="swatch" style="background: var(--beyond)"></i>Added beyond band</span>
+                </div>
+              </div>
+              <div class="chart-wrap">
+                <svg id="chartSvg" class="chart-svg" aria-label="Department alignment chart"></svg>
+                <div class="chart-foot">The red center line is the programmed baseline for each department. The x-axis rescales automatically as values change so bars remain readable as the program gets larger.</div>
+              </div>
+            </div>
+
+            <aside class="narrative-card card">
+              <div class="position-box">
+                <div class="mini-label">Project position</div>
+                <div class="value" id="scoreNet">0 SF</div>
+                <div class="support" id="scoreNetText">Tracking inside the agreed overall range against the total program.</div>
+              </div>
+
+              <div class="story-box">
+                <h3>What this dashboard is saying</h3>
+                <p id="narrative"></p>
+              </div>
+
+              <div class="list-grid">
+                <div class="list-box">
+                  <h4>Efficiency wins</h4>
+                  <ul id="winsList"></ul>
+                </div>
+                <div class="list-box">
+                  <h4>Strategic reinvestment</h4>
+                  <ul id="investList"></ul>
+                </div>
+              </div>
+
+              <div class="talk-track">Talk track: “We are not simply adding space. We are using efficiency gained in some departments to support better patient flow, experience, and performance in others.”</div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="editorView">
+        <div class="editor-view">
+          <div class="editor-layout">
+            <div class="editor-tools card">
+              <div class="editor-copy">Rename departments, revise programmed square footage, or update the current design. Presentation View refreshes live from this table.</div>
+              <div class="btn-row">
+                <button class="btn primary" id="addRowBtn" type="button">Add Department</button>
+                <button class="btn" id="loadSampleBtn" type="button">Reload Sample</button>
+                <button class="btn" id="downloadBtn" type="button">Download CSV</button>
+              </div>
+            </div>
+
+            <div class="brand-card card">
+              <div>
+                <div class="card-title">Client Branding</div>
+                <div class="editor-copy">Upload a transparent PNG, SVG, WebP, or JPG here. The logo will display cleanly in the header and remain saved on this device for future demos.</div>
+              </div>
+              <div class="brand-actions">
+                <button class="btn primary" id="uploadLogoBtn" type="button">Upload Client Logo</button>
+                <button class="btn" id="resetLogoBtn" type="button">Reset to Placeholder</button>
+              </div>
+            </div>
+
+            <div class="editor-summary card">
+              <div class="mini-metric">
+                <div class="mini-label">Programmed</div>
+                <div class="value" id="editorProgrammed">0 SF</div>
+              </div>
+              <div class="mini-metric">
+                <div class="mini-label">Current</div>
+                <div class="value" id="editorCurrent">0 SF</div>
+              </div>
+              <div class="mini-metric">
+                <div class="mini-label">Space saved</div>
+                <div class="value good" id="editorSaved">0 SF</div>
+              </div>
+              <div class="mini-metric">
+                <div class="mini-label">Net variance</div>
+                <div class="value" id="editorNet">0 SF</div>
+              </div>
+            </div>
+
+            <div class="table-card card">
+              <div class="table-head">
+                <div>Department</div>
+                <div>Programmed SF</div>
+                <div>Current SF</div>
+                <div>Variance</div>
+                <div></div>
+              </div>
+              <div class="table-body" id="tableBody"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const sampleRows = [
+      { name: 'Medical Oncology', programmed: 5400, current: 5290 },
+      { name: 'Radiation Oncology', programmed: 6300, current: 6180 },
+      { name: 'Infusion Therapy', programmed: 4100, current: 4320 },
+      { name: 'Surgical Suite', programmed: 7400, current: 7710 },
+      { name: 'Pre-op / PACU', programmed: 3600, current: 3725 },
+      { name: 'Imaging', programmed: 4850, current: 4720 },
+      { name: 'Lobby / Arrival', programmed: 2900, current: 3190 },
+      { name: 'Administration', programmed: 2400, current: 2260 }
+    ];
+
+    const tableBody = document.getElementById('tableBody');
+    const projectNameInput = document.getElementById('projectName');
+    const toleranceSlider = document.getElementById('toleranceSlider');
+    const netSlider = document.getElementById('netSlider');
+    const toleranceValue = document.getElementById('toleranceValue');
+    const netValue = document.getElementById('netValue');
+    const chartSvg = document.getElementById('chartSvg');
+
+    function fmt(n) {
+      return `${Math.round(n).toLocaleString()} SF`;
+    }
+
+    function signed(n) {
+      const r = Math.round(n);
+      return `${r > 0 ? '+' : r < 0 ? '−' : ''}${Math.abs(r).toLocaleString()} SF`;
+    }
+
+    function currentRows() {
+      return [...tableBody.querySelectorAll('.row')].map(row => {
+        const name = row.querySelector('.name').value.trim() || 'Unnamed Department';
+        const programmed = Number(row.querySelector('.program').value) || 0;
+        const current = Number(row.querySelector('.current').value) || 0;
+        return { name, programmed, current };
+      });
+    }
+
+    function addRow(data = { name: '', programmed: 0, current: 0 }) {
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `
+        <div><input class="name" value="${escapeHtml(data.name)}" /></div>
+        <div><input class="program" type="number" min="0" step="25" value="${Number(data.programmed) || 0}" /></div>
+        <div><input class="current" type="number" min="0" step="25" value="${Number(data.current) || 0}" /></div>
+        <div><span class="pill neutral">On program</span></div>
+        <div><button class="danger remove" type="button">Delete</button></div>
+      `;
+      tableBody.appendChild(row);
+      row.querySelectorAll('input').forEach(i => i.addEventListener('input', updateAll));
+      row.querySelector('.remove').addEventListener('click', () => {
+        row.remove();
+        updateAll();
+      });
+    }
+
+    function loadRows(rows) {
+      tableBody.innerHTML = '';
+      rows.forEach(addRow);
+      updateAll();
+    }
+
+    function compute(rows) {
+      const tolerancePct = Number(toleranceSlider.value) / 100;
+      const netPct = Number(netSlider.value) / 100;
+      const enriched = rows
+        .filter(r => r.name && (r.programmed > 0 || r.current > 0))
+        .map(r => {
+          const variance = r.current - r.programmed;
+          const band = r.programmed * tolerancePct;
+          return { ...r, variance, band };
+        });
+
+      const totalProgrammed = enriched.reduce((s, r) => s + r.programmed, 0);
+      const totalCurrent = enriched.reduce((s, r) => s + r.current, 0);
+      const totalSaved = enriched.filter(r => r.variance < 0).reduce((s, r) => s + Math.abs(r.variance), 0);
+      const netVariance = totalCurrent - totalProgrammed;
+      const netBand = totalProgrammed * netPct;
+      const wins = [...enriched].filter(r => r.variance < 0).sort((a, b) => a.variance - b.variance).slice(0, 3);
+      const invests = [...enriched].filter(r => r.variance > 0).sort((a, b) => b.variance - a.variance).slice(0, 3);
+      return { enriched, tolerancePct, netPct, totalProgrammed, totalCurrent, totalSaved, netVariance, netBand, wins, invests };
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function renderNarrative(stats) {
+      const within = Math.abs(stats.netVariance) <= stats.netBand;
+      const winText = stats.wins.length
+        ? stats.wins.map(r => `<strong>${r.name}</strong> (${fmt(Math.abs(r.variance))} saved)`).join(', ')
+        : 'no material space savings have been created yet';
+      const investText = stats.invests.length
+        ? stats.invests.map(r => `<strong>${r.name}</strong> (${fmt(r.variance)} added)`).join(', ')
+        : 'no strategic reinvestment has been identified yet';
+
+      document.getElementById('narrative').innerHTML = within
+        ? `The design is <strong>tracking inside the agreed overall range</strong> at <strong>${signed(stats.netVariance)}</strong> versus the original program. The clearest efficiencies are in ${winText}. Those moves create room to support priorities in ${investText}.`
+        : `The design is <strong>outside the agreed overall range</strong> at <strong>${signed(stats.netVariance)}</strong> versus the original program. The best opportunities to regain balance are in ${winText}, while growth is now concentrated in ${investText}.`;
+
+      document.getElementById('winsList').innerHTML = stats.wins.length
+        ? stats.wins.map(r => `<li><strong>${r.name}</strong>, ${fmt(Math.abs(r.variance))} saved</li>`).join('')
+        : '<li>No savings yet</li>';
+
+      document.getElementById('investList').innerHTML = stats.invests.length
+        ? stats.invests.map(r => `<li><strong>${r.name}</strong>, ${fmt(r.variance)} added</li>`).join('')
+        : '<li>No reinvestment yet</li>';
+    }
+
+    function updatePills(stats) {
+      [...tableBody.querySelectorAll('.row')].forEach((row, index) => {
+        const pill = row.querySelector('.pill');
+        const r = stats.enriched[index];
+        if (!r) {
+          pill.className = 'pill neutral';
+          pill.textContent = 'On program';
+          return;
+        }
+        if (r.variance < 0) {
+          pill.className = 'pill saved';
+          pill.textContent = `${Math.abs(Math.round(r.variance)).toLocaleString()} SF saved`;
+        } else if (r.variance > r.band) {
+          pill.className = 'pill beyond';
+          pill.textContent = `${Math.round(r.variance).toLocaleString()} SF added`;
+        } else if (r.variance > 0) {
+          pill.className = 'pill added';
+          pill.textContent = `${Math.round(r.variance).toLocaleString()} SF added`;
+        } else {
+          pill.className = 'pill neutral';
+          pill.textContent = 'On program';
+        }
+      });
+    }
+
+    function niceStep(raw) {
+      const exponent = Math.floor(Math.log10(Math.max(raw, 1)));
+      const fraction = raw / (10 ** exponent);
+      let niceFraction;
+      if (fraction <= 1) niceFraction = 1;
+      else if (fraction <= 2) niceFraction = 2;
+      else if (fraction <= 2.5) niceFraction = 2.5;
+      else if (fraction <= 5) niceFraction = 5;
+      else niceFraction = 10;
+      return niceFraction * (10 ** exponent);
+    }
+
+    function quantile(sorted, q) {
+      if (!sorted.length) return 0;
+      const pos = (sorted.length - 1) * q;
+      const base = Math.floor(pos);
+      const rest = pos - base;
+      return sorted[base + 1] !== undefined ? sorted[base] + rest * (sorted[base + 1] - sorted[base]) : sorted[base];
+    }
+
+    function renderChart(rows) {
+      const wrap = chartSvg.parentElement;
+      const width = Math.max(880, Math.round(wrap.clientWidth - 8));
+      const height = Math.max(540, Math.round(chartSvg.clientHeight || (wrap.clientHeight - 28)));
+      const margin = { top: 60, right: 156, bottom: 48, left: Math.min(280, Math.max(190, width * 0.24)) };
+      const innerW = width - margin.left - margin.right;
+      const innerH = height - margin.top - margin.bottom;
+      const centerX = margin.left + innerW / 2;
+      const rowH = innerH / Math.max(rows.length, 1);
+      const barH = Math.min(28, rowH * 0.54);
+      const magnitudes = rows.map(r => Math.max(Math.abs(r.variance), r.band)).filter(v => v > 0).sort((a, b) => a - b);
+      const maxMagnitude = magnitudes.length ? magnitudes[magnitudes.length - 1] : 100;
+      const typicalMagnitude = Math.max(quantile(magnitudes, 0.8), 100);
+      const domainTarget = Math.max(typicalMagnitude * 1.2, maxMagnitude * 0.72, 100);
+      const step = niceStep(domainTarget / 2);
+      const domainMax = step * 2;
+      const usableHalf = innerW / 2 - 30;
+      const scaleRaw = value => (value / domainMax) * usableHalf;
+      const scale = value => Math.min(usableHalf, scaleRaw(value));
+      const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      const font = (size, weight = 500, fill = '#17324d') => `font-size="${size}" font-family="Inter, Arial, sans-serif" font-weight="${weight}" fill="${fill}"`;
+      const fmtShort = n => Math.round(n).toLocaleString();
+      const overflowArrow = (x, y, dir, fill) => dir === 'right'
+        ? `<path d="M ${x} ${y - 7} L ${x + 12} ${y} L ${x} ${y + 7} Z" fill="${fill}"/>`
+        : `<path d="M ${x} ${y - 7} L ${x - 12} ${y} L ${x} ${y + 7} Z" fill="${fill}"/>`;
+
+      let out = `<rect x="0" y="0" width="${width}" height="${height}" fill="transparent"/>`;
+      out += `<text x="${centerX - 160}" y="22" ${font(11, 800, '#697d93')} letter-spacing="1.3" text-anchor="middle">MORE EFFICIENT</text>`;
+      out += `<text x="${centerX + 160}" y="22" ${font(11, 800, '#697d93')} letter-spacing="1.3" text-anchor="middle">STRATEGIC GROWTH</text>`;
+      out += `<text x="${centerX}" y="40" ${font(11, 700, '#6d7f92')} text-anchor="middle">Programmed baseline</text>`;
+
+      const tickValues = [-domainMax, -domainMax / 2, 0, domainMax / 2, domainMax];
+      tickValues.forEach(value => {
+        const x = centerX + scaleRaw(value);
+        out += `<line x1="${x}" y1="${margin.top - 6}" x2="${x}" y2="${height - margin.bottom}" stroke="${value === 0 ? '#de614d' : '#eef3f8'}" stroke-width="${value === 0 ? 3 : 1}"/>`;
+        out += `<text x="${x}" y="${height - 14}" ${font(11, 700, '#7a8c9f')} text-anchor="middle">${value === 0 ? '0' : fmtShort(Math.abs(value))}</text>`;
+      });
+      out += `<text x="${margin.left}" y="${height - 14}" ${font(10, 700, '#8b9aab')}>SF from programmed baseline (dynamic scale)</text>`;
+
+      rows.forEach((r, i) => {
+        const y = margin.top + i * rowH + rowH / 2;
+        const bandW = Math.max(0, scale(r.band));
+        const absVariance = Math.abs(r.variance);
+        const savedOverflow = r.variance < 0 && absVariance > domainMax;
+        const addedOverflow = r.variance > 0 && r.variance > domainMax;
+        const savedW = r.variance < 0 ? Math.max(6, scale(absVariance)) : 0;
+        const within = r.variance > 0 ? Math.min(r.variance, r.band) : 0;
+        const beyond = r.variance > r.band ? r.variance - r.band : 0;
+        const withinW = within > 0 ? Math.max(6, scale(within)) : 0;
+        const beyondW = beyond > 0 ? Math.max(6, scale(beyond)) : 0;
+
+        out += `<line x1="${margin.left}" y1="${y}" x2="${width - margin.right + 36}" y2="${y}" stroke="#f0f4f8" stroke-width="1"/>`;
+        out += `<text x="${margin.left - 12}" y="${y + 5}" ${font(16, 700, '#17324d')} text-anchor="end">${escapeHtml(r.name)}</text>`;
+        out += `<rect x="${centerX - bandW}" y="${y - barH / 2}" width="${bandW * 2}" height="${barH}" rx="${barH / 2}" fill="${css('--band')}" opacity="0.95"/>`;
+
+        if (savedW > 0) {
+          out += `<rect x="${centerX - savedW}" y="${y - barH / 2}" width="${savedW}" height="${barH}" rx="${barH / 2}" fill="${css('--saved')}"/>`;
+          if (savedOverflow) out += overflowArrow(centerX - savedW, y, 'left', css('--saved'));
+          out += `<text x="${Math.max(margin.left - 8, centerX - savedW - 10)}" y="${y + 4}" ${font(12, 700, '#1e5c98')} text-anchor="end">${fmtShort(absVariance)} saved</text>`;
+        }
+
+        if (withinW > 0) out += `<rect x="${centerX}" y="${y - barH / 2}" width="${withinW}" height="${barH}" rx="${barH / 2}" fill="${css('--within')}"/>`;
+        if (beyondW > 0) out += `<rect x="${centerX + withinW}" y="${y - barH / 2}" width="${beyondW}" height="${barH}" rx="${barH / 2}" fill="${css('--beyond')}"/>`;
+        if (r.variance > 0) {
+          if (addedOverflow) out += overflowArrow(centerX + withinW + beyondW, y, 'right', beyond > 0 ? css('--beyond') : css('--within'));
+          out += `<text x="${Math.min(width - 14, centerX + withinW + beyondW + 10)}" y="${y + 4}" ${font(12, 700, beyond > 0 ? '#a84f3e' : '#7b6503')}>${fmtShort(r.variance)} added</text>`;
+        }
+      });
+
+      chartSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+      chartSvg.innerHTML = out;
+    }
+
+    function updateAll() {
+      toleranceValue.textContent = toleranceSlider.value;
+      netValue.textContent = netSlider.value;
+
+      const stats = compute(currentRows());
+      const within = Math.abs(stats.netVariance) <= stats.netBand;
+
+      document.getElementById('totalProgrammed').textContent = fmt(stats.totalProgrammed);
+      document.getElementById('totalCurrent').textContent = fmt(stats.totalCurrent);
+      document.getElementById('spaceSaved').textContent = fmt(stats.totalSaved);
+      document.getElementById('netVariance').textContent = signed(stats.netVariance);
+      document.getElementById('scoreNet').textContent = signed(stats.netVariance);
+      document.getElementById('netStatus').textContent = within
+        ? `Within overall target band of ${netSlider.value}%`
+        : `Outside overall target band of ${netSlider.value}%`;
+      document.getElementById('scoreNetText').textContent = within
+        ? `Tracking inside the agreed overall range of ${netSlider.value}% against the total program.`
+        : `Tracking outside the agreed overall range of ${netSlider.value}% against the total program.`;
+
+      const metricEls = [document.getElementById('netVariance'), document.getElementById('scoreNet')];
+      metricEls.forEach(el => {
+        el.classList.remove('good', 'warn', 'bad');
+        if (within) el.classList.add('good');
+        else if (stats.netVariance > 0) el.classList.add('bad');
+        else el.classList.add('good');
+      });
+
+      document.getElementById('editorProgrammed').textContent = fmt(stats.totalProgrammed);
+      document.getElementById('editorCurrent').textContent = fmt(stats.totalCurrent);
+      document.getElementById('editorSaved').textContent = fmt(stats.totalSaved);
+      document.getElementById('editorNet').textContent = signed(stats.netVariance);
+      document.getElementById('editorNet').className = 'value ' + (within ? 'good' : (stats.netVariance > 0 ? 'bad' : 'good'));
+
+      renderNarrative(stats);
+      updatePills(stats);
+      renderChart(stats.enriched);
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(btn.dataset.view).classList.add('active');
+        requestAnimationFrame(updateAll);
+      });
+    });
+
+
+    function applyLogo(src) {
+      const img = document.getElementById('clientLogo');
+      const placeholder = document.getElementById('logoPlaceholder');
+      if (src) {
+        img.src = src;
+        img.style.display = 'block';
+        placeholder.style.display = 'none';
+      } else {
+        img.removeAttribute('src');
+        img.style.display = 'none';
+        placeholder.style.display = 'flex';
+      }
+    }
+
+    const logoInput = document.getElementById('logoInput');
+    document.getElementById('uploadLogoBtn').addEventListener('click', () => logoInput.click());
+    document.getElementById('resetLogoBtn').addEventListener('click', () => {
+      localStorage.removeItem('satClientLogo');
+      applyLogo('');
+    });
+    logoInput.addEventListener('change', e => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = evt => {
+        const src = evt.target.result;
+        localStorage.setItem('satClientLogo', src);
+        applyLogo(src);
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    });
+
+    applyLogo(localStorage.getItem('satClientLogo') || '');
+
+    toleranceSlider.addEventListener('input', updateAll);
+    netSlider.addEventListener('input', updateAll);
+    window.addEventListener('resize', () => requestAnimationFrame(updateAll));
+
+    document.getElementById('addRowBtn').addEventListener('click', () => addRow({ name: 'New Department', programmed: 1000, current: 1000 }));
+    document.getElementById('loadSampleBtn').addEventListener('click', () => loadRows(sampleRows));
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+      const rows = currentRows();
+      const csv = ['Department,Programmed SF,Current SF']
+        .concat(rows.map(r => `"${String(r.name).replace(/"/g, '""')}",${r.programmed},${r.current}`))
+        .join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const fileBase = (projectNameInput.value || 'space_alignment').trim().replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '');
+      link.download = `${fileBase || 'space_alignment'}_data.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+
+    loadRows(sampleRows);
+  </script>
+</body>
+</html>
