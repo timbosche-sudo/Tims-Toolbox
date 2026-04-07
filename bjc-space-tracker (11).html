@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>BJC Health — Space Alignment Tracker</title>
+<style>
+:root {
+  --bjc-navy:#2D3B8C;
+  --bjc-navy-dark:#1e2a6e;
+  --bjc-blue:#00529B;
+  --bjc-light-blue:#70AFD7;
+  --ink:#17324d;
+  --muted:#687c91;
+  --surface:rgba(255,255,255,0.96);
+  --saved:#5B9BD5;
+  --band:#d5e5b1;
+  --within:#C8972B;
+  --beyond:#de7d63;
+  --good:#2d8f57;
+  --warn:#8a6500;
+  --bad:#b25340;
+  --shadow:0 18px 36px rgba(0,40,100,0.11);
+  --radius-xl:22px;
+  --radius-lg:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;color:var(--ink);}
+body{background:linear-gradient(160deg,#e4eaf5 0%,#d8e2ef 100%);overflow:hidden;}
+
+.shell{
+  width:min(1640px,calc(100vw - 16px));
+  height:calc(100vh - 16px);
+  margin:8px auto;
+  background:rgba(255,255,255,0.80);
+  border:1px solid #c8d5e5;
+  border-radius:26px;
+  box-shadow:var(--shadow);
+  backdrop-filter:blur(12px);
+  overflow:hidden;
+  display:grid;
+  grid-template-rows:108px 50px 1fr;
+}
+
+/* ── HEADER ── */
+.header{
+  display:grid;
+  grid-template-columns:220px 1fr 380px;
+  border-bottom:1px solid rgba(255,255,255,0.12);
+  background:linear-gradient(135deg,var(--bjc-navy) 0%,var(--bjc-navy-dark) 60%,#1a2560 100%);
+}
+.logo-panel{
+  padding:12px 16px;border-right:1px solid rgba(255,255,255,0.12);
+  display:flex;align-items:center;justify-content:center;
+}
+.logo-panel img{width:180px;height:auto;display:block;object-fit:contain;}
+.logo-fallback{color:#fff;font-size:22px;font-weight:900;letter-spacing:0.08em;display:none;}
+.title-panel{padding:14px 24px;display:flex;flex-direction:column;justify-content:center;gap:5px;}
+.eyebrow{font-size:10px;font-weight:800;letter-spacing:0.22em;text-transform:uppercase;color:var(--bjc-light-blue);}
+h1{font-size:clamp(20px,2.2vw,38px);font-weight:900;color:#fff;letter-spacing:0.025em;line-height:1.05;}
+.subtitle{font-size:12px;color:rgba(255,255,255,0.62);line-height:1.35;max-width:700px;}
+.project-panel{
+  padding:12px 18px;display:flex;flex-direction:column;justify-content:center;gap:6px;
+  border-left:1px solid rgba(255,255,255,0.12);
+}
+.mini-label{font-size:10px;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;color:var(--bjc-light-blue);}
+.project-panel input{
+  width:100%;border:1px solid rgba(255,255,255,0.2);border-radius:12px;
+  background:rgba(255,255,255,0.10);padding:9px 12px;font-size:14px;color:#fff;outline:none;
+}
+.project-panel input::placeholder{color:rgba(255,255,255,0.4);}
+.bsa-credit{font-size:10px;color:rgba(255,255,255,0.38);letter-spacing:0.04em;}
+
+/* ── TABS ── */
+.tabs-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:6px 16px;border-bottom:1px solid #d5e0ee;
+  background:linear-gradient(180deg,#f2f7fc 0%,#eaf0f8 100%);
+}
+.tabs{display:inline-flex;gap:5px;padding:3px;border:1px solid #ccd8ea;border-radius:999px;background:rgba(255,255,255,0.85);}
+.tab-btn{border:none;background:transparent;color:var(--bjc-blue);padding:7px 14px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:0.03em;cursor:pointer;}
+.tab-btn.active{color:#fff;background:linear-gradient(135deg,var(--bjc-blue) 0%,#0066c2 100%);box-shadow:0 5px 14px rgba(0,82,155,0.28);}
+.tabs-note{font-size:11px;color:var(--muted);}
+
+/* ── VIEW HOST ── */
+.view-host{min-height:0;background:linear-gradient(180deg,#eef4fa 0%,#e6eef6 100%);overflow:hidden;padding:10px;}
+.view{display:none;width:100%;height:100%;}
+.view.active{display:block;}
+.card{background:var(--surface);border:1px solid rgba(205,220,236,0.9);border-radius:var(--radius-xl);box-shadow:0 7px 20px rgba(0,50,120,0.055);}
+
+/* ── PRESENTATION ── */
+.presentation-grid{display:grid;grid-template-rows:auto 1fr;gap:10px;height:100%;min-height:0;}
+
+/* Summary card: sliders on left (fixed narrow), metrics fill right */
+.summary-card{
+  padding:10px 14px;
+  display:grid;
+  grid-template-columns:310px 1fr;
+  gap:14px;
+  align-items:center;
+}
+
+/* Compact 2x2 slider grid */
+.sliders{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:6px 12px;}
+.slider-group{display:grid;gap:3px;}
+.slider-row{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;}
+input[type="range"]{width:100%;accent-color:var(--bjc-blue);}
+.slider-value{font-size:13px;font-weight:800;color:var(--bjc-blue);min-width:40px;text-align:right;white-space:nowrap;}
+.cost-slider-row{display:grid;grid-template-columns:auto 1fr auto;gap:4px;align-items:center;}
+.cost-bound{
+  width:44px;border:1px solid #c2d2e5;border-radius:7px;
+  background:#fff;padding:4px;font-size:10px;font-weight:700;
+  color:var(--bjc-blue);text-align:center;outline:none;
+}
+.budget-input-row{display:flex;align-items:center;gap:5px;}
+.budget-prefix{font-size:13px;font-weight:800;color:var(--bjc-blue);}
+.budget-field{
+  width:100%;border:1px solid #c2d2e5;border-radius:9px;
+  background:#fff;padding:6px 8px;font-size:13px;font-weight:700;
+  color:var(--bjc-blue);outline:none;
+}
+
+/* 6 metric cards — generous breathing room */
+.metric-row{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;}
+.metric-card{
+  border:1px solid #d2dff0;border-radius:var(--radius-lg);
+  background:rgba(255,255,255,0.90);
+  padding:12px 14px;display:flex;flex-direction:column;gap:5px;min-width:0;
+}
+.metric-card .value{font-size:clamp(15px,1.4vw,23px);line-height:1;font-weight:800;letter-spacing:-0.02em;}
+.metric-card .note{font-size:11px;color:var(--muted);line-height:1.25;}
+.value.good{color:var(--good);}
+.value.warn{color:var(--warn);}
+.value.bad{color:var(--bad);}
+
+/* ── HERO ── */
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(280px,0.85fr);gap:10px;min-height:0;height:100%;}
+.chart-card{display:grid;grid-template-rows:auto 1fr;min-height:0;overflow:hidden;}
+.card-head{padding:11px 15px 7px;border-bottom:1px solid #edf3f8;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+.card-title{font-size:13px;font-weight:800;color:var(--ink);}
+.card-copy{margin-top:3px;font-size:11px;color:#50657c;line-height:1.3;max-width:540px;}
+.legend{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;font-size:10px;color:var(--muted);}
+.legend span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;}
+.swatch{width:11px;height:11px;border-radius:3px;border:1px solid rgba(0,0,0,0.07);flex:0 0 auto;}
+.chart-wrap{min-height:0;padding:5px 12px 7px;display:flex;flex-direction:column;gap:4px;overflow:hidden;}
+.chart-svg{width:100%;height:100%;display:block;}
+.chart-foot{font-size:10px;color:var(--muted);line-height:1.3;}
+
+/* ── NARRATIVE — fully scrollable flex column ── */
+.narrative-card{
+  padding:11px 13px;
+  display:flex;flex-direction:column;gap:8px;
+  min-height:0;overflow-y:auto;
+}
+.position-box{
+  border:1px solid #d5e0ee;border-radius:var(--radius-lg);
+  background:rgba(255,255,255,0.90);
+  padding:12px 14px;flex-shrink:0;
+}
+.position-box .value{font-size:clamp(18px,1.8vw,30px);font-weight:900;line-height:0.95;letter-spacing:-0.03em;color:var(--good);}
+.position-box .cost-val{font-size:clamp(12px,1.1vw,17px);font-weight:800;margin-top:4px;color:var(--good);}
+.position-box .support{margin-top:6px;font-size:11px;line-height:1.3;color:#50657c;}
+.story-box{
+  border:1px solid #d5e0ee;border-radius:var(--radius-lg);
+  background:rgba(255,255,255,0.90);
+  padding:12px 14px;flex-shrink:0;
+}
+.story-box h3{margin:0 0 6px;font-size:12px;font-weight:800;}
+.story-box p{margin:0;font-size:12px;line-height:1.5;color:#27415e;}
+.list-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex-shrink:0;}
+.list-box{
+  border:1px solid #d5e0ee;border-radius:var(--radius-lg);
+  background:rgba(255,255,255,0.90);
+  padding:10px 12px;
+}
+.list-box h4{margin:0 0 8px;font-size:10px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);}
+.list-box ul{margin:0;padding-left:15px;font-size:11px;line-height:1.45;color:#26415d;}
+.list-box li+li{margin-top:6px;}
+.talk-track{
+  border:1px solid #d5e0ee;border-radius:var(--radius-lg);
+  background:rgba(255,255,255,0.90);
+  padding:11px 13px;
+  font-size:11px;color:#4a6070;line-height:1.5;
+  font-style:italic;flex-shrink:0;
+}
+
+/* ── EDITOR ── */
+.editor-view{height:100%;min-height:0;overflow:auto;padding-right:2px;}
+.editor-layout{display:grid;grid-template-rows:auto auto auto 1fr;gap:10px;min-height:100%;}
+.editor-tools{padding:13px 17px;display:flex;justify-content:space-between;align-items:center;gap:16px;}
+.editor-copy{font-size:13px;color:#4f6580;max-width:680px;line-height:1.4;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;}
+.btn{border:1px solid #c2d2e5;background:#fff;color:var(--ink);border-radius:999px;padding:8px 13px;font-size:12px;font-weight:700;cursor:pointer;}
+.btn.primary{background:linear-gradient(135deg,var(--bjc-blue) 0%,#0066c2 100%);color:#fff;border-color:transparent;}
+.editor-summary{padding:11px 15px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;}
+.mini-metric{border:1px solid #d2dff0;border-radius:var(--radius-lg);background:rgba(255,255,255,0.88);padding:9px 11px;min-width:0;}
+.mini-metric .value{font-size:18px;line-height:1;font-weight:800;margin-top:3px;}
+
+/* ── TABLE ── */
+.table-card{padding:0;overflow:hidden;}
+.table-head,.row{
+  display:grid;
+  grid-template-columns:minmax(180px,1.4fr) minmax(105px,0.75fr) minmax(105px,0.75fr) minmax(90px,0.6fr) minmax(170px,1.1fr) 88px 76px;
+  gap:9px;align-items:center;padding:10px 15px;
+}
+.table-head{background:#f1f7fc;border-bottom:1px solid #deeaf5;font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);position:sticky;top:0;z-index:1;}
+.table-body{max-height:100%;overflow:auto;}
+.row+.row{border-top:1px solid #eef3f8;}
+.row input[type="text"],.row input[type="number"]{width:100%;border:1px solid #c2d5e8;border-radius:10px;background:#fff;padding:8px 9px;font-size:13px;color:var(--ink);outline:none;}
+.row input.reason-input{font-size:11px;padding:7px 9px;color:#4a6070;}
+.pill{display:inline-flex;align-items:center;justify-content:center;min-height:34px;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:800;text-align:center;border:1px solid transparent;white-space:nowrap;}
+.pill.saved{background:rgba(91,155,213,0.14);color:#1a5c98;border-color:rgba(91,155,213,0.28);}
+.pill.added{background:rgba(200,151,43,0.16);color:#7a5800;border-color:rgba(200,151,43,0.32);}
+.pill.beyond{background:rgba(222,125,99,0.15);color:#a14b39;border-color:rgba(222,125,99,0.30);}
+.pill.neutral{background:rgba(215,228,242,0.65);color:#5c6d80;border-color:rgba(190,210,228,0.75);}
+.danger{border:1px solid #eed0c8;background:#fff7f5;color:#b04b38;border-radius:999px;padding:7px 9px;font-size:11px;font-weight:700;cursor:pointer;}
+.good{color:var(--good);} .warn{color:var(--warn);} .bad{color:var(--bad);}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo-panel">
+      <img
+        src="https://timbosche-sudo.github.io/Tims-Toolbox/bjc-health-logo.png"
+        alt="BJC Health"
+        onerror="this.style.display='none';document.getElementById('logoFallback').style.display='block';"
+      />
+      <div id="logoFallback" class="logo-fallback">BJC Health™</div>
+    </div>
+    <div class="title-panel">
+      <p class="eyebrow">Space Planning Dashboard</p>
+      <h1>SPACE ALIGNMENT TRACKER</h1>
+      <div class="subtitle">Live tracking of programmed versus current design square footage — with real-time cost impact. Every space change is visible, explained, and financially quantified.</div>
+    </div>
+    <div class="project-panel">
+      <div class="mini-label">Current Project</div>
+      <input id="projectName" value="BJC Regional Ambulatory Care Center"/>
+      <div style="margin-top:4px;">
+        <img 
+          src="https://timbosche-sudo.github.io/Tims-Toolbox/BSA-white.png"
+          alt="BSA"
+          style="height:28px;width:auto;display:block;object-fit:contain;opacity:0.92;"
+          onerror="this.style.display='none';"
+        />
+      </div>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs-bar">
+    <div class="tabs">
+      <button class="tab-btn active" data-view="presentationView">Presentation View</button>
+      <button class="tab-btn" data-view="editorView">Data Editor</button>
+    </div>
+    <div class="tabs-note">Built for client conversation first, editing second.</div>
+  </div>
+
+  <!-- VIEWS -->
+  <div class="view-host">
+
+    <!-- PRESENTATION VIEW -->
+    <section class="view active" id="presentationView">
+      <div class="presentation-grid">
+
+        <!-- SUMMARY CARD -->
+        <div class="summary-card card">
+          <div class="sliders">
+
+            <div class="slider-group">
+              <div class="mini-label">Dept. tolerance band</div>
+              <div class="slider-row">
+                <input id="toleranceSlider" type="range" min="4" max="18" value="10"/>
+                <div class="slider-value"><span id="toleranceValue">10</span>%</div>
+              </div>
+            </div>
+
+            <div class="slider-group">
+              <div class="mini-label">Overall project band</div>
+              <div class="slider-row">
+                <input id="netSlider" type="range" min="2" max="12" value="5"/>
+                <div class="slider-value"><span id="netValue">5</span>%</div>
+              </div>
+            </div>
+
+            <div class="slider-group">
+              <div class="mini-label">Cost / SF</div>
+              <div class="cost-slider-row">
+                <input id="costMin" class="cost-bound" type="number" value="320" min="100" max="900" step="10" title="Min $/SF"/>
+                <input id="costSlider" type="range" min="320" max="650" value="455" step="5"/>
+                <input id="costMax" class="cost-bound" type="number" value="650" min="100" max="900" step="10" title="Max $/SF"/>
+              </div>
+              <div style="text-align:center;margin-top:2px;font-size:14px;font-weight:800;color:var(--bjc-blue);">$<span id="costValue">455</span>/SF</div>
+            </div>
+
+            <div class="slider-group">
+              <div class="mini-label">Owner budget target</div>
+              <div class="budget-input-row">
+                <span class="budget-prefix">$</span>
+                <input id="budgetField" class="budget-field" type="number" value="62000000" step="500000" min="0"/>
+              </div>
+              <div style="margin-top:3px;font-size:10px;color:var(--muted);">Gap: <strong id="budgetGapLabel" style="color:var(--good);">—</strong></div>
+            </div>
+
+          </div>
+
+          <div class="metric-row">
+            <div class="metric-card">
+              <div class="mini-label">Programmed</div>
+              <div class="value" id="totalProgrammed">0 SF</div>
+              <div class="note" id="totalProgrammedCost">$0</div>
+            </div>
+            <div class="metric-card">
+              <div class="mini-label">Current Design</div>
+              <div class="value" id="totalCurrent">0 SF</div>
+              <div class="note" id="totalCurrentCost">$0</div>
+            </div>
+            <div class="metric-card">
+              <div class="mini-label">Space Saved</div>
+              <div class="value good" id="spaceSaved">0 SF</div>
+              <div class="note" id="spaceSavedCost">$0 returned</div>
+            </div>
+            <div class="metric-card">
+              <div class="mini-label">Net SF Variance</div>
+              <div class="value" id="netVariance">0 SF</div>
+              <div class="note" id="netStatus">—</div>
+            </div>
+            <div class="metric-card">
+              <div class="mini-label">Net Cost Impact</div>
+              <div class="value" id="netCostImpact">$0</div>
+              <div class="note" id="netCostNote">At current $/SF</div>
+            </div>
+            <div class="metric-card">
+              <div class="mini-label">Budget Gap</div>
+              <div class="value" id="budgetGapMetric">—</div>
+              <div class="note" id="budgetGapNote">vs. owner target</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HERO GRID -->
+        <div class="hero-grid">
+          <div class="chart-card card">
+            <div class="card-head">
+              <div>
+                <div class="card-title">Department Alignment — SF Variance from Program</div>
+                <div class="card-copy">Blue bars show efficiency recovered from the original program. Gold and coral show where that space — and budget — is being reinvested strategically.</div>
+              </div>
+              <div class="legend">
+                <span><i class="swatch" style="background:var(--saved)"></i>Saved</span>
+                <span><i class="swatch" style="background:var(--band)"></i>Target band</span>
+                <span><i class="swatch" style="background:var(--within)"></i>Within band</span>
+                <span><i class="swatch" style="background:var(--beyond)"></i>Beyond band</span>
+              </div>
+            </div>
+            <div class="chart-wrap">
+              <svg id="chartSvg" class="chart-svg" aria-label="Department alignment chart"></svg>
+              <div class="chart-foot">Center line = programmed baseline. Scale auto-adjusts. Cost impact shown per department at current $/SF.</div>
+            </div>
+          </div>
+
+          <aside class="narrative-card card">
+            <div class="position-box">
+              <div class="mini-label">Project Position</div>
+              <div class="value" id="scoreNet">0 SF</div>
+              <div class="cost-val" id="scoreNetCost"></div>
+              <div class="support" id="scoreNetText">Tracking inside the agreed overall range.</div>
+            </div>
+            <div class="story-box">
+              <h3>What this dashboard is saying</h3>
+              <p id="narrative"></p>
+            </div>
+            <div class="list-grid">
+              <div class="list-box">
+                <h4>Efficiency Wins</h4>
+                <ul id="winsList"></ul>
+              </div>
+              <div class="list-box">
+                <h4>Strategic Growth</h4>
+                <ul id="investList"></ul>
+              </div>
+            </div>
+            <div class="talk-track">"We are not simply adding space. We are using efficiency gained in some departments to support better patient flow and care delivery in others — and we can see the cost effect of every decision in real time."</div>
+          </aside>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- EDITOR VIEW -->
+    <section class="view" id="editorView">
+      <div class="editor-view">
+        <div class="editor-layout">
+          <div class="editor-tools card">
+            <div class="editor-copy">Add or rename departments, adjust square footage, and document the reason behind each change. The Presentation View updates live.</div>
+            <div class="btn-row">
+              <button class="btn primary" id="addRowBtn" type="button">+ Add Department</button>
+              <button class="btn" id="loadSampleBtn" type="button">Reload Sample Data</button>
+              <button class="btn" id="downloadBtn" type="button">Download CSV</button>
+            </div>
+          </div>
+          <div class="editor-summary card">
+            <div class="mini-metric"><div class="mini-label">Programmed SF</div><div class="value" id="editorProgrammed">0 SF</div></div>
+            <div class="mini-metric"><div class="mini-label">Current SF</div><div class="value" id="editorCurrent">0 SF</div></div>
+            <div class="mini-metric"><div class="mini-label">Space Saved</div><div class="value good" id="editorSaved">0 SF</div></div>
+            <div class="mini-metric"><div class="mini-label">Net SF</div><div class="value" id="editorNet">0 SF</div></div>
+            <div class="mini-metric"><div class="mini-label">Net Cost Impact</div><div class="value" id="editorCost">$0</div></div>
+            <div class="mini-metric"><div class="mini-label">Budget Gap</div><div class="value" id="editorBudgetGap">—</div></div>
+          </div>
+          <div class="table-card card">
+            <div class="table-head">
+              <div>Department</div><div>Programmed SF</div><div>Current SF</div>
+              <div>Cost/SF Override</div><div>Reason for Change</div><div>Status</div><div></div>
+            </div>
+            <div class="table-body" id="tableBody"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+const sampleRows=[
+  {name:'Emergency Department',       programmed:18500,current:19200,reason:'Expanded trauma bay for Level II designation'},
+  {name:'Surgical Services',          programmed:16800,current:17400,reason:'Added robotic surgery suite per clinical request'},
+  {name:'Pre-op / PACU',              programmed: 8200,current: 8050,reason:'Efficient pod layout recovered space'},
+  {name:'Imaging & Radiology',        programmed:11400,current:11200,reason:'MRI suite redesigned — smaller footprint'},
+  {name:'Interventional Radiology',   programmed: 6800,current: 7100,reason:'Additional hybrid OR requested by cardiology'},
+  {name:'Infusion Therapy',           programmed: 5600,current: 5850,reason:'Added 6 chairs for oncology volume growth'},
+  {name:'Medical / Surgical Floors',  programmed:18200,current:17900,reason:'Racetrack layout improved efficiency'},
+  {name:'Intensive Care Unit',        programmed: 8800,current: 9100,reason:'Increased to 20-bed unit — administration request'},
+  {name:"Women's Health",             programmed: 7200,current: 7400,reason:'Expanded NICU space per neonatology'},
+  {name:'Pharmacy & Lab',             programmed: 4200,current: 4050,reason:'Centralized dispensing reduced footprint'},
+  {name:'Lobby / Wayfinding / Retail',programmed: 5800,current: 6400,reason:'Enhanced patient experience per BJC standards'},
+  {name:'Administration & Support',   programmed: 4600,current: 4350,reason:'Hybrid work policy reduced dedicated offices'},
+];
+
+const tableBody=document.getElementById('tableBody');
+const toleranceSlider=document.getElementById('toleranceSlider');
+const netSlider=document.getElementById('netSlider');
+const costSlider=document.getElementById('costSlider');
+const costMinInput=document.getElementById('costMin');
+const costMaxInput=document.getElementById('costMax');
+const budgetField=document.getElementById('budgetField');
+const chartSvg=document.getElementById('chartSvg');
+const projectNameInput=document.getElementById('projectName');
+
+function fmtSF(n){return`${Math.round(n).toLocaleString()} SF`;}
+function fmtM(n){
+  const abs=Math.abs(n),sign=n<0?'−$':n>0?'+$':'$';
+  if(abs>=1e6)return`${sign}${(abs/1e6).toFixed(1)}M`;
+  if(abs>=1000)return`${sign}${Math.round(abs/1000)}k`;
+  return`${sign}${Math.round(abs).toLocaleString()}`;
+}
+function fmtMabs(n){
+  if(n>=1e6)return`$${(n/1e6).toFixed(1)}M`;
+  if(n>=1000)return`$${Math.round(n/1000)}k`;
+  return`$${Math.round(n).toLocaleString()}`;
+}
+function signed(n){const r=Math.round(n);return`${r>0?'+':r<0?'−':''}${Math.abs(r).toLocaleString()} SF`;}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+
+function syncCostRange(){
+  const lo=Math.max(100,Number(costMinInput.value)||100);
+  const hi=Math.max(lo+50,Number(costMaxInput.value)||650);
+  costSlider.min=lo;costSlider.max=hi;
+  if(Number(costSlider.value)<lo)costSlider.value=lo;
+  if(Number(costSlider.value)>hi)costSlider.value=hi;
+  updateAll();
+}
+costMinInput.addEventListener('change',syncCostRange);
+costMaxInput.addEventListener('change',syncCostRange);
+
+function addRow(d={name:'',programmed:0,current:0,reason:''}){
+  const row=document.createElement('div');
+  row.className='row';
+  row.innerHTML=`
+    <div><input type="text" class="name" value="${esc(d.name)}" placeholder="Department name"/></div>
+    <div><input type="number" class="program" min="0" step="25" value="${Number(d.programmed)||0}"/></div>
+    <div><input type="number" class="current" min="0" step="25" value="${Number(d.current)||0}"/></div>
+    <div><input type="number" class="costOverride" min="0" step="5" value="" placeholder="Global"/></div>
+    <div><input type="text" class="reason-input" value="${esc(d.reason||'')}" placeholder="Reason for change…"/></div>
+    <div><span class="pill neutral">On program</span></div>
+    <div><button class="danger remove" type="button">Delete</button></div>
+  `;
+  tableBody.appendChild(row);
+  row.querySelectorAll('input').forEach(i=>i.addEventListener('input',updateAll));
+  row.querySelector('.remove').addEventListener('click',()=>{row.remove();updateAll();});
+}
+function loadRows(rows){tableBody.innerHTML='';rows.forEach(addRow);updateAll();}
+function currentRows(){
+  return[...tableBody.querySelectorAll('.row')].map(row=>({
+    name:row.querySelector('.name').value.trim()||'Unnamed',
+    programmed:Number(row.querySelector('.program').value)||0,
+    current:Number(row.querySelector('.current').value)||0,
+    costOverride:Number(row.querySelector('.costOverride').value)||null,
+    reason:row.querySelector('.reason-input').value.trim(),
+  }));
+}
+
+function compute(rows){
+  const tolPct=Number(toleranceSlider.value)/100;
+  const netPct=Number(netSlider.value)/100;
+  const globalCost=Number(costSlider.value);
+  const budget=Number(budgetField.value)||0;
+  const enriched=rows
+    .filter(r=>r.name&&(r.programmed>0||r.current>0))
+    .map(r=>{
+      const variance=r.current-r.programmed;
+      const band=r.programmed*tolPct;
+      const effectiveCost=r.costOverride||globalCost;
+      return{...r,variance,band,effectiveCost,costDelta:variance*effectiveCost};
+    });
+  const totalProgrammed=enriched.reduce((s,r)=>s+r.programmed,0);
+  const totalCurrent=enriched.reduce((s,r)=>s+r.current,0);
+  const totalSaved=enriched.filter(r=>r.variance<0).reduce((s,r)=>s+Math.abs(r.variance),0);
+  const netVariance=totalCurrent-totalProgrammed;
+  const netBand=totalProgrammed*netPct;
+  const currentCost=totalCurrent*globalCost;
+  const netCostImpact=netVariance*globalCost;
+  const savedCostValue=totalSaved*globalCost;
+  const budgetGap=budget>0?currentCost-budget:null;
+  const wins=[...enriched].filter(r=>r.variance<0).sort((a,b)=>a.variance-b.variance);
+  const invests=[...enriched].filter(r=>r.variance>0).sort((a,b)=>b.variance-a.variance);
+  return{enriched,tolPct,netPct,globalCost,budget,totalProgrammed,totalCurrent,
+         totalSaved,netVariance,netBand,currentCost,netCostImpact,savedCostValue,budgetGap,wins,invests};
+}
+
+function renderNarrative(s){
+  const within=Math.abs(s.netVariance)<=s.netBand;
+  const deptCount=s.enriched.length;
+  const savingCount=s.wins.length;
+  const growingCount=s.invests.length;
+  const onProgramCount=deptCount-savingCount-growingCount;
+
+  // Status sentence
+  const statusLine=within
+    ?`The design is <strong>tracking inside the agreed ${Math.round(s.netPct*100)}% overall band</strong> at <strong>${signed(s.netVariance)}</strong> and <strong>${fmtM(s.netCostImpact)}</strong> versus the original program.`
+    :`The design has <strong>moved outside the agreed ${Math.round(s.netPct*100)}% overall band</strong> at <strong>${signed(s.netVariance)}</strong> and <strong>${fmtM(s.netCostImpact)}</strong> versus the original program.`;
+
+  // Composition sentence
+  const compositionLine=`Of ${deptCount} departments, <strong>${savingCount} are running efficiently below program</strong>, <strong>${growingCount} have grown</strong>, and ${onProgramCount} are on target.`;
+
+  // Growth character — are reasons documented?
+  const reasonedGrowth=s.invests.filter(r=>r.reason).length;
+  const growthLine=growingCount>0
+    ?reasonedGrowth===growingCount
+      ?`Every space addition is <strong>documented with a clinical or operational reason</strong> — this growth is intentional, not accidental.`
+      :`Some space additions are not yet documented — adding reasons in the Data Editor will strengthen the story with the owner.`
+    :'No departments have grown beyond the original program.';
+
+  // Budget line
+  const budgetLine=s.budgetGap!==null
+    ?(s.budgetGap>0
+      ?`At the current cost of <strong>${Number(costSlider.value).toLocaleString()}/SF</strong>, the design is <strong>${fmtMabs(s.budgetGap)} over the owner's budget target</strong>. Adjusting the cost/SF slider or trimming scope in the Data Editor can close this gap.`
+      :`At the current cost of <strong>${Number(costSlider.value).toLocaleString()}/SF</strong>, the design is <strong>${fmtMabs(Math.abs(s.budgetGap))} under the owner's budget target</strong> — there is room to reinvest strategically.`)
+    :'';
+
+  document.getElementById('narrative').innerHTML=
+    `${statusLine} ${compositionLine} ${growthLine}${budgetLine?' '+budgetLine:''}`;
+  document.getElementById('winsList').innerHTML=s.wins.length
+    ?s.wins.map(r=>`<li><strong>${r.name}</strong><br>${fmtSF(Math.abs(r.variance))} · ${fmtMabs(Math.abs(r.costDelta))} saved</li>`).join('')
+    :'<li>No savings recorded</li>';
+  document.getElementById('investList').innerHTML=s.invests.length
+    ?s.invests.map(r=>`<li><strong>${r.name}</strong><br>${fmtSF(r.variance)} · ${fmtMabs(r.costDelta)} added${r.reason?`<br><em style="color:#8090a8;font-size:10px;">${esc(r.reason)}</em>`:''}</li>`).join('')
+    :'<li>No growth recorded</li>';
+}
+
+function updatePills(s){
+  [...tableBody.querySelectorAll('.row')].forEach((row,i)=>{
+    const pill=row.querySelector('.pill');
+    const r=s.enriched[i];
+    if(!r){pill.className='pill neutral';pill.textContent='On program';return;}
+    if(r.variance<0){pill.className='pill saved';pill.textContent=`${Math.abs(Math.round(r.variance)).toLocaleString()} SF saved`;}
+    else if(r.variance>r.band){pill.className='pill beyond';pill.textContent=`+${Math.round(r.variance).toLocaleString()} SF`;}
+    else if(r.variance>0){pill.className='pill added';pill.textContent=`+${Math.round(r.variance).toLocaleString()} SF`;}
+    else{pill.className='pill neutral';pill.textContent='On program';}
+  });
+}
+
+function niceStep(raw){
+  const exp=Math.floor(Math.log10(Math.max(raw,1)));
+  const frac=raw/(10**exp);
+  return(frac<=1?1:frac<=2?2:frac<=2.5?2.5:frac<=5?5:10)*(10**exp);
+}
+function quantile(arr,q){
+  if(!arr.length)return 0;
+  const pos=(arr.length-1)*q,base=Math.floor(pos),rest=pos-base;
+  return arr[base+1]!==undefined?arr[base]+rest*(arr[base+1]-arr[base]):arr[base];
+}
+
+function renderChart(rows){
+  const wrap=chartSvg.parentElement;
+  const W=Math.max(780,Math.round(wrap.clientWidth-8));
+  const H=Math.max(460,Math.round(chartSvg.clientHeight||(wrap.clientHeight-26)));
+  const mg={top:50,right:158,bottom:42,left:Math.min(245,Math.max(168,W*0.20))};
+  const iW=W-mg.left-mg.right,iH=H-mg.top-mg.bottom;
+  const cx=mg.left+iW/2;
+  const rowH=iH/Math.max(rows.length,1);
+  const barH=Math.min(22,rowH*0.50);
+  const mags=rows.map(r=>Math.max(Math.abs(r.variance),r.band)).filter(v=>v>0).sort((a,b)=>a-b);
+  const maxMag=mags.length?mags[mags.length-1]:200;
+  const domTarget=Math.max(quantile(mags,0.8)*1.2,maxMag*0.72,200);
+  const step=niceStep(domTarget/2);
+  const domMax=step*2;
+  const half=iW/2-20;
+  const sRaw=v=>(v/domMax)*half;
+  const sc=v=>Math.min(half,sRaw(v));
+  const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const f=(sz,wt,fill)=>`font-size="${sz}" font-family="Inter,Arial,sans-serif" font-weight="${wt}" fill="${fill}"`;
+  const fs=n=>Math.round(n).toLocaleString();
+  const arr=(x,y,d,fill)=>d==='r'?`<path d="M${x} ${y-6}L${x+10} ${y}L${x} ${y+6}Z" fill="${fill}"/>`:`<path d="M${x} ${y-6}L${x-10} ${y}L${x} ${y+6}Z" fill="${fill}"/>`;
+  const gc=Number(costSlider.value);
+
+  let o=`<rect x="0" y="0" width="${W}" height="${H}" fill="transparent"/>`;
+  o+=`<text x="${cx-120}" y="17" ${f(9,800,'#6a7d96')} letter-spacing="1.2" text-anchor="middle">MORE EFFICIENT →</text>`;
+  o+=`<text x="${cx+120}" y="17" ${f(9,800,'#6a7d96')} letter-spacing="1.2" text-anchor="middle">← STRATEGIC GROWTH</text>`;
+  o+=`<text x="${cx}" y="33" ${f(9,700,'#8092a4')} text-anchor="middle">Programmed baseline</text>`;
+
+  [-domMax,-domMax/2,0,domMax/2,domMax].forEach(v=>{
+    const x=cx+sRaw(v);
+    o+=`<line x1="${x}" y1="${mg.top-3}" x2="${x}" y2="${H-mg.bottom}" stroke="${v===0?'#cc4a38':'#edf3f8'}" stroke-width="${v===0?2.5:1}"/>`;
+    o+=`<text x="${x}" y="${H-9}" ${f(9,700,'#8092a4')} text-anchor="middle">${v===0?'0':fs(Math.abs(v))}</text>`;
+  });
+  o+=`<text x="${mg.left}" y="${H-9}" ${f(8,700,'#9aabbe')}>SF variance (auto-scaling)</text>`;
+
+  rows.forEach((r,i)=>{
+    const y=mg.top+i*rowH+rowH/2;
+    const bW=Math.max(0,sc(r.band));
+    const absV=Math.abs(r.variance);
+    const sW=r.variance<0?Math.max(5,sc(absV)):0;
+    const wi=r.variance>0?Math.min(r.variance,r.band):0;
+    const be=r.variance>r.band?r.variance-r.band:0;
+    const wiW=wi>0?Math.max(5,sc(wi)):0;
+    const beW=be>0?Math.max(5,sc(be)):0;
+    const ec=r.costOverride||gc;
+    const cl=r.variance!==0?` · ${fmtM(r.variance*ec)}`:'';
+
+    o+=`<line x1="${mg.left}" y1="${y}" x2="${W-mg.right+28}" y2="${y}" stroke="#eff4f9" stroke-width="1"/>`;
+    o+=`<text x="${mg.left-9}" y="${y+4}" ${f(12,700,'#17324d')} text-anchor="end">${esc(r.name)}</text>`;
+    o+=`<rect x="${cx-bW}" y="${y-barH/2}" width="${bW*2}" height="${barH}" rx="${barH/2}" fill="${css('--band')}" opacity="0.88"/>`;
+    if(sW>0){
+      o+=`<rect x="${cx-sW}" y="${y-barH/2}" width="${sW}" height="${barH}" rx="${barH/2}" fill="${css('--saved')}"/>`;
+      if(absV>domMax)o+=arr(cx-sW,y,'l',css('--saved'));
+      o+=`<text x="${Math.max(mg.left-5,cx-sW-7)}" y="${y+4}" ${f(10,700,'#1a5c98')} text-anchor="end">${fs(absV)} saved${cl}</text>`;
+    }
+    if(wiW>0)o+=`<rect x="${cx}" y="${y-barH/2}" width="${wiW}" height="${barH}" rx="${barH/2}" fill="${css('--within')}"/>`;
+    if(beW>0)o+=`<rect x="${cx+wiW}" y="${y-barH/2}" width="${beW}" height="${barH}" rx="${barH/2}" fill="${css('--beyond')}"/>`;
+    if(r.variance>0){
+      if(r.variance>domMax)o+=arr(cx+wiW+beW,y,'r',be>0?css('--beyond'):css('--within'));
+      o+=`<text x="${Math.min(W-8,cx+wiW+beW+7)}" y="${y+4}" ${f(10,700,be>0?'#a84f3e':'#7a5800')}>${fs(r.variance)} added${cl}</text>`;
+    }
+  });
+
+  chartSvg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  chartSvg.innerHTML=o;
+}
+
+function updateAll(){
+  document.getElementById('toleranceValue').textContent=toleranceSlider.value;
+  document.getElementById('netValue').textContent=netSlider.value;
+  document.getElementById('costValue').textContent=Number(costSlider.value).toLocaleString();
+
+  const s=compute(currentRows());
+  const within=Math.abs(s.netVariance)<=s.netBand;
+
+  document.getElementById('totalProgrammed').textContent=fmtSF(s.totalProgrammed);
+  document.getElementById('totalProgrammedCost').textContent=fmtMabs(s.totalProgrammed*s.globalCost);
+  document.getElementById('totalCurrent').textContent=fmtSF(s.totalCurrent);
+  document.getElementById('totalCurrentCost').textContent=fmtMabs(s.currentCost);
+  document.getElementById('spaceSaved').textContent=fmtSF(s.totalSaved);
+  document.getElementById('spaceSavedCost').textContent=`${fmtMabs(s.savedCostValue)} returned`;
+  document.getElementById('netVariance').textContent=signed(s.netVariance);
+  document.getElementById('netStatus').textContent=within?`Within ${netSlider.value}% band`:`Outside ${netSlider.value}% band`;
+  document.getElementById('netCostImpact').textContent=fmtM(s.netCostImpact);
+  document.getElementById('netCostNote').textContent=`At $${Number(costSlider.value).toLocaleString()}/SF`;
+
+  // Budget gap
+  const bgEl=document.getElementById('budgetGapMetric');
+  const bgNote=document.getElementById('budgetGapNote');
+  const bgLabel=document.getElementById('budgetGapLabel');
+  const bgEd=document.getElementById('editorBudgetGap');
+  if(s.budgetGap!==null){
+    const over=s.budgetGap>0;
+    const txt=fmtM(s.budgetGap);
+    bgEl.textContent=txt; bgEl.className='value '+(over?'bad':'good');
+    bgNote.textContent=over?'over owner target':'under owner target';
+    bgLabel.textContent=txt; bgLabel.style.color=over?'var(--bad)':'var(--good)';
+    bgEd.textContent=txt; bgEd.className='value '+(over?'bad':'good');
+  } else {
+    bgEl.textContent='—'; bgEl.className='value';
+    bgNote.textContent='Set budget target';
+    bgLabel.textContent='—';
+    bgEd.textContent='—'; bgEd.className='value';
+  }
+
+  document.getElementById('scoreNet').textContent=signed(s.netVariance);
+  document.getElementById('scoreNetCost').textContent=fmtM(s.netCostImpact);
+  document.getElementById('scoreNetText').textContent=within
+    ?`Tracking inside the agreed ${netSlider.value}% range — cost impact manageable at current $/SF.`
+    :`Outside the agreed ${netSlider.value}% range — adjust cost/SF or scope to rebalance.`;
+
+  ['netVariance','scoreNet'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.classList.remove('good','warn','bad');
+    el.classList.add(within?'good':s.netVariance>0?'bad':'good');
+  });
+  ['scoreNetCost','netCostImpact'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.classList.remove('good','warn','bad');
+    el.classList.add(within?'good':s.netCostImpact>0?'bad':'good');
+  });
+
+  document.getElementById('editorProgrammed').textContent=fmtSF(s.totalProgrammed);
+  document.getElementById('editorCurrent').textContent=fmtSF(s.totalCurrent);
+  document.getElementById('editorSaved').textContent=fmtSF(s.totalSaved);
+  document.getElementById('editorNet').textContent=signed(s.netVariance);
+  document.getElementById('editorNet').className='value '+(within?'good':s.netVariance>0?'bad':'good');
+  document.getElementById('editorCost').textContent=fmtM(s.netCostImpact);
+  document.getElementById('editorCost').className='value '+(within?'good':s.netCostImpact>0?'bad':'good');
+
+  renderNarrative(s);
+  updatePills(s);
+  renderChart(s.enriched);
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b===btn));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById(btn.dataset.view).classList.add('active');
+    requestAnimationFrame(updateAll);
+  });
+});
+
+[toleranceSlider,netSlider,costSlider,budgetField].forEach(el=>el.addEventListener('input',updateAll));
+window.addEventListener('resize',()=>requestAnimationFrame(updateAll));
+
+document.getElementById('addRowBtn').addEventListener('click',()=>{addRow({name:'New Department',programmed:2000,current:2000,reason:''});updateAll();});
+document.getElementById('loadSampleBtn').addEventListener('click',()=>loadRows(sampleRows));
+document.getElementById('downloadBtn').addEventListener('click',()=>{
+  const rows=currentRows();
+  const csv=['Department,Programmed SF,Current SF,Cost/SF Override,Reason']
+    .concat(rows.map(r=>`"${String(r.name).replace(/"/g,'""')}",${r.programmed},${r.current},${r.costOverride||''},"${String(r.reason||'').replace(/"/g,'""')}"`))
+    .join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`${(projectNameInput.value||'bjc').trim().replace(/[^a-z0-9]+/gi,'_')}_data.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+loadRows(sampleRows);
+</script>
+</body>
+</html>
