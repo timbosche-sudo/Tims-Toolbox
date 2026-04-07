@@ -1,0 +1,2590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mercy Clinic Design Guidelines | v4.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --mercy-green: #00703C;
+    --mercy-green-dark: #005a30;
+    --mercy-green-light: #e8f4ed;
+    --mercy-green-mid: #4a9e6e;
+    --mercy-gold: #C8932A;
+    --mercy-gold-light: #fdf6e8;
+    --mercy-cream: #FAF8F4;
+    --mercy-white: #ffffff;
+    --mercy-dark: #1a2e1f;
+    --mercy-text: #2d3d32;
+    --mercy-muted: #6b7c6e;
+    --mercy-border: #d4e0d8;
+    --mercy-bg: #F4F7F5;
+    --nav-width: 280px;
+    --header-h: 72px;
+    --shadow-sm: 0 1px 4px rgba(0,70,30,0.08);
+    --shadow-md: 0 4px 16px rgba(0,70,30,0.12);
+    --shadow-lg: 0 12px 40px rgba(0,70,30,0.15);
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--mercy-bg);
+    color: var(--mercy-text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: fixed; top:0; left:0; right:0; z-index:200;
+    height: var(--header-h);
+    background: var(--mercy-green);
+    display: flex; align-items: center;
+    padding: 0 24px 0 0;
+    box-shadow: var(--shadow-md);
+  }
+  .header-brand {
+    display: flex; align-items: center; gap: 0;
+    height: var(--header-h);
+    padding: 0 24px;
+    border-right: 1px solid rgba(255,255,255,0.15);
+    margin-right: 20px;
+    min-width: var(--nav-width);
+    background: white;
+  }
+  .mercy-logo-wrap {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .mercy-logo-wrap img {
+    height: 42px; width: auto;
+    object-fit: contain;
+  }
+  .mercy-logo-fallback {
+    color: white;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px; font-weight: 600; letter-spacing: 0.04em;
+  }
+  .header-title {
+    flex:1;
+    color: rgba(255,255,255,0.95);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px; font-weight: 400; letter-spacing: 0.03em;
+  }
+  .header-title span {
+    display: block; font-size: 11px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300; letter-spacing: 0.12em; text-transform: uppercase;
+    color: rgba(255,255,255,0.65); margin-top: 2px;
+  }
+  .header-meta {
+    display: flex; align-items: center; gap: 16px;
+  }
+  .version-badge {
+    background: var(--mercy-gold);
+    color: white; font-size: 10px; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 20px;
+  }
+  .bsa-logo-wrap img {
+    height: 26px; width: auto;
+    opacity: 0.85;
+  }
+
+  /* -- SEARCH BAR -- */
+  .search-wrap {
+    padding: 0 16px;
+    flex: 1; max-width: 400px;
+  }
+  .search-inner {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 8px; padding: 7px 14px;
+    transition: background 0.2s;
+  }
+  .search-inner:focus-within {
+    background: rgba(255,255,255,0.25);
+    border-color: rgba(255,255,255,0.5);
+  }
+  #searchInput {
+    background: transparent; border: none; outline: none;
+    color: white; font-size: 13px; font-family: DM Sans, sans-serif;
+    width: 100%; cursor: text;
+    -webkit-text-fill-color: white;
+    pointer-events: all; user-select: text; -webkit-user-select: text;
+  }
+  #searchInput::placeholder { color: rgba(255,255,255,0.55); }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: flex;
+    margin-top: var(--header-h);
+    min-height: calc(100vh - var(--header-h));
+  }
+
+  /* ── SIDEBAR NAV ── */
+  nav {
+    width: var(--nav-width);
+    background: var(--mercy-white);
+    border-right: 1px solid var(--mercy-border);
+    position: fixed; top: var(--header-h); bottom: 0; left: 0;
+    overflow-y: auto; z-index: 100;
+    padding-bottom: 40px;
+  }
+  nav::-webkit-scrollbar { width: 4px; }
+  nav::-webkit-scrollbar-track { background: transparent; }
+  nav::-webkit-scrollbar-thumb { background: var(--mercy-border); border-radius: 4px; }
+
+  .nav-section { padding: 20px 0 0; }
+  .nav-section-label {
+    font-size: 9px; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--mercy-muted);
+    padding: 0 18px 8px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 18px; cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+    color: var(--mercy-text); font-size: 13px; font-weight: 400;
+    text-decoration: none;
+  }
+  .nav-item:hover { background: var(--mercy-green-light); color: var(--mercy-green); }
+  .nav-item.active {
+    background: var(--mercy-green-light);
+    border-left-color: var(--mercy-green);
+    color: var(--mercy-green); font-weight: 500;
+  }
+  .nav-item .nav-icon {
+    width: 18px; height: 18px; flex-shrink: 0;
+    color: inherit; opacity: 0.7;
+  }
+  .nav-divider { height: 1px; background: var(--mercy-border); margin: 8px 18px; }
+
+  /* ── MAIN CONTENT ── */
+  main {
+    margin-left: var(--nav-width);
+    flex: 1; padding: 32px 40px 60px;
+    max-width: 100%;
+  }
+
+  /* ── SECTION PANEL ── */
+  .section-panel { display: none; }
+  .section-panel.active { display: block; }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 2px solid var(--mercy-border);
+    display: flex; justify-content: space-between; align-items: flex-end;
+  }
+  .page-header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px; font-weight: 600; color: var(--mercy-dark);
+    line-height: 1.1;
+  }
+  .page-header p {
+    font-size: 14px; color: var(--mercy-muted); margin-top: 6px;
+    max-width: 560px; line-height: 1.6;
+  }
+  .section-tag {
+    background: var(--mercy-green); color: white;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 4px 12px; border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--mercy-white);
+    border: 1px solid var(--mercy-border);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+  }
+  .card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px; font-weight: 600; color: var(--mercy-dark);
+    margin-bottom: 6px;
+  }
+  .card-sub {
+    font-size: 12px; color: var(--mercy-muted); text-transform: uppercase;
+    letter-spacing: 0.1em; margin-bottom: 14px;
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  /* ── STAT CARDS ── */
+  .stat-card {
+    background: var(--mercy-white);
+    border: 1px solid var(--mercy-border);
+    border-radius: var(--radius);
+    padding: 20px; text-align: center;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: default;
+  }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .stat-card .stat-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px; font-weight: 600; color: var(--mercy-green);
+    line-height: 1;
+  }
+  .stat-card .stat-label {
+    font-size: 11px; color: var(--mercy-muted); margin-top: 6px;
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .stat-card .stat-note {
+    font-size: 11px; color: var(--mercy-text); margin-top: 4px;
+  }
+
+  /* ── EXPERIENCE PILLARS ── */
+  .pillar-card {
+    background: var(--mercy-white);
+    border: 1px solid var(--mercy-border);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    border-left: 4px solid var(--mercy-green);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s;
+  }
+  .pillar-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .pillar-card h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; font-weight: 600; color: var(--mercy-green);
+    margin-bottom: 8px;
+  }
+  .pillar-card .pillar-quote {
+    font-style: italic; font-size: 13px; color: var(--mercy-muted);
+    margin-bottom: 12px; line-height: 1.5;
+    border-left: 2px solid var(--mercy-gold);
+    padding-left: 10px;
+  }
+  .pillar-list { list-style: none; }
+  .pillar-list li {
+    font-size: 13px; color: var(--mercy-text); line-height: 1.5;
+    padding: 5px 0;
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .pillar-list li::before {
+    content: '✦'; color: var(--mercy-green); font-size: 9px;
+    flex-shrink: 0; margin-top: 3px;
+  }
+
+  /* ── PROTOTYPE TABLE ── */
+  .proto-table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr {
+    background: var(--mercy-green);
+    color: white;
+  }
+  thead th {
+    padding: 12px 14px; text-align: left;
+    font-weight: 500; font-size: 12px;
+    letter-spacing: 0.05em; white-space: nowrap;
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--mercy-border);
+    transition: background 0.15s;
+  }
+  tbody tr:hover { background: var(--mercy-green-light); }
+  tbody td {
+    padding: 11px 14px; color: var(--mercy-text); vertical-align: middle;
+  }
+  td.highlight { font-weight: 600; color: var(--mercy-green); }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;
+  }
+  .badge-green { background: var(--mercy-green-light); color: var(--mercy-green); }
+  .badge-gold { background: var(--mercy-gold-light); color: var(--mercy-gold); }
+
+  /* ── ROOM GUIDE CARDS ── */
+  .room-card {
+    background: var(--mercy-white);
+    border: 1px solid var(--mercy-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .room-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .room-card-header {
+    background: var(--mercy-green);
+    padding: 14px 18px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .room-card-header h3 { color: white; font-size: 15px; font-weight: 500; }
+  .room-card-header .room-size {
+    color: rgba(255,255,255,0.8); font-size: 12px;
+    font-family: 'DM Mono', monospace;
+  }
+  .room-card-body { padding: 16px 18px; }
+  .spec-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0; border-bottom: 1px solid var(--mercy-border);
+    font-size: 12.5px;
+  }
+  .spec-row:last-child { border-bottom: none; }
+  .spec-label { color: var(--mercy-muted); font-weight: 500; }
+  .spec-val { color: var(--mercy-text); text-align: right; max-width: 55%; font-size: 12px; }
+  .spec-section-title {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--mercy-muted);
+    padding: 10px 0 4px; margin-top: 4px;
+    border-top: 1px solid var(--mercy-border);
+  }
+
+  /* ── ACCORDION / EXPANDABLE ── */
+  .accordion-item {
+    border: 1px solid var(--mercy-border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+  .accordion-header {
+    padding: 14px 18px; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--mercy-white); user-select: none;
+    transition: background 0.15s;
+  }
+  .accordion-header:hover { background: var(--mercy-green-light); }
+  .accordion-header.open { background: var(--mercy-green-light); }
+  .accordion-header h4 {
+    font-size: 14px; font-weight: 500; color: var(--mercy-dark);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .accordion-header .acc-icon {
+    width: 20px; height: 20px; background: var(--mercy-green-light);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--mercy-green); font-weight: 700;
+  }
+  .open .acc-icon { background: var(--mercy-green); color: white; }
+  .accordion-arrow {
+    color: var(--mercy-muted); transition: transform 0.2s; font-size: 12px;
+  }
+  .accordion-header.open .accordion-arrow { transform: rotate(180deg); }
+  .accordion-body {
+    padding: 0 18px; max-height: 0; overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.2s;
+    background: var(--mercy-cream);
+  }
+  .accordion-body.open { max-height: 1200px; padding: 16px 18px; }
+
+  /* ── BRAND ELEMENTS ── */
+  .brand-elem-card {
+    background: var(--mercy-white);
+    border: 1px solid var(--mercy-border);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+  }
+  .brand-icon-circle {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--mercy-green-light);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 12px; font-size: 22px;
+  }
+  .brand-elem-card h4 {
+    font-weight: 600; font-size: 14px; color: var(--mercy-dark); margin-bottom: 8px;
+  }
+  .brand-elem-card p {
+    font-size: 13px; color: var(--mercy-muted); line-height: 1.6;
+  }
+
+  /* ── FINISH PALETTE ── */
+  .finish-group { margin-bottom: 28px; }
+  .finish-group-label {
+    font-size: 12px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--mercy-muted);
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .finish-group-label::after {
+    content: ''; flex: 1; height: 1px; background: var(--mercy-border);
+  }
+  .finish-swatches {
+    display: flex; flex-wrap: wrap; gap: 10px;
+  }
+  .swatch {
+    border-radius: var(--radius-sm); overflow: hidden;
+    border: 1px solid var(--mercy-border);
+    cursor: default;
+    transition: transform 0.15s, box-shadow 0.15s;
+    width: 110px;
+  }
+  .swatch:hover { transform: scale(1.04); box-shadow: var(--shadow-md); }
+  .swatch-color {
+    height: 56px; width: 100%;
+  }
+  .swatch-info { padding: 7px 9px; background: white; }
+  .swatch-code { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--mercy-muted); }
+  .swatch-name { font-size: 11px; color: var(--mercy-text); margin-top: 2px; font-weight: 500; }
+
+  /* ── KPI TIMELINE ── */
+  .timeline {
+    position: relative; padding-left: 24px;
+    margin-top: 12px;
+  }
+  .timeline::before {
+    content:''; position:absolute; left:8px; top:4px; bottom:0;
+    width:2px; background: var(--mercy-border);
+  }
+  .timeline-item {
+    position: relative; margin-bottom: 16px;
+    padding: 12px 14px;
+    background: var(--mercy-white); border: 1px solid var(--mercy-border);
+    border-radius: var(--radius-sm); box-shadow: var(--shadow-sm);
+  }
+  .timeline-item::before {
+    content:''; position:absolute; left:-20px; top:16px;
+    width:10px; height:10px; border-radius:50%;
+    background: var(--mercy-green);
+    border: 2px solid white; box-shadow: 0 0 0 2px var(--mercy-green);
+  }
+  .timeline-day {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; color: var(--mercy-muted); margin-bottom: 4px;
+  }
+  .timeline-content { font-size: 13px; color: var(--mercy-text); font-weight: 500; }
+  .timeline-detail { font-size: 11px; color: var(--mercy-muted); margin-top: 4px; line-height: 1.5; }
+
+  /* ── SEARCH RESULTS ── */
+  #searchResults {
+    position: fixed; top: var(--header-h); right: 0; left: var(--nav-width);
+    background: white; border-bottom: 2px solid var(--mercy-green);
+    padding: 16px 40px; z-index: 150;
+    max-height: 60vh; overflow-y: auto;
+    display: none;
+    box-shadow: var(--shadow-lg);
+  }
+  #searchResults.visible { display: block; }
+  .search-result-item {
+    padding: 10px 14px; border-radius: var(--radius-sm);
+    cursor: pointer; margin-bottom: 4px;
+    border: 1px solid var(--mercy-border);
+    transition: background 0.15s;
+  }
+  .search-result-item:hover { background: var(--mercy-green-light); }
+  .result-title { font-weight: 500; font-size: 13px; color: var(--mercy-dark); }
+  .result-excerpt { font-size: 12px; color: var(--mercy-muted); margin-top: 2px; }
+  .result-section { font-size: 10px; color: var(--mercy-green); text-transform: uppercase; letter-spacing: 0.1em; }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex; gap: 4px; margin-bottom: 20px;
+    border-bottom: 2px solid var(--mercy-border);
+    padding-bottom: 0;
+  }
+  .tab-btn {
+    padding: 8px 16px; cursor: pointer;
+    border: none; background: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 400;
+    color: var(--mercy-muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .tab-btn:hover { color: var(--mercy-green); }
+  .tab-btn.active { color: var(--mercy-green); font-weight: 600; border-bottom-color: var(--mercy-green); }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  /* ── REQ TABLE ── */
+  .req-table-wrap { overflow-x: auto; margin-top: 16px; }
+  .req-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .req-table th {
+    padding: 10px 12px; text-align: left;
+    font-weight: 600; font-size: 11px; letter-spacing: 0.06em;
+    background: var(--mercy-green); color: white;
+    white-space: nowrap;
+  }
+  .req-table td {
+    padding: 9px 12px; border-bottom: 1px solid var(--mercy-border);
+    vertical-align: middle;
+    font-size: 12px; color: var(--mercy-text);
+  }
+  .req-table tr:hover td { background: var(--mercy-green-light); }
+  .req-cell-label { font-weight: 500; color: var(--mercy-dark); }
+
+  /* ── INFO CALLOUT ── */
+  .callout {
+    border-left: 4px solid var(--mercy-green);
+    background: var(--mercy-green-light);
+    padding: 14px 18px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    margin-bottom: 20px;
+  }
+  .callout.gold {
+    border-left-color: var(--mercy-gold);
+    background: var(--mercy-gold-light);
+  }
+  .callout strong { font-weight: 600; color: var(--mercy-dark); font-size: 13px; }
+  .callout p { font-size: 13px; color: var(--mercy-text); margin-top: 4px; line-height: 1.6; }
+
+  /* ── PROGRAM TABLE ── */
+  .program-section { margin-bottom: 24px; }
+  .program-section h4 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px; color: var(--mercy-green); margin-bottom: 12px;
+    padding-bottom: 6px; border-bottom: 1px solid var(--mercy-border);
+  }
+
+  /* ── EQ TABLE ── */
+  .eq-list { margin-top: 8px; }
+  .eq-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 0; border-bottom: 1px solid var(--mercy-border);
+    font-size: 12.5px;
+  }
+  .eq-ref {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    color: var(--mercy-muted); width: 80px; flex-shrink: 0;
+  }
+  .eq-desc { flex: 1; color: var(--mercy-text); }
+  .eq-resp {
+    font-size: 11px; color: var(--mercy-muted);
+    background: var(--mercy-bg); padding: 2px 6px; border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 1100px) {
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 860px) {
+    .grid-3 { grid-template-columns: repeat(2, 1fr); }
+    .grid-2 { grid-template-columns: 1fr; }
+    main { padding: 20px 20px 40px; }
+  }
+
+  /* PRINT */
+  @media print {
+    header, nav, .search-wrap { display: none; }
+    main { margin-left: 0; padding: 20px; }
+    .section-panel { display: block !important; page-break-before: always; }
+    .section-panel:first-child { page-break-before: auto; }
+  }
+
+  /* NAV HOVER label */
+  .nav-count {
+    margin-left: auto;
+    background: var(--mercy-green-light);
+    color: var(--mercy-green);
+    font-size: 10px; font-weight: 600;
+    padding: 1px 7px; border-radius: 10px;
+  }
+  .active .nav-count {
+    background: var(--mercy-green);
+    color: white;
+  }
+
+  /* section intro */
+  .section-intro {
+    background: var(--mercy-white);
+    border: 1px solid var(--mercy-border);
+    border-radius: var(--radius);
+    padding: 20px 24px 20px;
+    margin-bottom: 28px;
+    display: flex; gap: 20px; align-items: flex-start;
+    box-shadow: var(--shadow-sm);
+  }
+  .intro-icon { font-size: 32px; flex-shrink: 0; }
+  .section-intro h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; color: var(--mercy-dark); margin-bottom: 6px;
+  }
+  .section-intro p { font-size: 13px; color: var(--mercy-muted); line-height: 1.65; }
+
+  /* Room guide selector */
+  .room-selector {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px;
+  }
+  .room-btn {
+    padding: 7px 14px; cursor: pointer;
+    border: 1px solid var(--mercy-border);
+    border-radius: 20px; background: white;
+    font-size: 12px; font-family: 'DM Sans', sans-serif;
+    color: var(--mercy-text); transition: all 0.15s;
+  }
+  .room-btn:hover { border-color: var(--mercy-green); color: var(--mercy-green); }
+  .room-btn.active {
+    background: var(--mercy-green); border-color: var(--mercy-green);
+    color: white; font-weight: 500;
+  }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <div class="mercy-logo-wrap">
+      <img src="https://timbosche-sudo.github.io/Tims-Toolbox/Mercy.png"
+           alt="Mercy"
+           style="height:42px;width:auto;object-fit:contain;"
+           onerror="this.style.display='none'; document.getElementById('mercyFallback').style.display='block';">
+      <span id="mercyFallback" class="mercy-logo-fallback" style="display:none;">Mercy</span>
+    </div>
+  </div>
+  <div class="header-title">
+    Clinic Design Guidelines
+    <span>Version 4.0 · 2023 · Primary Care Prototypes</span>
+  </div>
+  <div class="search-wrap">
+    <div class="search-inner">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;opacity:0.7;">
+        <circle cx="8.5" cy="8.5" r="5.5"/><path d="M14 14l3.5 3.5"/>
+      </svg>
+      <input type="text" id="searchInput"
+        placeholder="Search guidelines..."
+        autocomplete="off"
+        style="border:none;outline:none;background:transparent;font-size:13px;font-family:DM Sans,sans-serif;color:white;-webkit-text-fill-color:white;width:100%;cursor:text;">
+    </div>
+  </div>
+  <div class="header-meta">
+    <span class="version-badge">v4.0 · 2023</span>
+    <div class="bsa-logo-wrap">
+      <img src="https://timbosche-sudo.github.io/Tims-Toolbox/BSA-white.png"
+           alt="BSA"
+           onerror="this.style.display='none';">
+    </div>
+  </div>
+</header>
+
+
+<div id="searchResults"></div>
+
+<div class="layout">
+<nav id="sideNav">
+  <div class="nav-section">
+    <div class="nav-section-label">Overview</div>
+    <a class="nav-item active" data-section="overview" onclick="showSection('overview',this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="16" height="14" rx="2"/><path d="M6 7h8M6 10h8M6 13h5"/></svg>
+      Design Intent
+    </a>
+    <a class="nav-item" data-section="experience" onclick="showSection('experience',this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 2l2 6h6l-5 3.6 1.9 5.9L10 14l-4.9 3.5L7 11.6 2 8h6z"/></svg>
+      Mercy Experience
+    </a>
+    <a class="nav-item" data-section="principles" onclick="showSection('principles',this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 2C5.6 2 2 5.6 2 10s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8z"/><path d="M10 6v4l3 2"/></svg>
+      Facility Principles
+    </a>
+    <a class="nav-item" data-section="branding" onclick="showSection('branding',this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10h14M10 3v14"/><circle cx="10" cy="10" r="7"/></svg>
+      Brand Identities
+    </a>
+  </div>
+  <div class="nav-divider"></div>
+  <div class="nav-section">
+    <div class="nav-section-label">Prototypes</div>
+    <a class="nav-item" data-section="prototypes" onclick="showSection('prototypes',this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="7" height="7" rx="1"/><rect x="11" y="2" width="7" height="7" rx="1"/><rect x="2" y="11" width="7" height="7" rx="1"/><rect x="11" y="11" width="7" height="7" rx="1"/></svg>
+      Clinic Models
+      <span class="nav-count">8</span>
+    </a>
+    <a class="nav-item" data-section="requirements" onclick="showSection('requirements',this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h0a2 2 0 002-2M9 5a2 2 0 012-2h0a2 2 0 012 2"/></svg>
+      Prototype Requirements
+    </a>
+    <a class="nav-item" data-section="programs" onclick="showSection('programs',this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 10h16M4 14h10"/></svg>
+      Space Programs
+    </a>
+    <a class="nav-item" data-section="kpi" onclick="showSection('kpi',this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l4-8 4 4 4-6 4 4"/></svg>
+      KPI Timelines
+    </a>
+  </div>
+  <div class="nav-divider"></div>
+  <div class="nav-section">
+    <div class="nav-section-label">Room Guides</div>
+    <a class="nav-item" data-section="rooms" onclick="showSection('rooms',this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="16" height="12" rx="1.5"/><path d="M8 16V10M8 10h4M12 10v6"/></svg>
+      All Room Guides
+      <span class="nav-count">12</span>
+    </a>
+  </div>
+  <div class="nav-divider"></div>
+  <div class="nav-section">
+    <div class="nav-section-label">Design Standards</div>
+    <a class="nav-item" data-section="finishes" onclick="showSection('finishes',this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7" cy="7" r="4"/><circle cx="14" cy="13" r="4"/></svg>
+      Finishes & Materials
+    </a>
+    <a class="nav-item" data-section="site" onclick="showSection('site',this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 2C6.7 2 4 4.7 4 8c0 5.2 6 10 6 10s6-4.8 6-10c0-3.3-2.7-6-6-6z"/><circle cx="10" cy="8" r="2"/></svg>
+      Site & Wayfinding
+    </a>
+    <a class="nav-item" data-section="technical" onclick="showSection('technical',this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 2v4M10 14v4M2 10h4M14 10h4"/><circle cx="10" cy="10" r="4"/></svg>
+      Technical Standards
+    </a>
+  </div>
+</nav>
+
+<main id="mainContent">
+
+  <!-- ══ OVERVIEW ══ -->
+  <section class="section-panel active" id="section-overview">
+    <div class="page-header">
+      <div>
+        <h1>Design Guideline Intent</h1>
+        <p>A planning tool defining design features and experience expectations for all Mercy clinic facilities, as defined by the Mercy brand.</p>
+      </div>
+      <span class="section-tag">Overview</span>
+    </div>
+
+    <div class="section-intro">
+      <div class="intro-icon">⛪</div>
+      <div>
+        <h2>About This Document</h2>
+        <p>This design guide defines the planning process for approved Mercy projects. Approved project definitions are reviewed at each project kick-off meeting, resulting in selection of an appropriate prototype model. Minor modifications can be made within the prototype framework; major deviations require review and approval by Mercy Planning, Design and Construction and Chief Marketing Officer.</p>
+      </div>
+    </div>
+
+    <div class="grid-4" style="margin-bottom:28px;">
+      <div class="stat-card">
+        <div class="stat-val">144</div>
+        <div class="stat-label">Document Pages</div>
+        <div class="stat-note">Comprehensive guideline</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">4.0</div>
+        <div class="stat-label">Current Version</div>
+        <div class="stat-note">Released Dec 2023</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">8</div>
+        <div class="stat-label">Clinic Prototypes</div>
+        <div class="stat-note">Retail to Large Multi-Specialty</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">12</div>
+        <div class="stat-label">Room Guide Sheets</div>
+        <div class="stat-note">Full specs per space</div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:28px;">
+      <div class="card">
+        <div class="card-sub">Primary Care Settings</div>
+        <div class="card-title">Three Care Delivery Models</div>
+        <div style="margin-top:12px;">
+          <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAcc(this)">
+              <h4><span class="acc-icon">1</span>Exam/Treatment Primary Care Clinics</h4>
+              <span class="accordion-arrow">▼</span>
+            </div>
+            <div class="accordion-body">
+              <p style="font-size:13px;line-height:1.7;color:var(--mercy-text)">Services provided by physicians, nurse practitioners, and physician assistants specifically trained in first point contact with patients with undiagnosed signs, symptoms, or health concerns. Divided into groups of examination rooms and ancillary support services.</p>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAcc(this)">
+              <h4><span class="acc-icon">2</span>Specialty Care Clinics</h4>
+              <span class="accordion-arrow">▼</span>
+            </div>
+            <div class="accordion-body">
+              <p style="font-size:13px;line-height:1.7;color:var(--mercy-text)">Support Exam/Treatment Primary Care when specialized needs are prescribed. Includes Cardiovascular Services, OB/GYN, Oncology, Orthopedic, Surgery Medicine, Gastroenterology, Neurosciences and Urology. Special demands identified based on utilization and market demand.</p>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAcc(this)">
+              <h4><span class="acc-icon">3</span>Primary Care Facility Types</h4>
+              <span class="accordion-arrow">▼</span>
+            </div>
+            <div class="accordion-body">
+              <p style="font-size:13px;line-height:1.7;color:var(--mercy-text)">Freestanding clinics located within community settings. May include basic Laboratory and Radiology functions. Range from approximately 6,000 bgsf to over 12,000 bgsf. Covers both remote facilities and those located on Mercy Hospital Campuses.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-sub">Pod Concept</div>
+        <div class="card-title">Flexible & Adaptable Design</div>
+        <p style="font-size:13px;color:var(--mercy-muted);margin:12px 0 16px;line-height:1.7;">Clinic pod prototypes are designed to flex for any specialty. Each pod provides a central core space with specific needs for specialty practices, limiting future renovation to this core area only.</p>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--mercy-text)">
+            <span style="color:var(--mercy-green);font-weight:700;">→</span> Mix of large and standard exam rooms per pod
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--mercy-text)">
+            <span style="color:var(--mercy-green);font-weight:700;">→</span> 6-foot corridor for patient traffic in each pod
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--mercy-text)">
+            <span style="color:var(--mercy-green);font-weight:700;">→</span> Providers share pocket offices; MA staff in bullpen
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--mercy-text)">
+            <span style="color:var(--mercy-green);font-weight:700;">→</span> Lab adjacent to MA work area for continuity
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--mercy-text)">
+            <span style="color:var(--mercy-green);font-weight:700;">→</span> 29' standard column grid for 1-story clinics
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--mercy-text)">
+            <span style="color:var(--mercy-green);font-weight:700;">→</span> 11' deep exam zones; 6' patient corridors
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Governance Note</strong>
+      <p>Approved project definitions are reviewed at each project kick-off meeting. Minor modifications are permitted within the prototype framework. Any major deviations must be reviewed and approved by Mercy Planning, Design and Construction and the Chief Marketing Officer.</p>
+    </div>
+  </section>
+
+  <!-- ══ EXPERIENCE ══ -->
+  <section class="section-panel" id="section-experience">
+    <div class="page-header">
+      <div>
+        <h1>The Mercy Experience</h1>
+        <p>Five brand expression attributes that define how patients, families, and co-workers experience Mercy facilities.</p>
+      </div>
+      <span class="section-tag">Brand Values</span>
+    </div>
+
+    <div class="callout gold">
+      <strong>Design Philosophy</strong>
+      <p>The caring passion of the Sisters of Mercy is expressed through our actions and places. Each of the five brand attributes guides specific design decisions that create a uniquely Mercy experience across all clinic environments.</p>
+    </div>
+
+    <div class="grid-2" style="gap:20px;">
+      <div class="pillar-card" style="border-left-color:#00703C;">
+        <h3>Vibrant</h3>
+        <div class="pillar-quote">"Being vibrant is to believe that a single interaction with someone can change their mind or make them feel differently."</div>
+        <ul class="pillar-list">
+          <li>Abundance of <strong>natural light</strong> throughout the building</li>
+          <li>Create <strong>views</strong> that integrate exterior landscaping with interior spaces</li>
+          <li>Focus <strong>bright colors</strong> where attention is needed; aid wayfinding</li>
+          <li>Incorporate Mercy's <strong>brand elements</strong> unique to identity as a ministry</li>
+          <li>Include <strong>live plants</strong> whenever possible; draw the outside in</li>
+        </ul>
+      </div>
+
+      <div class="pillar-card" style="border-left-color:#2E8B57;">
+        <h3>Easy</h3>
+        <div class="pillar-quote">"Take away the worry or complexity for our patients and families."</div>
+        <ul class="pillar-list">
+          <li>Interior elements supporting <strong>intuitive wayfinding</strong> via material/finish changes</li>
+          <li><strong>Open waiting spaces</strong> with visual connection between destinations</li>
+          <li>Locate <strong>family amenities</strong> close to the patient</li>
+          <li>Keep spaces <strong>clean and simple</strong> so people can find what they need</li>
+          <li>Always keep the patient <strong>moving forward</strong> through the clinic</li>
+        </ul>
+      </div>
+
+      <div class="pillar-card" style="border-left-color:#4a9e6e;">
+        <h3>Personal</h3>
+        <div class="pillar-quote">"We are all individuals and we want to be recognized and valued for who we are."</div>
+        <ul class="pillar-list">
+          <li>Allow patients and visitors <strong>choice and control</strong> over environment</li>
+          <li>Offer a <strong>variety of seating</strong>: lounge, bar height tables, work counters</li>
+          <li>Plan for <strong>personal devices</strong> including charging capabilities</li>
+          <li>Create spaces supporting <strong>smaller groupings</strong> where a single family can wait</li>
+        </ul>
+      </div>
+
+      <div class="pillar-card" style="border-left-color:#C8932A;">
+        <h3>Comprehensive</h3>
+        <div class="pillar-quote">"When patients feel all their needs have been met, we meet part of the challenge to get healthcare right."</div>
+        <ul class="pillar-list">
+          <li>View design through patients', visitors', and caregivers' <strong>perspective</strong></li>
+          <li>Everything designed to <strong>meet the needs</strong> of patients and co-workers</li>
+          <li>Choose <strong>finish materials</strong> that stand the test of time in aesthetics, durability, and maintainability</li>
+          <li>Include all <strong>stakeholders</strong> in design process as early as possible</li>
+          <li><strong>Balance needs</strong> of first cost with long-term maintenance</li>
+        </ul>
+      </div>
+
+      <div class="pillar-card" style="border-left-color:#1a7a4a; grid-column: 1 / -1;">
+        <h3>Professional</h3>
+        <div class="pillar-quote">"Use our knowledge and experience to create trust and comfort and produce better outcomes."</div>
+        <ul class="pillar-list" style="column-count:2;column-gap:24px;">
+          <li>Be good <strong>financial stewards</strong> of designed environments</li>
+          <li>Provide appropriate <strong>storage</strong> in appropriate places</li>
+          <li>All Mercy locations are <strong>clean, orderly, and well maintained</strong></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ PRINCIPLES ══ -->
+  <section class="section-panel" id="section-principles">
+    <div class="page-header">
+      <div>
+        <h1>Facility Principles</h1>
+        <p>Six core facility design principles that guide every Mercy clinic, from site selection to interior patient pathways.</p>
+      </div>
+      <span class="section-tag">Design Principles</span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAcc(this)">
+          <h4><span class="acc-icon">1</span>Easily Accessible Locations</h4>
+          <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <p style="font-size:13px;line-height:1.7;color:var(--mercy-text)">Mercy sites should be selected with easy, safe vehicular and pedestrian access. Sites should allow for good visibility from major intersections and roads and should include room for the facility to expand. This enables visitors to see the facility clearly, get to it safely, and navigate the site easily.</p>
+          <p style="font-size:12px;font-style:italic;color:var(--mercy-muted);margin-top:10px;padding:8px 12px;background:var(--mercy-cream);border-radius:6px;">"Campus is easy to find – very accessible. It is located away from the congestion of traffic and business." – Springfield Orthopedic Focus Group</p>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAcc(this)">
+          <h4><span class="acc-icon">2</span>Identifiable Exterior Features</h4>
+          <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <p style="font-size:13px;line-height:1.7;color:var(--mercy-text)">The unique elements of Mercy's exterior design are focused where those we serve spend the most time. The main element is the <strong>Mercy lantern</strong> — providing a welcoming beacon of light while drawing attention to the entry. The lantern is connected to Mercy's heritage; its design showcases a cross harkening to Mercy's Catholic Christian heritage and Catherine McAuley's habit of praying to window mullions.</p>
+          <p style="font-size:12px;font-style:italic;color:var(--mercy-muted);margin-top:10px;padding:8px 12px;background:var(--mercy-cream);border-radius:6px;">"I like that the entrance is big and clear; I can easily navigate from any parking place to the main entrance." – St. Louis Focus Group</p>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAcc(this)">
+          <h4><span class="acc-icon">3</span>Connecting the Outside In</h4>
+          <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <p style="font-size:13px;line-height:1.7;color:var(--mercy-text)">Mercy facility design connects inside and outside, bringing healing elements of nature into buildings through large expanses of glass in exterior walls and nature-focused artwork. Sites should have natural features enhancing experience. Freestanding clinics should always include the branded entry bench with scripture. Courtyards, outdoor waiting areas, seat walls, and water features should be incorporated where appropriate.</p>
+          <p style="font-size:12px;font-style:italic;color:var(--mercy-muted);margin-top:10px;padding:8px 12px;background:var(--mercy-cream);border-radius:6px;">"Open bigger windows, not dark and gloomy." – Rolla Focus Group</p>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAcc(this)">
+          <h4><span class="acc-icon">4</span>Comfortably Navigating Our Sites</h4>
+          <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <p style="font-size:13px;line-height:1.7;color:var(--mercy-text)">Mercy sites should be designed with clear wayfinding strategies, no-fault circulation, and clear decision points. On large campuses, this can be accomplished with a site loop road. Sites should be easy to navigate at a pedestrian level through hub and spoke parking and clearly marked pedestrian paths.</p>
+          <p style="font-size:12px;font-style:italic;color:var(--mercy-muted);margin-top:10px;padding:8px 12px;background:var(--mercy-cream);border-radius:6px;">"The parking is well-arranged so that between front and back, one never has to walk very far." – Rolla Focus Group</p>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAcc(this)">
+          <h4><span class="acc-icon">5</span>Security and Convenience of Entrances</h4>
+          <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <p style="font-size:13px;line-height:1.7;color:var(--mercy-text)">Mercy facilities should be designed with welcoming, comforting entrances offering patients a place to wait outside while sheltered under a canopy. Seating can be an integrated seat wall or bench. Entry vestibules should be designed with an L-shaped circulation path to block wind from entering.</p>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAcc(this)">
+          <h4><span class="acc-icon">6</span>Intuitive Patient Pathways</h4>
+          <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <p style="font-size:13px;line-height:1.7;color:var(--mercy-text)">A goal in Mercy spaces is to prioritize patients' and staff's ease of navigation. This is accomplished by simplifying circulation through a main gallery combining circulation and seating. The large gallery allows views to destinations, making it easier to orient. Key circulation features such as elevators and stairways should be placed in highly visible areas.</p>
+          <p style="font-size:12px;font-style:italic;color:var(--mercy-muted);margin-top:10px;padding:8px 12px;background:var(--mercy-cream);border-radius:6px;">"Signage should be easy to read and understand." – Springfield Orthopedic Focus Group</p>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAcc(this)">
+          <h4><span class="acc-icon">7</span>Purposeful Interior Elements</h4>
+          <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <p style="font-size:13px;line-height:1.7;color:var(--mercy-text)">Mercy interiors create healing places that are warm, welcoming, and bright. Interior elements should be simple and utilize timeless design elements. Special materials draw attention to key elements. Bright colors should be used in locations that are easy to change over time (paint, artwork) while lasting materials (flooring, millwork) should utilize a range of neutral colors.</p>
+          <p style="font-size:12px;font-style:italic;color:var(--mercy-muted);margin-top:10px;padding:8px 12px;background:var(--mercy-cream);border-radius:6px;">"A nice, clean facility tells me there is good care." – St. Louis Focus Group</p>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAcc(this)">
+          <h4><span class="acc-icon">8</span>Authentic Use of Materials</h4>
+          <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <p style="font-size:13px;line-height:1.7;color:var(--mercy-text)">A key goal is to create places that are a natural extension of the community. This is accomplished by incorporating native landscaping and artwork of local natural features. Facilities should rely on natural lighting whenever possible to add warmth and connection to nature.</p>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAcc(this)">
+          <h4><span class="acc-icon">9</span>Respect of the Mercy Heritage</h4>
+          <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <p style="font-size:13px;line-height:1.7;color:var(--mercy-text)">Interior spaces should be infused with the hospitality and warmth of the Sisters of Mercy. Design should anticipate the needs of the people who will use the space and preemptively address those needs — "they thought of me before I got here." The warmth of the Sisters is expressed by incorporating Mercy history and heritage items such as the Mercy cross and historical Sister photographs.</p>
+          <p style="font-size:12px;font-style:italic;color:var(--mercy-muted);margin-top:10px;padding:8px 12px;background:var(--mercy-cream);border-radius:6px;">"You should use the Mercy symbols, the cross — more and larger." – St. Louis Focus Group</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ BRANDING ══ -->
+  <section class="section-panel" id="section-branding">
+    <div class="page-header">
+      <div>
+        <h1>Facility Brand Identities</h1>
+        <p>Mercy Brand Elements extend from the exterior into the interior and throughout the entire facility, creating a consistent expression of the Mercy identity.</p>
+      </div>
+      <span class="section-tag">Brand Elements</span>
+    </div>
+
+    <div class="callout">
+      <strong>Brand Expression Philosophy</strong>
+      <p>The experience patients have with us includes the entire 360 degrees of the encounter, impacted by our people, our places and the processes they interact with. The environment of care contributes greatly to the experience — these elements are designed expressions of the Mercy brand that uniquely articulate who we are.</p>
+    </div>
+
+    <div class="grid-3" style="margin-bottom:28px;">
+      <div class="brand-elem-card">
+        <div class="brand-icon-circle">🏮</div>
+        <h4>The Lantern (BE007)</h4>
+        <p>A beacon of light drawing patients and visitors to the entry. Includes a Cross embedded in the eyebrow or window mullions as reference to Catherine McAuley's heritage. Should be prominent and easily visible from the site access point.</p>
+      </div>
+      <div class="brand-elem-card">
+        <div class="brand-icon-circle">🪑</div>
+        <h4>Seat Wall / Entry Bench</h4>
+        <p>Scripture is sand blasted into the face of the cast stone bench or seat wall. Scripture color should be natural with no paint or stain. Expresses comfort, healing, hope, and compassion in an inclusive manner.</p>
+      </div>
+      <div class="brand-elem-card">
+        <div class="brand-icon-circle">🌿</div>
+        <h4>Natural Environment</h4>
+        <p>Establishing native plants and trees enhances and preserves the region while highlighting the beauty of God's creation. Research shows views of natural environments support healing. Primary focus of plant material is at entrances.</p>
+      </div>
+      <div class="brand-elem-card">
+        <div class="brand-icon-circle">✝️</div>
+        <h4>Mercy Crosses</h4>
+        <p>Wooden crosses hung in staff spaces honor the legacy of the Sisters of Mercy. They remind co-workers to love and serve as Jesus did with the cross-within-a-cross design. Exact locations determined by the co-workers of each facility.</p>
+      </div>
+      <div class="brand-elem-card">
+        <div class="brand-icon-circle">📜</div>
+        <h4>Mission Statement (BE004)</h4>
+        <p>Every Mercy place displays the foundational Mission Statement as if it is "built into" our very walls, just as it is "built into" the care we provide. Optimal location is the vestibule; if not available, a prominent location in the lobby.</p>
+      </div>
+      <div class="brand-elem-card">
+        <div class="brand-icon-circle">🕊️</div>
+        <h4>Crucifixes (BE005)</h4>
+        <p>Displayed as a reminder that our Mission calls us to "bring to life the healing ministry of Jesus." Crucifixes are placed at the entries to clinic buildings on a prominent interior wall.</p>
+      </div>
+      <div class="brand-elem-card">
+        <div class="brand-icon-circle">🪟</div>
+        <h4>Scripture / Catherine Quotes on Glass (BE007)</h4>
+        <p>Placed on clinic exterior windows and in public spaces, waiting and transition spaces. Catherine McAuley quotes used in co-worker spaces. Meant to be discovered as people circulate — providing comfort if needed or blending in if not.</p>
+      </div>
+      <div class="brand-elem-card">
+        <div class="brand-icon-circle">🖼️</div>
+        <h4>Artwork — Nature</h4>
+        <p>Placed throughout the facility in waiting, transition, and exam spaces to create a consistently positive patient and family experience. Nature art promotes a sense of calm and healing.</p>
+      </div>
+      <div class="brand-elem-card">
+        <div class="brand-icon-circle">🙏</div>
+        <h4>Artwork — Religious</h4>
+        <p>Shows the healing ministry of Jesus and reminds us of our call to serve. Placed in waiting and gathering spaces where people might pause and reflect.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-sub">Brand Element Location Summary</div>
+      <div class="card-title">Where Brand Elements Appear</div>
+      <div class="req-table-wrap" style="margin-top:16px;">
+        <table class="req-table">
+          <thead>
+            <tr>
+              <th>Brand Element</th>
+              <th>Primary Location</th>
+              <th>Secondary Location</th>
+              <th>Audience</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="req-cell-label">Lantern (BE007)</td><td>Building Exterior Entry</td><td>Visible from site access</td><td>Public</td></tr>
+            <tr><td class="req-cell-label">Entry Bench w/ Scripture</td><td>Main Entry Exterior</td><td>Courtyard / Site</td><td>Public</td></tr>
+            <tr><td class="req-cell-label">Mission Statement (BE004)</td><td>Vestibule</td><td>Prominent Lobby Location</td><td>All</td></tr>
+            <tr><td class="req-cell-label">Crucifix (BE005)</td><td>Entry — Prominent Interior Wall</td><td>—</td><td>All</td></tr>
+            <tr><td class="req-cell-label">Mercy Crosses</td><td>Staff Spaces</td><td>Location by co-workers</td><td>Staff</td></tr>
+            <tr><td class="req-cell-label">Scripture on Glass (BE007)</td><td>Exterior Windows</td><td>Public waiting / transition spaces</td><td>Public</td></tr>
+            <tr><td class="req-cell-label">Catherine McAuley Quotes</td><td>Co-worker Spaces</td><td>Staff corridors</td><td>Staff</td></tr>
+            <tr><td class="req-cell-label">Nature Artwork</td><td>Waiting Areas</td><td>Transition spaces, exam rooms</td><td>Patients</td></tr>
+            <tr><td class="req-cell-label">Religious Artwork</td><td>Waiting/Gathering Spaces</td><td>Reflection areas</td><td>All</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ PROTOTYPES ══ -->
+  <section class="section-panel" id="section-prototypes">
+    <div class="page-header">
+      <div>
+        <h1>Clinic Prototype Models</h1>
+        <p>A matrix of clinic facility models including key site and facility features for strategic decision making.</p>
+      </div>
+      <span class="section-tag">Prototypes</span>
+    </div>
+
+    <div class="proto-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Facility Type</th>
+            <th>Providers</th>
+            <th>Dept GSF</th>
+            <th>Bldg GSF</th>
+            <th>Min Parking</th>
+            <th>Min Acreage</th>
+            <th>Design/Const</th>
+            <th>Program Definition</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="highlight">Retail</td>
+            <td>2</td>
+            <td>2,400–3,000</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>165 Days</td>
+            <td>6 exam rooms, small lab processing, no imaging</td>
+          </tr>
+          <tr>
+            <td class="highlight">1-Pod Small</td>
+            <td>3–5</td>
+            <td>5,730</td>
+            <td>6,245</td>
+            <td>31 spaces</td>
+            <td>1.35 ac</td>
+            <td>6+6 Mo = 12 Mo</td>
+            <td>8 standard + 6 large exam rooms, lab/blood draw</td>
+          </tr>
+          <tr>
+            <td class="highlight">1.5-Pod Small</td>
+            <td>6–7</td>
+            <td>8,570</td>
+            <td>9,340</td>
+            <td>47 spaces</td>
+            <td>2.00 ac</td>
+            <td>6+7 Mo = 13 Mo</td>
+            <td>14 standard + 2–4 large exam, lab/blood draw, optional X-ray</td>
+          </tr>
+          <tr>
+            <td class="highlight">2-Pod Medium</td>
+            <td>8–10</td>
+            <td>10,130</td>
+            <td>11,040</td>
+            <td>55 spaces</td>
+            <td>2.75 ac</td>
+            <td>6+7 Mo = 13 Mo</td>
+            <td>18 standard + 4–6 large exam, lab/blood draw, optional X-ray</td>
+          </tr>
+          <tr>
+            <td class="highlight">2.5–3 Pod Medium</td>
+            <td>10–12</td>
+            <td>15,185</td>
+            <td>16,560</td>
+            <td>83 spaces</td>
+            <td>3.75 ac</td>
+            <td>6+7 Mo = 13 Mo</td>
+            <td>28 standard + 6–8 large exam, lab/blood draw, imaging suite</td>
+          </tr>
+          <tr>
+            <td class="highlight">3.5–4 Pod Large</td>
+            <td>12–18</td>
+            <td>20,260</td>
+            <td>22,080</td>
+            <td>110 spaces</td>
+            <td>4.00 ac</td>
+            <td>8+8 Mo = 16 Mo</td>
+            <td>36 standard + 8–10 large exam, lab/blood draw, imaging suite</td>
+          </tr>
+          <tr>
+            <td class="highlight">Multi-Spec Small (4–5 Pod)</td>
+            <td>15–30</td>
+            <td>24,695–32,881</td>
+            <td>25,534–33,748</td>
+            <td>115–152</td>
+            <td>7.30 ac</td>
+            <td>10+16 Mo = 26 Mo</td>
+            <td>60 std + 10 lg + 10 flex, CT/MRI/US/XR, PT/OT, Pharmacy, Café</td>
+          </tr>
+          <tr>
+            <td class="highlight">Multi-Spec Large</td>
+            <td>40</td>
+            <td>200,278</td>
+            <td>222,890</td>
+            <td>1,003</td>
+            <td>20.00 ac</td>
+            <td>10+18 Mo = 28 Mo</td>
+            <td>120 exam + 20 procedure + 20 flex, full imaging, PT/OT, Pharmacy</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout" style="margin-top:24px;">
+      <strong>ADA Parking Note</strong>
+      <p>ADA parking count recommendations from the ADA National Network (adata.org/factsheet/parking). Minimum 6.5 spaces/1,000 SF = Mercy minimum. Verify requirements meet or exceed the AHJ's parking requirements.</p>
+    </div>
+  </section>
+
+  <!-- ══ REQUIREMENTS ══ -->
+  <section class="section-panel" id="section-requirements">
+    <div class="page-header">
+      <div>
+        <h1>Prototype Requirements</h1>
+        <p>Standards from FGI, IBC, and Mercy used to inform the clinic program across all prototype types.</p>
+      </div>
+      <span class="section-tag">Code + Mercy Standards</span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('tab-gen',this)">General Requirements</button>
+      <button class="tab-btn" onclick="showTab('tab-rooms',this)">Room Counts</button>
+      <button class="tab-btn" onclick="showTab('tab-mep',this)">MEP / Systems</button>
+    </div>
+
+    <div class="tab-pane active" id="tab-gen">
+      <div class="req-table-wrap">
+        <table class="req-table">
+          <thead>
+            <tr>
+              <th>Requirement</th>
+              <th>1-Pod (Code)</th>
+              <th>1-Pod (Mercy)</th>
+              <th>1.5-Pod (Code)</th>
+              <th>1.5-Pod (Mercy)</th>
+              <th>2-Pod (Code)</th>
+              <th>2-Pod (Mercy)</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="req-cell-label">Gallery Seat Qty</td><td>18</td><td class="highlight">19</td><td>29</td><td class="highlight">30</td><td>36</td><td class="highlight">36</td><td>1.5 seats per exam room</td></tr>
+            <tr><td class="req-cell-label">Water Fountains</td><td>1</td><td class="highlight">1</td><td>1</td><td class="highlight">2</td><td>2</td><td class="highlight">2</td><td>1 per 100 persons</td></tr>
+            <tr><td class="req-cell-label">Toilets</td><td>3</td><td class="highlight">4</td><td>3</td><td class="highlight">7</td><td>4</td><td class="highlight">7</td><td>1/25 for first 50; 1/50 remaining</td></tr>
+            <tr><td class="req-cell-label">Lavatories</td><td>2</td><td class="highlight">4</td><td>3</td><td class="highlight">7</td><td>4</td><td class="highlight">7</td><td>1/40 for first 80; 1/80 remaining</td></tr>
+            <tr><td class="req-cell-label">Service Sinks</td><td>1</td><td class="highlight">1</td><td>1</td><td class="highlight">1</td><td>1</td><td class="highlight">1</td><td>—</td></tr>
+            <tr><td class="req-cell-label">Min Corridor Width</td><td>44"</td><td class="highlight">60–72"</td><td>44"</td><td class="highlight">60–72"</td><td>44"</td><td class="highlight">60–72"</td><td>60" min for wheelchair; stretcher 6'-0"</td></tr>
+            <tr><td class="req-cell-label">Min Door Size</td><td colspan="6">34" wide typical; 41.5" × 79.5" for gurney access</td><td>Doors may not swing into corridors except into alcove</td></tr>
+            <tr><td class="req-cell-label">Patient Toilet Doors</td><td colspan="6">Must swing out OR be equipped with rescue hardware; visual privacy shall be maintained</td><td>—</td></tr>
+            <tr><td class="req-cell-label">Occupant Load</td><td colspan="2">59</td><td colspan="2">89</td><td colspan="2">107</td><td>—</td></tr>
+            <tr><td class="req-cell-label">Required Exits</td><td colspan="2">2 (1 accessible)</td><td colspan="2">2 (1 accessible)</td><td colspan="2">2 (1 accessible)</td><td>—</td></tr>
+            <tr><td class="req-cell-label">Min Parking</td><td>—</td><td class="highlight">41 spaces</td><td>—</td><td class="highlight">61 spaces</td><td>—</td><td class="highlight">72 spaces</td><td>6.5/1,000 SF = Mercy min</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="tab-rooms">
+      <div class="req-table-wrap">
+        <table class="req-table">
+          <thead>
+            <tr>
+              <th>Room Type</th>
+              <th>1-Pod</th>
+              <th>1.5-Pod</th>
+              <th>2-Pod</th>
+              <th>Retail (Gen)</th>
+              <th>Retail (Senior)</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="req-cell-label">MA Workstations</td><td class="highlight">8</td><td class="highlight">18</td><td class="highlight">18</td><td class="highlight">3</td><td class="highlight">5</td><td>Each workstation measures 4'-6"</td></tr>
+            <tr><td class="req-cell-label">Standard Exam Rooms (10'×11')</td><td class="highlight">8</td><td class="highlight">14</td><td class="highlight">18</td><td class="highlight">6</td><td class="highlight">6</td><td>Min 80 SF; 2'-8" clearance at sides and foot of table</td></tr>
+            <tr><td class="req-cell-label">Large Exam Rooms (11'×12')</td><td class="highlight">6</td><td class="highlight">4</td><td class="highlight">6</td><td class="highlight">0</td><td class="highlight">0</td><td>Min 100 SF; 3'-0" clearance at work position</td></tr>
+            <tr><td class="req-cell-label">Shared Provider Offices</td><td class="highlight">3</td><td class="highlight">4</td><td class="highlight">6</td><td class="highlight">0</td><td class="highlight">0</td><td>Houses 2 people; typical 11'-6½" × 6'-8"</td></tr>
+            <tr><td class="req-cell-label">Manager/Navigator Offices</td><td class="highlight">1</td><td class="highlight">2</td><td class="highlight">2</td><td class="highlight">1</td><td class="highlight">1</td><td>Office Mgr = Freestanding; Navigator = Retail</td></tr>
+            <tr><td class="req-cell-label">Check-in Desks</td><td class="highlight">1</td><td class="highlight">1</td><td class="highlight">2</td><td class="highlight">0</td><td class="highlight">0</td><td>2 receptionists per check-in desk</td></tr>
+            <tr><td class="req-cell-label">Min X-Ray Room Size</td><td colspan="5" class="highlight">22'-6" × 12'-0" (all types)</td><td>X-Ray inclusion requires removal of 2 exams; includes hand-washing station</td></tr>
+            <tr><td class="req-cell-label">Min Data Room</td><td class="highlight">7'×11'</td><td class="highlight">8'×11'</td><td class="highlight">8'×11'</td><td class="highlight">Wall mount</td><td class="highlight">Wall mount</td><td>Data doors to be vented in Retail clinics</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="tab-mep">
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-sub">Mechanical</div>
+          <div class="card-title">HVAC Systems</div>
+          <p style="font-size:13px;color:var(--mercy-muted);margin-top:10px;line-height:1.7;">Retail clinics: 1–2 RTUs with gas heat (where available) and 5–7 ton cooling capacity. Confirm sizing with mechanical engineer for all other prototype types.</p>
+        </div>
+        <div class="card">
+          <div class="card-sub">Electrical</div>
+          <div class="card-title">Power Service</div>
+          <p style="font-size:13px;color:var(--mercy-muted);margin-top:10px;line-height:1.7;">Retail clinics: 120/208 volt, three-phase with 400-amp main circuit breaker. Confirm sizing with electrical engineer for all other prototype types.</p>
+        </div>
+        <div class="card">
+          <div class="card-sub">Plumbing</div>
+          <div class="card-title">Service Lines</div>
+          <p style="font-size:13px;color:var(--mercy-muted);margin-top:10px;line-height:1.7;">Retail clinics: 1-¼" domestic water service; 4" PVC sanitary sewer service. Confirm sizing with plumbing engineer for all other prototype types.</p>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:20px;">
+        <strong>Lighting Standard</strong>
+        <p>All spaces: LED lighting not to exceed <strong>0.75 watts/sf</strong>. Reference Mercy Lighting Schedule for specific fixture selections. Occupancy sensors required in exam rooms. Undercabinet lighting required at subwork and lab workstations.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ PROGRAMS ══ -->
+  <section class="section-panel" id="section-programs">
+    <div class="page-header">
+      <div>
+        <h1>Space Programs</h1>
+        <p>Net area programs by prototype model with room-by-room breakdown and branding attributes.</p>
+      </div>
+      <span class="section-tag">Space Program</span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('prog-1pod',this)">1-Pod (5 Prov)</button>
+      <button class="tab-btn" onclick="showTab('prog-15pod',this)">1.5-Pod (6–7 Prov)</button>
+      <button class="tab-btn" onclick="showTab('prog-2pod',this)">2-Pod (8–10 Prov)</button>
+      <button class="tab-btn" onclick="showTab('prog-retail',this)">Retail</button>
+    </div>
+
+    <div class="tab-pane active" id="prog-1pod">
+      <div class="grid-2">
+        <div class="program-section">
+          <h4>Patient Arrival Area</h4>
+          <table class="req-table">
+            <thead><tr><th>Room/Area</th><th>Unit</th><th>NSF</th><th>Total NSF</th></tr></thead>
+            <tbody>
+              <tr><td>Entry Vestibule</td><td>1</td><td>150</td><td class="highlight">150</td></tr>
+              <tr><td>Gallery / Seating</td><td>1</td><td>730</td><td class="highlight">730</td></tr>
+              <tr><td>Greeter/Recep. Workstation</td><td>1</td><td>80</td><td class="highlight">80</td></tr>
+              <tr><td>Accessible Public Family Toilet</td><td>2</td><td>60 ea</td><td class="highlight">60</td></tr>
+              <tr><td colspan="3" style="font-weight:600;color:var(--mercy-green)">Subtotal Net Area</td><td class="highlight">1,020 NSF</td></tr>
+              <tr><td colspan="3">Net to Gross Factor</td><td>1.35</td></tr>
+              <tr><td colspan="3">Department Gross Area</td><td class="highlight">1,377 DGSF</td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:11px;color:var(--mercy-muted);margin-top:8px;font-style:italic;">Branding: Gallery with artwork locations and Mercy identifiers; minimize perception of a "Waiting Room"</p>
+        </div>
+        <div class="program-section">
+          <h4>Physician Practice Space</h4>
+          <table class="req-table">
+            <thead><tr><th>Room/Area</th><th>Unit</th><th>NSF</th><th>Total NSF</th></tr></thead>
+            <tbody>
+              <tr><td>Patient Intake Station</td><td>2</td><td>26</td><td class="highlight">52</td></tr>
+              <tr><td>Exam Room (Std)</td><td>8</td><td>110</td><td class="highlight">880</td></tr>
+              <tr><td>Large Exam Room</td><td>6</td><td>132</td><td class="highlight">792</td></tr>
+              <tr><td>Flex Space</td><td>1</td><td>22</td><td class="highlight">22</td></tr>
+              <tr><td>Accessible Patient Toilet</td><td>2</td><td>52</td><td class="highlight">104</td></tr>
+              <tr><td>Point of Care/Stat Lab</td><td>1</td><td>224</td><td class="highlight">224</td></tr>
+              <tr><td>Central Physician/MA Work Area</td><td>1</td><td>322</td><td class="highlight">322</td></tr>
+              <tr><td>Vaccine Prep Room</td><td>1</td><td>78</td><td class="highlight">78</td></tr>
+              <tr><td colspan="3" style="font-weight:600;color:var(--mercy-green)">Subtotal Net Area</td><td class="highlight">2,589 NSF</td></tr>
+              <tr><td colspan="3">Net to Gross Factor</td><td>1.30</td></tr>
+              <tr><td colspan="3">Department Gross Area</td><td class="highlight">3,366 DGSF</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="program-section">
+          <h4>Staff / Support Space</h4>
+          <table class="req-table">
+            <thead><tr><th>Room/Area</th><th>Unit</th><th>NSF</th><th>Total NSF</th></tr></thead>
+            <tbody>
+              <tr><td>Office Manager Office</td><td>1</td><td>78</td><td class="highlight">78</td></tr>
+              <tr><td>Shared Provider Office</td><td>3</td><td>78</td><td class="highlight">234</td></tr>
+              <tr><td>Staff Lounge/Break Room</td><td>1</td><td>224</td><td class="highlight">224</td></tr>
+              <tr><td>Staff Toilet</td><td>1</td><td>45</td><td class="highlight">45</td></tr>
+              <tr><td>Data</td><td>1</td><td>84</td><td class="highlight">84</td></tr>
+              <tr><td>Mechanical / Electrical</td><td>1</td><td>100</td><td class="highlight">100</td></tr>
+              <tr><td>Housekeeping/Soiled Closet</td><td>1</td><td>35</td><td class="highlight">35</td></tr>
+              <tr><td>Walk-in Storage/Flex</td><td>1</td><td>80</td><td class="highlight">80</td></tr>
+              <tr><td colspan="3" style="font-weight:600;color:var(--mercy-green)">Subtotal Net Area</td><td class="highlight">757 NSF</td></tr>
+              <tr><td colspan="3">Net to Gross Factor</td><td>1.30</td></tr>
+              <tr><td colspan="3">Department Gross Area</td><td class="highlight">984 DGSF</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="program-section">
+          <h4>Overall Program Summary</h4>
+          <div class="stat-card" style="text-align:left;padding:20px;margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+              <span style="font-size:13px;color:var(--mercy-muted)">Total Net Area</span>
+              <span style="font-weight:700;color:var(--mercy-green)">4,366 NSF</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+              <span style="font-size:13px;color:var(--mercy-muted)">Net to Gross Factor</span>
+              <span style="font-weight:700;color:var(--mercy-green)">1.31</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;border-top:2px solid var(--mercy-border);padding-top:8px;margin-top:4px;">
+              <span style="font-size:14px;font-weight:600;color:var(--mercy-dark)">Total Building GSF</span>
+              <span style="font-size:18px;font-weight:700;color:var(--mercy-green)">5,727–6,242 BGSF</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="prog-15pod">
+      <div class="callout">
+        <strong>1.5-Pod Program Summary</strong>
+        <p>6–7 Provider Typical Model. Total Net Area: 6,457 NSF | Net to Gross Factor: 1.33 | Total Building: ~8,570–9,340 BGSF</p>
+      </div>
+      <div class="grid-2">
+        <div class="program-section">
+          <h4>Patient Arrival Area</h4>
+          <table class="req-table">
+            <thead><tr><th>Room/Area</th><th>Units</th><th>NSF</th><th>Total</th></tr></thead>
+            <tbody>
+              <tr><td>Entry Vestibule</td><td>1</td><td>144</td><td class="highlight">144</td></tr>
+              <tr><td>Gallery / Seating</td><td>1</td><td>1,384</td><td class="highlight">1,384</td></tr>
+              <tr><td>Greeter/Recep. Workstation</td><td>1</td><td>80</td><td class="highlight">80</td></tr>
+              <tr><td>Accessible Public Family Toilet</td><td>2</td><td>58</td><td class="highlight">116</td></tr>
+              <tr><td colspan="3" style="font-weight:600;color:var(--mercy-green)">Subtotal / Dept GSF</td><td class="highlight">1,724 NSF / 2,414 DGSF</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="program-section">
+          <h4>Physician Practice Space</h4>
+          <table class="req-table">
+            <thead><tr><th>Room/Area</th><th>Units</th><th>NSF</th><th>Total</th></tr></thead>
+            <tbody>
+              <tr><td>Patient Intake Station</td><td>4</td><td>28</td><td class="highlight">112</td></tr>
+              <tr><td>Exam Room (Std)</td><td>14</td><td>110</td><td class="highlight">1,540</td></tr>
+              <tr><td>Large Exam Room</td><td>4</td><td>132</td><td class="highlight">528</td></tr>
+              <tr><td>Flex Space</td><td>2</td><td>28</td><td class="highlight">56</td></tr>
+              <tr><td>Accessible Patient Toilet</td><td>4</td><td>56</td><td class="highlight">224</td></tr>
+              <tr><td>Lab Waiting</td><td>1</td><td>18</td><td class="highlight">18</td></tr>
+              <tr><td>Point of Care/Stat Lab</td><td>1</td><td>212</td><td class="highlight">212</td></tr>
+              <tr><td>Central Physician/MA Work Area</td><td>2</td><td>322</td><td class="highlight">644</td></tr>
+              <tr><td>Vaccine Prep Room</td><td>1</td><td>92</td><td class="highlight">92</td></tr>
+              <tr><td colspan="3" style="font-weight:600;color:var(--mercy-green)">Subtotal / Dept GSF</td><td class="highlight">3,647 NSF / 4,741 DGSF</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="prog-2pod">
+      <div class="callout">
+        <strong>2-Pod Program Summary</strong>
+        <p>8–10 Provider Typical Model. Patient Arrival: 2,040 NSF | Physician Practice: 4,368 NSF | Staff/Support: 1,303 NSF | Total Building: ~10,130–11,040 BGSF</p>
+      </div>
+      <div class="program-section">
+        <h4>Key Room Counts — 2-Pod</h4>
+        <table class="req-table">
+          <thead><tr><th>Room/Area</th><th>Units</th><th>NSF</th><th>Total NSF</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Entry Vestibule</td><td>1</td><td>164</td><td class="highlight">164</td><td>—</td></tr>
+            <tr><td>Gallery / Seating</td><td>1</td><td>1,600</td><td class="highlight">1,600</td><td>Mixed seating types</td></tr>
+            <tr><td>Greeter/Recep. Workstation</td><td>2</td><td>80</td><td class="highlight">160</td><td>2 desks</td></tr>
+            <tr><td>Exam Room (Std)</td><td>18</td><td>110</td><td class="highlight">1,980</td><td>Casework w/ sink, hinge door for privacy</td></tr>
+            <tr><td>Large Exam Room</td><td>6</td><td>132</td><td class="highlight">792</td><td>Casework w/ sink, hinge door for privacy</td></tr>
+            <tr><td>Point of Care/Stat Lab</td><td>1</td><td>274</td><td class="highlight">274</td><td>Two work zones</td></tr>
+            <tr><td>Central Physician/MA Work Area</td><td>2</td><td>322</td><td class="highlight">644</td><td>Central work core</td></tr>
+            <tr><td>Shared Provider Office</td><td>6</td><td>76</td><td class="highlight">456</td><td>2 people per office</td></tr>
+            <tr><td>Staff Lounge/Break Room</td><td>1</td><td>253</td><td class="highlight">253</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="prog-retail">
+      <div class="callout gold">
+        <strong>Retail Clinic Program</strong>
+        <p>2 Providers. Target: 2,400–3,000 SF. 6 exam rooms, small lab processing, no imaging. Located in existing retail spaces. 165 business day design/construction target.</p>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-sub">General Retail</div>
+          <div class="card-title">Primary Care</div>
+          <div style="margin-top:12px;font-size:13px;color:var(--mercy-muted);line-height:1.7;">
+            6 standard exam rooms with modular furniture including Herman Miller Mora casework system and Intent consultation system. No large exam rooms. 3 MA workstations, 1 Navigator office.
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-sub">Senior Retail</div>
+          <div class="card-title">Senior Care Focus</div>
+          <div style="margin-top:12px;font-size:13px;color:var(--mercy-muted);line-height:1.7;">
+            Incorporates recliners in 5 of 6 exam rooms. Higher mounting positions for soap and towel dispensers due to shelf configuration. 5 MA workstations, 1 Navigator office.
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-sub">Design Differences</div>
+          <div class="card-title">Retail vs. Freestanding</div>
+          <div style="margin-top:12px;font-size:13px;color:var(--mercy-muted);line-height:1.7;">
+            Retail uses: Eider White (P1.1A) vs Navajo White; Sleepy Hollow accent vs Rainwashed; RT1F flooring; FRP panels in toilets; wall-mounted data/elec; Smoky Azurite soffit accent.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ KPI ══ -->
+  <section class="section-panel" id="section-kpi">
+    <div class="page-header">
+      <div>
+        <h1>KPI Timelines</h1>
+        <p>Key Performance Indicator timelines for both Retail and Freestanding clinic project delivery.</p>
+      </div>
+      <span class="section-tag">Project Delivery</span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('kpi-retail',this)">Retail (165 Days)</button>
+      <button class="tab-btn" onclick="showTab('kpi-free',this)">Freestanding (1-Pod: 12 Mo)</button>
+    </div>
+
+    <div class="tab-pane active" id="kpi-retail">
+      <div class="grid-2">
+        <div>
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-sub">Mercy Team Milestones</div>
+            <div class="card-title">Owner / Mercy Activities</div>
+            <div class="timeline" style="margin-top:16px;">
+              <div class="timeline-item"><div class="timeline-day">Day 1</div><div class="timeline-content">Owner Site Selection</div><div class="timeline-detail">Site walk; establish metrics for number of providers</div></div>
+              <div class="timeline-item"><div class="timeline-day">Day 10</div><div class="timeline-content">Owner-Provided Documents</div><div class="timeline-detail">Landlord deliverables, site survey, geotechnical report</div></div>
+              <div class="timeline-item"><div class="timeline-day">Day 10–15</div><div class="timeline-content">Lease Negotiations (80%)</div><div class="timeline-detail">Negotiation of Landlord items</div></div>
+              <div class="timeline-item"><div class="timeline-day">Day 20</div><div class="timeline-content">Approval to Proceed</div><div class="timeline-detail">Plan approved by Mercy; kick-off meeting</div></div>
+              <div class="timeline-item"><div class="timeline-day">Day 22–23</div><div class="timeline-content">Mercy Review — SD</div><div class="timeline-detail">Schematic design review</div></div>
+              <div class="timeline-item"><div class="timeline-day">Day 30–35</div><div class="timeline-content">Mercy Review — DD</div><div class="timeline-detail">Design development review</div></div>
+              <div class="timeline-item"><div class="timeline-day">Day 125</div><div class="timeline-content">Review CDs</div><div class="timeline-detail">Construction document review</div></div>
+              <div class="timeline-item"><div class="timeline-day">Day 155</div><div class="timeline-content">Integrate EPIC Systems</div><div class="timeline-detail">Technology integration</div></div>
+              <div class="timeline-item"><div class="timeline-day">Day 155–165+</div><div class="timeline-content">Install FF&E</div><div class="timeline-detail">Furniture, fixtures and equipment installation</div></div>
+              <div class="timeline-item" style="border-color:var(--mercy-gold);"><div class="timeline-day">Day 165</div><div class="timeline-content" style="color:var(--mercy-gold);">Clinic Completion</div><div class="timeline-detail">~165 business days / 33 weeks start-to-finish</div></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-sub">Design & Construction Team</div>
+            <div class="card-title">Architect / Contractor Activities</div>
+            <div class="timeline" style="margin-top:16px;">
+              <div class="timeline-item"><div class="timeline-day">Day 1</div><div class="timeline-content">Building Investigation</div><div class="timeline-detail">BIR for remodel sites; field investigations; code review</div></div>
+              <div class="timeline-item"><div class="timeline-day">Day 10</div><div class="timeline-content">Proposal Writing</div><div class="timeline-detail">Modeling existing conditions; schematic floor plan</div></div>
+              <div class="timeline-item"><div class="timeline-day">Day 15</div><div class="timeline-content">Kick-off Meeting</div><div class="timeline-detail">Revise floor plan with Mercy comments</div></div>
+              <div class="timeline-item"><div class="timeline-day">Day 20</div><div class="timeline-content">Final Design Meeting</div><div class="timeline-detail">CDs kick-off; verify deliverables; engage consultants</div></div>
+              <div class="timeline-item"><div class="timeline-day">Day 21–22</div><div class="timeline-content">FF&E + MTS Procurement Begins</div><div class="timeline-detail">Coordinate with procurement team on issues</div></div>
+              <div class="timeline-item"><div class="timeline-day">Day 25–30</div><div class="timeline-content">Determine AHJ Requirements</div><div class="timeline-detail">Permit requirements; permit applications</div></div>
+              <div class="timeline-item"><div class="timeline-day">Day 30</div><div class="timeline-content">80% Checkset</div><div class="timeline-detail">Includes A/MEP drawings; submit for procurement validation</div></div>
+              <div class="timeline-item"><div class="timeline-day">Day 30–35</div><div class="timeline-content">Sub Procurement Begins</div><div class="timeline-detail">If GC is on board</div></div>
+              <div class="timeline-item"><div class="timeline-day">Day 35–80</div><div class="timeline-content">Construction Phase</div><div class="timeline-detail">RFIs, submittals, OAC meetings, site visits, punch list</div></div>
+            </div>
+            <div style="margin-top:16px;padding:12px;background:var(--mercy-green-light);border-radius:8px;">
+              <div style="font-size:11px;font-weight:600;color:var(--mercy-green);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">AHJ Permit Benchmarks</div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--mercy-text);margin-bottom:4px;"><span>Poor</span><span>45+ Days</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--mercy-text);margin-bottom:4px;"><span>Average</span><span>45 Days</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--mercy-text);margin-bottom:4px;"><span>Good</span><span>35 Days</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--mercy-green);"><span>Excellent</span><span>20 Days</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="kpi-free">
+      <div class="callout">
+        <strong>Freestanding Clinic Timelines</strong>
+        <p>Note: Sites requiring entitlements (CUP, SUP, Public Hearings, Re-Plat, Rezone, Variances) may add 90–150 days to the overall schedule. Sites not requiring entitlements can immediately begin construction documents.</p>
+      </div>
+      <div class="grid-4">
+        <div class="stat-card">
+          <div class="stat-val" style="font-size:24px;">12 Mo</div>
+          <div class="stat-label">1-Pod Construction</div>
+          <div class="stat-note">6 Mo Design + 6 Mo Construction</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" style="font-size:24px;">13 Mo</div>
+          <div class="stat-label">1.5-Pod Construction</div>
+          <div class="stat-note">6 Mo Design + 7 Mo Construction</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" style="font-size:24px;">13 Mo</div>
+          <div class="stat-label">2-Pod Construction</div>
+          <div class="stat-note">6 Mo Design + 7 Mo Construction</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" style="font-size:24px;">+90–150</div>
+          <div class="stat-label">Days for Entitlements</div>
+          <div class="stat-note">If required by jurisdiction</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ ROOM GUIDES ══ -->
+  <section class="section-panel" id="section-rooms">
+    <div class="page-header">
+      <div>
+        <h1>Room Guide Sheets</h1>
+        <p>Complete design standards, equipment lists, and MEP requirements for each clinic space type.</p>
+      </div>
+      <span class="section-tag">12 Room Types</span>
+    </div>
+
+    <div class="room-selector" id="roomSelector">
+      <button class="room-btn active" onclick="showRoom('vestibule',this)">Vestibule / Entry</button>
+      <button class="room-btn" onclick="showRoom('gallery',this)">Gallery</button>
+      <button class="room-btn" onclick="showRoom('publictoilet',this)">Public Toilet</button>
+      <button class="room-btn" onclick="showRoom('corridor',this)">Corridor</button>
+      <button class="room-btn" onclick="showRoom('intake',this)">Subwork / Intake</button>
+      <button class="room-btn" onclick="showRoom('patienttoilet',this)">Patient Toilet</button>
+      <button class="room-btn" onclick="showRoom('lab',this)">Lab</button>
+      <button class="room-btn" onclick="showRoom('blooddraw',this)">Blood Draw</button>
+      <button class="room-btn" onclick="showRoom('vaccine',this)">Vaccine Room</button>
+      <button class="room-btn" onclick="showRoom('exam',this)">Exam Room</button>
+      <button class="room-btn" onclick="showRoom('xray',this)">X-Ray</button>
+      <button class="room-btn" onclick="showRoom('mawork',this)">MA Work Area</button>
+    </div>
+
+    <!-- VESTIBULE -->
+    <div class="room-guide-panel" id="room-vestibule">
+      <div class="grid-2">
+        <div class="room-card">
+          <div class="room-card-header"><h3>Vestibule / Entry</h3><span class="room-size">11'-0" Ceiling</span></div>
+          <div class="room-card-body">
+            <div class="spec-section-title">Architectural</div>
+            <div class="spec-row"><span class="spec-label">Ceiling</span><span class="spec-val">Gypsum Board, Pure White (P1.2)</span></div>
+            <div class="spec-row"><span class="spec-label">Ceiling Height</span><span class="spec-val">11'-0"</span></div>
+            <div class="spec-row"><span class="spec-label">Wall Finish</span><span class="spec-val">Navajo White (P1.1)</span></div>
+            <div class="spec-row"><span class="spec-label">Base</span><span class="spec-val">Vinyl Base, B2</span></div>
+            <div class="spec-row"><span class="spec-label">Floor Finish</span><span class="spec-val">Walk-Off Carpet Tile, C3</span></div>
+            <div class="spec-row"><span class="spec-label">Lighting</span><span class="spec-val">LED Can Lights ≤0.75 w/sf; Occupancy Sensor</span></div>
+            <div class="spec-section-title">MEP</div>
+            <div class="spec-row"><span class="spec-label">Power</span><span class="spec-val">At 18" A.F.F.; at doors as necessary; at wall heater</span></div>
+            <div class="spec-row"><span class="spec-label">Room Air Balance</span><span class="spec-val">Neutral</span></div>
+            <div class="spec-row"><span class="spec-label">Plumbing</span><span class="spec-val">None</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-sub">Design Notes</div>
+          <div class="card-title">Vestibule Design Intent</div>
+          <div style="margin-top:12px;font-size:13px;color:var(--mercy-muted);line-height:1.7;">
+            <p style="margin-bottom:10px;">Door configuration provides an <strong>L-shaped circulation path</strong> to block wind from entering the building. High-wind areas require sliding doors.</p>
+            <p style="margin-bottom:10px;"><strong>Brand Elements in Vestibule:</strong></p>
+            <ul style="list-style:none;display:flex;flex-direction:column;gap:6px;">
+              <li>✦ Mission Statement (BE004) — primary location</li>
+              <li>✦ Large Crucifix (BE005) — prominent interior wall</li>
+              <li>✦ Mission Statement to match main field paint color</li>
+              <li>✦ ADA push button mounting location to be coordinated</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GALLERY -->
+    <div class="room-guide-panel" id="room-gallery" style="display:none;">
+      <div class="grid-2">
+        <div class="room-card">
+          <div class="room-card-header"><h3>Gallery / Waiting</h3><span class="room-size">11'-0" Ceiling</span></div>
+          <div class="room-card-body">
+            <div class="spec-section-title">Architectural</div>
+            <div class="spec-row"><span class="spec-label">Ceiling</span><span class="spec-val">2×2 Acoustical Ceiling Tile (ACT1A)</span></div>
+            <div class="spec-row"><span class="spec-label">Ceiling Height</span><span class="spec-val">11'-0" (freestanding); 10'-0" (retail)</span></div>
+            <div class="spec-row"><span class="spec-label">Soffit</span><span class="spec-val">Gypsum Board, Halcyon Green (P3) [freestanding]</span></div>
+            <div class="spec-row"><span class="spec-label">Soffit Height</span><span class="spec-val">9'-0"</span></div>
+            <div class="spec-row"><span class="spec-label">Wall — Freestanding</span><span class="spec-val">Navajo White P1.1 / Halcyon Green P5 accent</span></div>
+            <div class="spec-row"><span class="spec-label">Wall — Retail</span><span class="spec-val">Eider White P1.1A / Smoky Azurite P24 accent</span></div>
+            <div class="spec-row"><span class="spec-label">Base</span><span class="spec-val">6" Vinyl Base B9; Tile Base B8</span></div>
+            <div class="spec-row"><span class="spec-label">Floor</span><span class="spec-val">Carpet Tile C10B; Porcelain Tile PT2A</span></div>
+            <div class="spec-row"><span class="spec-label">Window Treatment</span><span class="spec-val">Manual Shades (1-Pod/Retail); Motorized (1.5+2-Pod)</span></div>
+            <div class="spec-row"><span class="spec-label">Lighting</span><span class="spec-val">LED Can + Pendants at reception (freestanding)</span></div>
+            <div class="spec-row"><span class="spec-label">Wall Protection</span><span class="spec-val">RSV2 at wheelchair zone; CG1 corner guards</span></div>
+            <div class="spec-section-title">MEP</div>
+            <div class="spec-row"><span class="spec-label">Power</span><span class="spec-val">At 18" A.F.F.; at reception desk; at motorized shades</span></div>
+            <div class="spec-row"><span class="spec-label">Data / Phone</span><span class="spec-val">Yes, at reception desks</span></div>
+            <div class="spec-row"><span class="spec-label">Room Air Balance</span><span class="spec-val">Neutral</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-sub">Design Notes</div>
+          <div class="card-title">Gallery Design Intent</div>
+          <div style="margin-top:12px;font-size:13px;color:var(--mercy-muted);line-height:1.7;">
+            <p style="margin-bottom:10px;">The gallery serves as both the <strong>main waiting area and corridor</strong> linking all medical suites. It is the spine of all activity for the general public.</p>
+            <ul style="list-style:none;display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+              <li>✦ Variety of seating types (reference concept plans)</li>
+              <li>✦ All exterior gallery windows to have shade cloth</li>
+              <li>✦ Dedicated wheelchair storage zone</li>
+              <li>✦ Water fountain with bottle filler</li>
+              <li>✦ Glass frameless partition with film at reception</li>
+              <li>✦ Scripture on glass (BE007) — reference artwork plans</li>
+              <li>✦ Flooring material changes to reinforce spatial zones</li>
+            </ul>
+            <p style="font-size:11px;background:var(--mercy-gold-light);padding:8px;border-radius:6px;color:var(--mercy-text);">
+              <strong>Branding:</strong> Gallery should minimize or eliminate perception of a traditional "Waiting Room" through mixed seating types and artwork placement.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PUBLIC TOILET -->
+    <div class="room-guide-panel" id="room-publictoilet" style="display:none;">
+      <div class="grid-2">
+        <div class="room-card">
+          <div class="room-card-header"><h3>Public Toilet Room</h3><span class="room-size">8'-0" Ceiling</span></div>
+          <div class="room-card-body">
+            <div class="spec-section-title">Architectural</div>
+            <div class="spec-row"><span class="spec-label">Ceiling</span><span class="spec-val">Gypsum Board, Pure White (P1.2A)</span></div>
+            <div class="spec-row"><span class="spec-label">Ceiling Height</span><span class="spec-val">8'-0"</span></div>
+            <div class="spec-row"><span class="spec-label">Wall — Freestanding</span><span class="spec-val">Cachet Cream P2/P2A + Ceramic Tile CT6A (wet wall + 2 adj, to 5'-6" AFF, brick install, bullnose top)</span></div>
+            <div class="spec-row"><span class="spec-label">Wall — Retail</span><span class="spec-val">Softened Green P25/P25A + FRP1 (full height on wet wall)</span></div>
+            <div class="spec-row"><span class="spec-label">Base</span><span class="spec-val">Tile Base B8; Vinyl Base B2 (retail)</span></div>
+            <div class="spec-row"><span class="spec-label">Floor</span><span class="spec-val">Porcelain Tile PT2A; Resilient Tile RT1F (retail)</span></div>
+            <div class="spec-row"><span class="spec-label">Lighting</span><span class="spec-val">LED Can Lights ≤0.75 w/sf</span></div>
+            <div class="spec-section-title">MEP</div>
+            <div class="spec-row"><span class="spec-label">Power</span><span class="spec-val">GFCI at 48"+ A.F.F.</span></div>
+            <div class="spec-row"><span class="spec-label">Room Air Balance</span><span class="spec-val">Negative</span></div>
+            <div class="spec-row"><span class="spec-label">Dedicated Exhaust</span><span class="spec-val">Yes</span></div>
+            <div class="spec-row"><span class="spec-label">Plumbing</span><span class="spec-val">Sink; Floor Drain; ADA Floor-Mounted Toilet</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-sub">Equipment List</div>
+          <div class="card-title">Toilet Accessories (O/C = Owner/Contractor)</div>
+          <div class="eq-list">
+            <div class="eq-row"><span class="eq-ref">EQ001/TA008</span><span class="eq-desc">Soap Dispenser</span><span class="eq-resp">O/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ002/TA009</span><span class="eq-desc">Paper Towel Dispenser</span><span class="eq-resp">O/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ007/TA007</span><span class="eq-desc">Robe Hook — Bobrick B6727</span><span class="eq-resp">C/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ023/TA002</span><span class="eq-desc">42" Grab Bar — Bobrick B6806X42</span><span class="eq-resp">C/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ024/TA001</span><span class="eq-desc">36" Grab Bar — Bobrick B-6806X36</span><span class="eq-resp">C/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ025/TA003</span><span class="eq-desc">18" Vertical Grab Bar — Bobrick B-6806X18</span><span class="eq-resp">C/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ026/TA004</span><span class="eq-desc">18×36 Mirror w/ Frame — Bobrick B165-1836</span><span class="eq-resp">C/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ027/TA005</span><span class="eq-desc">Toilet Paper Dispenser</span><span class="eq-resp">O/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ028/TA010</span><span class="eq-desc">Baby Changing Station</span><span class="eq-resp">O/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ060/TA023</span><span class="eq-desc">Recessed Waste Receptacle — Bobrick B43644</span><span class="eq-resp">C/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ166/TA027</span><span class="eq-desc">Sanitary Napkin Holder</span><span class="eq-resp">C/C</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CORRIDOR -->
+    <div class="room-guide-panel" id="room-corridor" style="display:none;">
+      <div class="grid-2">
+        <div class="room-card">
+          <div class="room-card-header"><h3>Corridor</h3><span class="room-size">8'-6" / 6'-0" wide</span></div>
+          <div class="room-card-body">
+            <div class="spec-section-title">Architectural</div>
+            <div class="spec-row"><span class="spec-label">Ceiling</span><span class="spec-val">2×2 Acoustical Ceiling Tile (ACT6)</span></div>
+            <div class="spec-row"><span class="spec-label">Ceiling Height</span><span class="spec-val">8'-6"</span></div>
+            <div class="spec-row"><span class="spec-label">Soffit</span><span class="spec-val">Gypsum Board, Pure White (P1.2) at 8'-0"</span></div>
+            <div class="spec-row"><span class="spec-label">Wall — Freestanding</span><span class="spec-val">Navajo White P1.1 / Rainwashed P5 accent</span></div>
+            <div class="spec-row"><span class="spec-label">Wall — Retail</span><span class="spec-val">Eider White P1.1A / Sleepy Hollow P5A accent</span></div>
+            <div class="spec-row"><span class="spec-label">Base</span><span class="spec-val">Vinyl Base B2</span></div>
+            <div class="spec-row"><span class="spec-label">Floor</span><span class="spec-val">Carpet Tile C1A / C2A (alternate); RT1F (retail)</span></div>
+            <div class="spec-row"><span class="spec-label">Wall Protection</span><span class="spec-val">RSV2 at alcoves; Corner Guards CG1</span></div>
+            <div class="spec-row"><span class="spec-label">Lighting</span><span class="spec-val">LED Can Lights + LED Wall Sconces</span></div>
+            <div class="spec-section-title">MEP</div>
+            <div class="spec-row"><span class="spec-label">Room Air Balance</span><span class="spec-val">Neutral</span></div>
+            <div class="spec-row"><span class="spec-label">Dedicated Exhaust</span><span class="spec-val">No</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-sub">Design Intent</div>
+          <div class="card-title">Corridor Planning Notes</div>
+          <div style="margin-top:12px;font-size:13px;color:var(--mercy-muted);line-height:1.7;">
+            <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;">
+              <li>✦ Extra width and bright color of MA Work Area draws patient attention to find staff in emergencies</li>
+              <li>✦ Flooring material changes to align with recesses and secondary corridors</li>
+              <li>✦ Floor changes to avoid middle of doorways when possible</li>
+              <li>✦ Floor sections reinforce corridor width vs. length; allow replacement as needed</li>
+              <li>✦ Patient corridor width: 6'-0" minimum</li>
+              <li>✦ Staff corridor width: 5'-0" minimum</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTAKE -->
+    <div class="room-guide-panel" id="room-intake" style="display:none;">
+      <div class="grid-2">
+        <div class="room-card">
+          <div class="room-card-header"><h3>Subwork / Intake</h3><span class="room-size">8'-6" Ceiling</span></div>
+          <div class="room-card-body">
+            <div class="spec-section-title">Architectural</div>
+            <div class="spec-row"><span class="spec-label">Ceiling</span><span class="spec-val">2×2 ACT6; Gypsum Board P25 (retail)</span></div>
+            <div class="spec-row"><span class="spec-label">Wall</span><span class="spec-val">Navajo White P1.1; Rainwashed P5 accent at intake</span></div>
+            <div class="spec-row"><span class="spec-label">Floor</span><span class="spec-val">Carpet Tile C2A; Resilient Tile RT1F (retail)</span></div>
+            <div class="spec-row"><span class="spec-label">Countertops</span><span class="spec-val">Plastic Laminate PL5B at 2'-6"</span></div>
+            <div class="spec-row"><span class="spec-label">Cabinets</span><span class="spec-val">Plastic Laminate PL2</span></div>
+            <div class="spec-row"><span class="spec-label">Wall Protection</span><span class="spec-val">Corner Guards CG1</span></div>
+            <div class="spec-row"><span class="spec-label">Lighting</span><span class="spec-val">LED Can + Undercabinet at subwork</span></div>
+            <div class="spec-row"><span class="spec-label">Special</span><span class="spec-val">Fabric Wrapped Panel FWP4 (worksurface to underside of uppers at subwork); CPU shelves provided</span></div>
+            <div class="spec-section-title">MEP</div>
+            <div class="spec-row"><span class="spec-label">Power</span><span class="spec-val">Heights vary per elevations</span></div>
+            <div class="spec-row"><span class="spec-label">Data / Telephone</span><span class="spec-val">Yes</span></div>
+            <div class="spec-row"><span class="spec-label">Room Air Balance</span><span class="spec-val">Neutral</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-sub">Equipment List</div>
+          <div class="card-title">Intake Equipment (EQ = Equip; O/O, O/C, C/C)</div>
+          <div class="eq-list">
+            <div class="eq-row"><span class="eq-ref">EQ007/TA007</span><span class="eq-desc">Robe Hook × 2</span><span class="eq-resp">C/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ011</span><span class="eq-desc">Foam Dispenser × 2</span><span class="eq-resp">O/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ015/MTS006</span><span class="eq-desc">Computer (1–2 monitors per station)</span><span class="eq-resp">O/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ019</span><span class="eq-desc">Digital Scale</span><span class="eq-resp">O/O</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ020</span><span class="eq-desc">Countertop Pediatric Scale</span><span class="eq-resp">O/O</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ022</span><span class="eq-desc">Wheelchair Scale</span><span class="eq-resp">O/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ025</span><span class="eq-desc">18" Vertical Grab Bar × 2</span><span class="eq-resp">C/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ043</span><span class="eq-desc">28QT Trash Can × 2</span><span class="eq-resp">O/O</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ109</span><span class="eq-desc">Clock</span><span class="eq-resp">O/O</span></div>
+          </div>
+          <div style="margin-top:12px;font-size:12px;color:var(--mercy-muted);padding:8px;background:var(--mercy-bg);border-radius:6px;">
+            <strong>Note:</strong> Alcove between intake spaces can serve as storage or subwork per clinic needs. Provide grommets at workstations to match countertop.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PATIENT TOILET -->
+    <div class="room-guide-panel" id="room-patienttoilet" style="display:none;">
+      <div class="grid-2">
+        <div class="room-card">
+          <div class="room-card-header"><h3>Patient Toilet Room</h3><span class="room-size">8'-0" Ceiling</span></div>
+          <div class="room-card-body">
+            <div class="spec-section-title">Architectural</div>
+            <div class="spec-row"><span class="spec-label">Ceiling</span><span class="spec-val">Gypsum Board, Pure White (P1.2A)</span></div>
+            <div class="spec-row"><span class="spec-label">Wall</span><span class="spec-val">Cachet Cream P2/P2A + Ceramic Tile CT6A to 5'-6" AFF</span></div>
+            <div class="spec-row"><span class="spec-label">Base</span><span class="spec-val">Tile Base B8</span></div>
+            <div class="spec-row"><span class="spec-label">Floor</span><span class="spec-val">Porcelain Tile PT2A</span></div>
+            <div class="spec-section-title">MEP</div>
+            <div class="spec-row"><span class="spec-label">Room Air Balance</span><span class="spec-val">Negative</span></div>
+            <div class="spec-row"><span class="spec-label">Dedicated Exhaust</span><span class="spec-val">Yes</span></div>
+            <div class="spec-row"><span class="spec-label">Plumbing</span><span class="spec-val">Sink; Floor Drain; ADA Toilet</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-sub">Key Notes</div>
+          <div class="card-title">Patient Toilet Design</div>
+          <div style="margin-top:12px;font-size:13px;color:var(--mercy-muted);line-height:1.7;">
+            <p style="margin-bottom:10px;"><strong>Specimen Pass-Thrus (EQ062)</strong> are only required in patient toilet rooms attached to the lab.</p>
+            <p>Reference public toilet room sheets for standard accessories. Same Bobrick accessories apply: B6806X42 (42" grab bar), B-6806X36 (36" grab bar), B-6806X18 (18" vertical grab bar), B165-1836 (mirror), B505 (specimen pass-thru), B43644 (waste receptacle).</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LAB -->
+    <div class="room-guide-panel" id="room-lab" style="display:none;">
+      <div class="grid-2">
+        <div class="room-card">
+          <div class="room-card-header"><h3>Lab / Point of Care</h3><span class="room-size">8'-6" Ceiling</span></div>
+          <div class="room-card-body">
+            <div class="spec-section-title">Architectural</div>
+            <div class="spec-row"><span class="spec-label">Ceiling</span><span class="spec-val">2×2 ACT6; 2×2 Light Fixtures</span></div>
+            <div class="spec-row"><span class="spec-label">Wall</span><span class="spec-val">Navajo White P1.1 (Eider White P1.1A for retail)</span></div>
+            <div class="spec-row"><span class="spec-label">Floor</span><span class="spec-val">Resilient Tile RT1X (RT1F retail)</span></div>
+            <div class="spec-row"><span class="spec-label">Countertops</span><span class="spec-val">Solid Surface SSM1C at 2'-10" (wet); PL5B at 3'-0" (dry); PL5B at 2'-6" (workstations)</span></div>
+            <div class="spec-row"><span class="spec-label">Cabinets</span><span class="spec-val">Plastic Laminate PL2; modular casework (retail)</span></div>
+            <div class="spec-row"><span class="spec-label">Lighting</span><span class="spec-val">2×2 Fixtures + Undercabinet</span></div>
+            <div class="spec-section-title">MEP</div>
+            <div class="spec-row"><span class="spec-label">Power</span><span class="spec-val">At 44" AFF; GFCI at wet areas; 18" AFF at undercounter</span></div>
+            <div class="spec-row"><span class="spec-label">Data / Telephone</span><span class="spec-val">Yes</span></div>
+            <div class="spec-row"><span class="spec-label">Temperature Guard</span><span class="spec-val">Yes, at refrigerators</span></div>
+            <div class="spec-row"><span class="spec-label">Room Air Balance</span><span class="spec-val">Neutral</span></div>
+            <div class="spec-row"><span class="spec-label">Plumbing</span><span class="spec-val">Sink required</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-sub">Equipment List</div>
+          <div class="card-title">Lab Equipment</div>
+          <div class="eq-list">
+            <div class="eq-row"><span class="eq-ref">EQ033</span><span class="eq-desc">Full-Height Refrigerator w/ Temperature Guard</span><span class="eq-resp">O/O</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ037</span><span class="eq-desc">Centrifuge</span><span class="eq-resp">O/O</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ038</span><span class="eq-desc">Urine Analyzer</span><span class="eq-resp">O/O</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ040</span><span class="eq-desc">Label Printer</span><span class="eq-resp">O/O</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ052</span><span class="eq-desc">Tube Rotator</span><span class="eq-resp">O/O</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ054</span><span class="eq-desc">Triple Glove Box × 2</span><span class="eq-resp">O/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ062</span><span class="eq-desc">Specimen Pass Thru — Bobrick B505 × 2</span><span class="eq-resp">C/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ066</span><span class="eq-desc">Hemocue WBC Analyzer</span><span class="eq-resp">O/O</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ071</span><span class="eq-desc">Fluorescent Immunosay Analyzer</span><span class="eq-resp">O/V</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ072</span><span class="eq-desc">Immunosay Analyzer HbA1c</span><span class="eq-resp">O/V</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ073</span><span class="eq-desc">Countertop Vaccine Freezer (if needed)</span><span class="eq-resp">O/V</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ041</span><span class="eq-desc">Undercounter Refrigerator (if needed)</span><span class="eq-resp">O/V</span></div>
+          </div>
+          <div style="margin-top:12px;font-size:11px;color:var(--mercy-muted);padding:8px;background:var(--mercy-bg);border-radius:6px;">
+            <strong>Lab Configurations:</strong> 1-Pod/Retail = one work zone. 1.5-Pod and 2-Pod = two designated work zones.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOOD DRAW -->
+    <div class="room-guide-panel" id="room-blooddraw" style="display:none;">
+      <div class="grid-2">
+        <div class="room-card">
+          <div class="room-card-header"><h3>Blood Draw</h3><span class="room-size">8'-6" Ceiling</span></div>
+          <div class="room-card-body">
+            <div class="spec-section-title">Architectural</div>
+            <div class="spec-row"><span class="spec-label">Ceiling</span><span class="spec-val">2×2 ACT6</span></div>
+            <div class="spec-row"><span class="spec-label">Wall</span><span class="spec-val">Navajo White P1.1; Rainwashed P5 accent</span></div>
+            <div class="spec-row"><span class="spec-label">Base</span><span class="spec-val">Vinyl Base B2</span></div>
+            <div class="spec-row"><span class="spec-label">Floor</span><span class="spec-val">Resilient Tile RT1X</span></div>
+            <div class="spec-row"><span class="spec-label">Wall Protection</span><span class="spec-val">Corner Guards CG1</span></div>
+            <div class="spec-row"><span class="spec-label">Lighting</span><span class="spec-val">2×2 Light Fixtures ≤0.75 w/sf</span></div>
+            <div class="spec-section-title">MEP</div>
+            <div class="spec-row"><span class="spec-label">Power</span><span class="spec-val">Heights vary, reference elevations</span></div>
+            <div class="spec-row"><span class="spec-label">Room Air Balance</span><span class="spec-val">Neutral</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-sub">Equipment List</div>
+          <div class="card-title">Blood Draw Equipment</div>
+          <div class="eq-list">
+            <div class="eq-row"><span class="eq-ref">EQ010</span><span class="eq-desc">Sharps Box</span><span class="eq-resp">O/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ011</span><span class="eq-desc">Foam Dispenser</span><span class="eq-resp">O/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ032</span><span class="eq-desc">Bariatric Blood Draw Chair</span><span class="eq-resp">O/O</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ043</span><span class="eq-desc">28QT Trash Can</span><span class="eq-resp">O/O</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ044</span><span class="eq-desc">Blood Collection Tube Rack</span><span class="eq-resp">O/O</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ049/MTS001</span><span class="eq-desc">Wall Mounted Computer</span><span class="eq-resp">O/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ054</span><span class="eq-desc">Triple Glove Box</span><span class="eq-resp">O/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ067</span><span class="eq-desc">Mobile Cart</span><span class="eq-resp">O/O</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ109</span><span class="eq-desc">Clock</span><span class="eq-resp">O/O</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VACCINE -->
+    <div class="room-guide-panel" id="room-vaccine" style="display:none;">
+      <div class="grid-2">
+        <div class="room-card">
+          <div class="room-card-header"><h3>Vaccine Room</h3><span class="room-size">9'-0" Ceiling</span></div>
+          <div class="room-card-body">
+            <div class="spec-section-title">Architectural</div>
+            <div class="spec-row"><span class="spec-label">Ceiling</span><span class="spec-val">2×2 ACT6</span></div>
+            <div class="spec-row"><span class="spec-label">Ceiling Height</span><span class="spec-val">9'-0"</span></div>
+            <div class="spec-row"><span class="spec-label">Wall</span><span class="spec-val">Navajo White P1.1</span></div>
+            <div class="spec-row"><span class="spec-label">Base</span><span class="spec-val">Vinyl Base B2</span></div>
+            <div class="spec-row"><span class="spec-label">Floor</span><span class="spec-val">Resilient Tile RT1X or RT2X (coordinate with corridor carpet)</span></div>
+            <div class="spec-row"><span class="spec-label">Countertops</span><span class="spec-val">Solid Surface SSM1C at 2'-10"</span></div>
+            <div class="spec-row"><span class="spec-label">Cabinets</span><span class="spec-val">Plastic Laminate PL2</span></div>
+            <div class="spec-row"><span class="spec-label">Lighting</span><span class="spec-val">2×2 Light Fixtures ≤0.75 w/sf</span></div>
+            <div class="spec-section-title">MEP</div>
+            <div class="spec-row"><span class="spec-label">Power</span><span class="spec-val">At 18" and 44" AFF; verify at refrigerators</span></div>
+            <div class="spec-row"><span class="spec-label">Temperature Guard</span><span class="spec-val">Yes, at refrigerators</span></div>
+            <div class="spec-row"><span class="spec-label">Room Air Balance</span><span class="spec-val">Neutral</span></div>
+            <div class="spec-row"><span class="spec-label">Plumbing</span><span class="spec-val">Sink required</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-sub">Notes + Equipment</div>
+          <div class="card-title">Vaccine Room Details</div>
+          <div style="margin-top:12px;font-size:13px;color:var(--mercy-muted);line-height:1.7;margin-bottom:12px;">A private vaccine room allows items to be locked away and stored in a secure location.</div>
+          <div class="eq-list">
+            <div class="eq-row"><span class="eq-ref">EQ001/TA008</span><span class="eq-desc">Soap Dispenser</span><span class="eq-resp">O/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ002/TA009</span><span class="eq-desc">Paper Towel Dispenser</span><span class="eq-resp">O/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ010</span><span class="eq-desc">Sharps Box</span><span class="eq-resp">O/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ011</span><span class="eq-desc">Foam Dispenser</span><span class="eq-resp">O/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ033</span><span class="eq-desc">Full-Height Refrigerator w/ Freezer × 2 (w/ Temperature Guard)</span><span class="eq-resp">O/O</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ043</span><span class="eq-desc">28QT Trash Can</span><span class="eq-resp">O/O</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ054</span><span class="eq-desc">Triple Glove Box</span><span class="eq-resp">O/C</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXAM ROOM -->
+    <div class="room-guide-panel" id="room-exam" style="display:none;">
+      <div class="tabs" style="margin-bottom:16px;">
+        <button class="tab-btn active" onclick="showTab('exam-std',this)">Standard (10'×11')</button>
+        <button class="tab-btn" onclick="showTab('exam-large',this)">Large (11'×12')</button>
+        <button class="tab-btn" onclick="showTab('exam-retail',this)">Retail</button>
+      </div>
+      <div class="tab-pane active" id="exam-std">
+        <div class="grid-2">
+          <div class="room-card">
+            <div class="room-card-header"><h3>Standard Exam Room</h3><span class="room-size">9'-0" / 10'×11'</span></div>
+            <div class="room-card-body">
+              <div class="spec-section-title">Architectural</div>
+              <div class="spec-row"><span class="spec-label">Ceiling</span><span class="spec-val">2×2 ACT6</span></div>
+              <div class="spec-row"><span class="spec-label">Ceiling Height</span><span class="spec-val">9'-0"</span></div>
+              <div class="spec-row"><span class="spec-label">Wall — Freestanding</span><span class="spec-val">Navajo White P1.1 + Rainwashed P5 or Softened Green P25 accent (coordinate with RT)</span></div>
+              <div class="spec-row"><span class="spec-label">Wall — Retail</span><span class="spec-val">Eider White P1.1A + Sleepy Hollow P5A or Softened Green P25 accent</span></div>
+              <div class="spec-row"><span class="spec-label">Base</span><span class="spec-val">Vinyl Base B2</span></div>
+              <div class="spec-row"><span class="spec-label">Floor</span><span class="spec-val">Resilient Tile RT1X or RT2X (coordinate with corridor); RT1F (retail)</span></div>
+              <div class="spec-row"><span class="spec-label">Countertops</span><span class="spec-val">Solid Surface SSM1C at 2'-10"</span></div>
+              <div class="spec-row"><span class="spec-label">Cabinets</span><span class="spec-val">Plastic Laminate PL2; modular casework (retail)</span></div>
+              <div class="spec-row"><span class="spec-label">Lighting</span><span class="spec-val">2×2 Light Fixtures ≤0.75 w/sf; Occupancy Sensor</span></div>
+              <div class="spec-section-title">MEP</div>
+              <div class="spec-row"><span class="spec-label">Power</span><span class="spec-val">Heights vary, reference elevations; verify equipment power</span></div>
+              <div class="spec-row"><span class="spec-label">Data</span><span class="spec-val">Yes</span></div>
+              <div class="spec-row"><span class="spec-label">Room Air Balance</span><span class="spec-val">Neutral</span></div>
+              <div class="spec-row"><span class="spec-label">Plumbing</span><span class="spec-val">Sink required</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-sub">Equipment + Notes</div>
+            <div class="card-title">Standard Exam Room</div>
+            <div class="eq-list" style="margin-bottom:12px;">
+              <div class="eq-row"><span class="eq-ref">EQ001</span><span class="eq-desc">Soap Dispenser</span><span class="eq-resp">O/C</span></div>
+              <div class="eq-row"><span class="eq-ref">EQ002</span><span class="eq-desc">Paper Towel Dispenser</span><span class="eq-resp">O/C</span></div>
+              <div class="eq-row"><span class="eq-ref">EQ003</span><span class="eq-desc">Undercounter Keyboard Arm</span><span class="eq-resp">O/C</span></div>
+              <div class="eq-row"><span class="eq-ref">EQ007</span><span class="eq-desc">Robe Hook × 2 (at 4'-0" and 5'-0" AFF)</span><span class="eq-resp">C/C</span></div>
+              <div class="eq-row"><span class="eq-ref">EQ010</span><span class="eq-desc">Sharps Box</span><span class="eq-resp">O/C</span></div>
+              <div class="eq-row"><span class="eq-ref">EQ011</span><span class="eq-desc">Foam Dispenser</span><span class="eq-resp">O/C</span></div>
+              <div class="eq-row"><span class="eq-ref">EQ012</span><span class="eq-desc">24×36 Whiteboard</span><span class="eq-resp">O/C</span></div>
+              <div class="eq-row"><span class="eq-ref">EQ014</span><span class="eq-desc">OTD/Ophthalmoscope Set</span><span class="eq-resp">O/C</span></div>
+              <div class="eq-row"><span class="eq-ref">EQ015/MTS006</span><span class="eq-desc">Computer</span><span class="eq-resp">O/O</span></div>
+              <div class="eq-row"><span class="eq-ref">EQ016</span><span class="eq-desc">Manual Exam Table (Std Exams)</span><span class="eq-resp">O/O</span></div>
+              <div class="eq-row"><span class="eq-ref">EQ017</span><span class="eq-desc">Untouchable Waste Basket Combo</span><span class="eq-resp">O/O</span></div>
+              <div class="eq-row"><span class="eq-ref">EQ054</span><span class="eq-desc">Glove Box</span><span class="eq-resp">O/C</span></div>
+              <div class="eq-row"><span class="eq-ref">EQ070</span><span class="eq-desc">Cuff Basket</span><span class="eq-resp">O/C</span></div>
+            </div>
+            <div style="font-size:12px;color:var(--mercy-muted);padding:8px;background:var(--mercy-green-light);border-radius:6px;">
+              <strong>Privacy:</strong> Hinge doors for privacy; 1 chair with arms + 1 armless to accommodate different patient needs.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane" id="exam-large">
+        <div class="grid-2">
+          <div class="room-card">
+            <div class="room-card-header"><h3>Large Exam Room</h3><span class="room-size">9'-0" / 11'×12'</span></div>
+            <div class="room-card-body">
+              <div class="spec-section-title">Same as Standard +</div>
+              <div class="spec-row"><span class="spec-label">Extra Equipment</span><span class="spec-val">Exam light with mobile stand (EQ045); Electric exam table (EQ055); Biohazard step-on container (EQ018); Mayo Stand (EQ168)</span></div>
+              <div class="spec-row"><span class="spec-label">Min Size</span><span class="spec-val">100 SF with 3'-0" clearance at work position</span></div>
+              <div class="spec-row"><span class="spec-label">Door</span><span class="spec-val">Door for patients to access exam room, limiting exposure to others in gallery</span></div>
+              <div class="spec-row"><span class="spec-label">Note</span><span class="spec-val">Large exams can flex where necessary; do not classify as Procedure Rooms (more stringent req's)</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-sub">Use Guidance</div>
+            <div class="card-title">When to Use Large Exam</div>
+            <div style="margin-top:12px;font-size:13px;color:var(--mercy-muted);line-height:1.7;">
+              Large exams incorporate additional equipment and potentially an additional exam light. Standard exam rooms are used only for regular examination purposes. Large exams can flex as needed for specialty accommodations.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane" id="exam-retail">
+        <div class="grid-2">
+          <div class="room-card">
+            <div class="room-card-header"><h3>Retail Exam Room</h3><span class="room-size">9'-0" / 10'×11'</span></div>
+            <div class="room-card-body">
+              <div class="spec-row"><span class="spec-label">Casework System</span><span class="spec-val">Herman Miller Mora</span></div>
+              <div class="spec-row"><span class="spec-label">Consultation System</span><span class="spec-val">Herman Miller Intent</span></div>
+              <div class="spec-row"><span class="spec-label">Senior Retail Addition</span><span class="spec-val">Recliners in 5 of 6 exam rooms</span></div>
+              <div class="spec-row"><span class="spec-label">Power</span><span class="spec-val">Provide at all exam table + recliner locations (future flexibility)</span></div>
+              <div class="spec-row"><span class="spec-label">Cable Management</span><span class="spec-val">Receptacles mounted within 2'-0" width of Intent system, as close to center as framing allows</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-sub">Retail vs Freestanding</div>
+            <div class="card-title">Key Differences</div>
+            <div style="margin-top:12px;font-size:13px;color:var(--mercy-muted);line-height:1.7;">
+              Retail exams feature modular furniture instead of built casework. Herman Miller Mora casework system replaces custom millwork. Intent consultation system provides flexible workspace. Senior retail adds recliners as the primary seating/exam furniture.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- X-RAY -->
+    <div class="room-guide-panel" id="room-xray" style="display:none;">
+      <div class="grid-2">
+        <div class="room-card">
+          <div class="room-card-header"><h3>X-Ray Room</h3><span class="room-size">9'-0" / 22'-6"×12'-0"</span></div>
+          <div class="room-card-body">
+            <div class="spec-section-title">Architectural</div>
+            <div class="spec-row"><span class="spec-label">Ceiling</span><span class="spec-val">2×2 ACT6</span></div>
+            <div class="spec-row"><span class="spec-label">Wall</span><span class="spec-val">Navajo White P1.1; Rainwashed P5 or Softened Green P25 accent</span></div>
+            <div class="spec-row"><span class="spec-label">Base</span><span class="spec-val">Vinyl Base B2</span></div>
+            <div class="spec-row"><span class="spec-label">Floor</span><span class="spec-val">Resilient Tile RT1X or RT2X</span></div>
+            <div class="spec-row"><span class="spec-label">Wall Protection</span><span class="spec-val">RSV2 + Corner Guards CG1</span></div>
+            <div class="spec-row"><span class="spec-label">Countertops</span><span class="spec-val">PL5B at 3'-0" (workstation); SSM1C at 2'-10" (wet)</span></div>
+            <div class="spec-row"><span class="spec-label">Vision Window</span><span class="spec-val">36"×36" minimum</span></div>
+            <div class="spec-section-title">MEP / Special</div>
+            <div class="spec-row"><span class="spec-label">Power</span><span class="spec-val">18" AFF; coordinate with x-ray equipment supplier</span></div>
+            <div class="spec-row"><span class="spec-label">Data / Telephone</span><span class="spec-val">Yes</span></div>
+            <div class="spec-row"><span class="spec-label">Room Air Balance</span><span class="spec-val">Neutral</span></div>
+            <div class="spec-row"><span class="spec-label">Plumbing</span><span class="spec-val">Sink required</span></div>
+            <div class="spec-row"><span class="spec-label">Lead Shielding</span><span class="spec-val">Coordinate lead requirements with physicist at walls, doors, and windows</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-sub">Availability + Equipment</div>
+          <div class="card-title">X-Ray Room Notes</div>
+          <div style="margin-top:12px;font-size:13px;color:var(--mercy-muted);line-height:1.7;margin-bottom:12px;">
+            X-Ray is optional in 1.5- and 2-Pod clinics. A <strong>mobile X-ray option</strong> is available for 1-Pod clinics. X-Ray inclusion requires removal of 2 exam rooms. Final layout depends on X-ray model installed.
+          </div>
+          <div class="eq-list">
+            <div class="eq-row"><span class="eq-ref">EQ047</span><span class="eq-desc">4 Apron Peg Rack</span><span class="eq-resp">O/C</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ048</span><span class="eq-desc">Bariatric Step Stool w/ Handrail</span><span class="eq-resp">O/O</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ050</span><span class="eq-desc">Digital X-Ray System</span><span class="eq-resp">O/O</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ063</span><span class="eq-desc">Linen Supply Cart</span><span class="eq-resp">O/O</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ064</span><span class="eq-desc">Digital X-Ray Imaging System</span><span class="eq-resp">O/O</span></div>
+            <div class="eq-row"><span class="eq-ref">EQ015/MTS006</span><span class="eq-desc">Computer (3 monitors)</span><span class="eq-resp">O/O</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MA WORK -->
+    <div class="room-guide-panel" id="room-mawork" style="display:none;">
+      <div class="grid-2">
+        <div class="room-card">
+          <div class="room-card-header"><h3>MA Work Area</h3><span class="room-size">7'-6" Soffit</span></div>
+          <div class="room-card-body">
+            <div class="spec-section-title">Architectural</div>
+            <div class="spec-row"><span class="spec-label">Ceiling</span><span class="spec-val">2×2 ACT6</span></div>
+            <div class="spec-row"><span class="spec-label">Wall</span><span class="spec-val">Navajo White P1.1; Ryegrass P9A accent</span></div>
+            <div class="spec-row"><span class="spec-label">Floor</span><span class="spec-val">Carpet Tile C4A (MA work areas, offices)</span></div>
+            <div class="spec-row"><span class="spec-label">Countertops</span><span class="spec-val">Solid Surface SSM1C or Plastic Laminate PL5B</span></div>
+            <div class="spec-row"><span class="spec-label">Cabinets</span><span class="spec-val">Plastic Laminate PL2</span></div>
+            <div class="spec-row"><span class="spec-label">MFP Location</span><span class="spec-val">Multifunction printer (EQ058) and secure shredder (EQ145) in same alcove</span></div>
+            <div class="spec-section-title">Design Intent</div>
+            <div class="spec-row"><span class="spec-label">Extra Width</span><span class="spec-val">Bright color draws attention for patients to find staff in emergencies</span></div>
+            <div class="spec-row"><span class="spec-label">Off-Stage</span><span class="spec-val">Provider/MA area in back — buffer prevents overhearing private conversations</span></div>
+            <div class="spec-row"><span class="spec-label">Bullpen Concept</span><span class="spec-val">MA staff in collaborative open work area; providers share pocket offices</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-sub">MA Work Area by Prototype</div>
+          <div class="card-title">Workstation Counts</div>
+          <table class="req-table" style="margin-top:12px;">
+            <thead><tr><th>Prototype</th><th>MA Workstations</th><th>Sub-Work Areas</th></tr></thead>
+            <tbody>
+              <tr><td>1-Pod</td><td class="highlight">8</td><td>1</td></tr>
+              <tr><td>1.5-Pod</td><td class="highlight">18 (2 areas × 9)</td><td>2</td></tr>
+              <tr><td>2-Pod</td><td class="highlight">18 (2 areas × 9)</td><td>2 + 4 additional</td></tr>
+              <tr><td>Retail (General)</td><td class="highlight">3</td><td>—</td></tr>
+              <tr><td>Retail (Senior)</td><td class="highlight">5</td><td>—</td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:12px;color:var(--mercy-muted);margin-top:10px;">Each workstation measures 4'-6". Physician/MA Sub-Work Areas provide additional workstations in 1.5- and 2-Pod clinics.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ FINISHES ══ -->
+  <section class="section-panel" id="section-finishes">
+    <div class="page-header">
+      <div>
+        <h1>Finishes & Materials</h1>
+        <p>Sherwin-Williams paint palette, flooring systems, ceiling materials, and millwork specifications for Mercy clinics.</p>
+      </div>
+      <span class="section-tag">Finish Standards</span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('fin-walls',this)">Wall Finishes</button>
+      <button class="tab-btn" onclick="showTab('fin-floors',this)">Flooring</button>
+      <button class="tab-btn" onclick="showTab('fin-ceiling',this)">Ceilings</button>
+      <button class="tab-btn" onclick="showTab('fin-millwork',this)">Millwork</button>
+    </div>
+
+    <div class="tab-pane active" id="fin-walls">
+      <div class="finish-group">
+        <div class="finish-group-label">Freestanding Clinic — Paint Colors (Sherwin-Williams)</div>
+        <div class="finish-swatches">
+          <div class="swatch"><div class="swatch-color" style="background:#F2EEE4;"></div><div class="swatch-info"><div class="swatch-code">P1.1</div><div class="swatch-name">Navajo White SW 6126<br>Field Color</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#F5EED9;"></div><div class="swatch-info"><div class="swatch-code">P2</div><div class="swatch-name">Cachet Cream SW 6365<br>Toilets</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#B8D4C4;"></div><div class="swatch-info"><div class="swatch-code">P3</div><div class="swatch-name">Halcyon Green SW 6213<br>Gallery Soffit</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#B8D5CF;"></div><div class="swatch-info"><div class="swatch-code">P5</div><div class="swatch-name">Rainwashed SW 6211<br>Exam Accent</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#A8C47A;"></div><div class="swatch-info"><div class="swatch-code">P9A</div><div class="swatch-name">Ryegrass SW 6423<br>MA Work / Soffit</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#C5D5B8;"></div><div class="swatch-info"><div class="swatch-code">P25</div><div class="swatch-name">Softened Green SW 6177<br>Exam Accent (RT2X)</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#FEFEFE;"></div><div class="swatch-info"><div class="swatch-code">P1.2</div><div class="swatch-name">Pure White<br>Ceilings / Soffits</div></div></div>
+        </div>
+      </div>
+      <div class="finish-group">
+        <div class="finish-group-label">Retail Clinic — Paint Colors (Sherwin-Williams)</div>
+        <div class="finish-swatches">
+          <div class="swatch"><div class="swatch-color" style="background:#F0EDE8;"></div><div class="swatch-info"><div class="swatch-code">P1.1A</div><div class="swatch-name">Eider White SW 7014<br>Main Field</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#607C8A;"></div><div class="swatch-info"><div class="swatch-code">P24</div><div class="swatch-name">Smoky Azurite SW 9140<br>Retail Gallery Soffit</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#B3C4B6;"></div><div class="swatch-info"><div class="swatch-code">P5A</div><div class="swatch-name">Sleepy Hollow SW 6152<br>Retail Exam Accent</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#C5D5B8;"></div><div class="swatch-info"><div class="swatch-code">P25/P25A</div><div class="swatch-name">Softened Green SW 6177<br>Retail Toilet Walls</div></div></div>
+        </div>
+      </div>
+      <div class="callout gold" style="margin-top:8px;">
+        <strong>Ceramic Tile — CT6A</strong>
+        <p>White subway tile used in toilet rooms on wet walls and two adjacent walls. Brick installation up to 5'-6" AFF. Use bullnose edge along top row. In retail: FRP panels instead, installed to full height on wet wall.</p>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="fin-floors">
+      <div class="req-table-wrap">
+        <table class="req-table">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Material</th>
+              <th>Locations</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="req-cell-label">C1A</td><td>Carpet Tile</td><td>Corridors — coordinate with RT1X</td><td>—</td></tr>
+            <tr><td class="req-cell-label">C2A</td><td>Carpet Tile</td><td>Corridors — coordinate with RT2X</td><td>Alternate pattern</td></tr>
+            <tr><td class="req-cell-label">C3</td><td>Walk-Off Carpet</td><td>Entrances / Vestibule</td><td>—</td></tr>
+            <tr><td class="req-cell-label">C4A</td><td>Carpet Tile</td><td>MA Work Areas, Offices</td><td>—</td></tr>
+            <tr><td class="req-cell-label">C10B</td><td>Carpet Tile</td><td>Gallery</td><td>Mixed with PT2A per plans</td></tr>
+            <tr><td class="req-cell-label">RT1X</td><td>Resilient Tile</td><td>Exam Rooms, Break Room, Vaccine, Lab, X-Ray</td><td>Freestanding</td></tr>
+            <tr><td class="req-cell-label">RT2X</td><td>Resilient Tile</td><td>Exam Rooms, Break Room, Vaccine, Lab, X-Ray</td><td>Alternate — freestanding</td></tr>
+            <tr><td class="req-cell-label">RT1F</td><td>Resilient Tile</td><td>Retail exam rooms, corridors, gallery</td><td>Retail only</td></tr>
+            <tr><td class="req-cell-label">PT2A</td><td>Porcelain Tile</td><td>Restrooms, Entry Area, Gallery areas</td><td>Floor and base</td></tr>
+            <tr><td class="req-cell-label">SC1</td><td>Sealed Concrete</td><td>Mech, Elec, Data, HSKP, Storage</td><td>Back-of-house only</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="fin-ceiling">
+      <div class="req-table-wrap">
+        <table class="req-table">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Material</th>
+              <th>Locations</th>
+              <th>Height</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="req-cell-label">ACT1A</td><td>2×2 Acoustical Ceiling Tile</td><td>Gallery</td><td>11'-0"</td></tr>
+            <tr><td class="req-cell-label">ACT6</td><td>2×2 Acoustical Ceiling Tile</td><td>Corridors, Exam, Lab, Blood Draw, Vaccine, X-Ray</td><td>8'-6" to 9'-0"</td></tr>
+            <tr><td class="req-cell-label">P1.2</td><td>Gypsum Board, Pure White</td><td>Vestibule, Soffits</td><td>11'-0" / 9'-0"</td></tr>
+            <tr><td class="req-cell-label">P1.2A</td><td>Gypsum Board, Pure White</td><td>Toilets</td><td>8'-0"</td></tr>
+            <tr><td class="req-cell-label">P3</td><td>Gypsum Board, Halcyon Green</td><td>Gallery Soffit (freestanding)</td><td>9'-0"</td></tr>
+            <tr><td class="req-cell-label">FC1</td><td>Fiber Cement Soffit</td><td>Exterior Lantern / Canopy</td><td>11'-0"</td></tr>
+            <tr><td class="req-cell-label">EXP</td><td>Exposed Structure</td><td>Retail / Back-of-house areas</td><td>Varies</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout" style="margin-top:16px;">
+        <strong>Lantern / Entry Canopy</strong>
+        <p>Mapes Super Lumideck Flat Soffit Canopy or Approved Equal. Provides protection from elements at entry and defines the building's primary exterior identity feature.</p>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="fin-millwork">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Countertop Specifications</div>
+          <table class="req-table" style="margin-top:12px;">
+            <thead><tr><th>Code</th><th>Material</th><th>Height</th><th>Location</th></tr></thead>
+            <tbody>
+              <tr><td>SSM1C</td><td>Solid Surface</td><td>2'-10"</td><td>Wet areas: Lab, Exam, Vaccine</td></tr>
+              <tr><td>PL5B</td><td>Plastic Laminate</td><td>3'-0"</td><td>Lab dry areas, X-Ray workstation</td></tr>
+              <tr><td>PL5B</td><td>Plastic Laminate</td><td>2'-6"</td><td>Subwork / Intake, Lab workstations</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-title">Cabinet Specifications</div>
+          <div style="margin-top:12px;font-size:13px;color:var(--mercy-muted);line-height:1.7;">
+            <p style="margin-bottom:8px;"><strong>PL2 — Plastic Laminate Cabinets:</strong> Standard in all freestanding clinic spaces including exam rooms, labs, vaccine rooms, and break rooms.</p>
+            <p style="margin-bottom:8px;"><strong>Retail Modular Casework:</strong> Herman Miller Mora casework system replaces custom millwork in retail exam rooms. Modular approach per retail program.</p>
+            <p><strong>FWP4 — Fabric Wrapped Panel:</strong> Used at subwork from worksurface to underside of upper cabinets. Provides tack board functionality for clinical documentation.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ SITE ══ -->
+  <section class="section-panel" id="section-site">
+    <div class="page-header">
+      <div>
+        <h1>Site & Wayfinding Standards</h1>
+        <p>Site selection criteria, signage requirements, and wayfinding design guidance for Mercy clinic facilities.</p>
+      </div>
+      <span class="section-tag">Site + Signage</span>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:28px;">
+      <div class="card">
+        <div class="card-sub">Site Selection</div>
+        <div class="card-title">Site Requirements</div>
+        <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;gap:12px;align-items:flex-start;font-size:13px;">
+            <span style="color:var(--mercy-green);font-weight:700;margin-top:2px;">TOPOGRAPHY</span>
+            <span style="color:var(--mercy-muted);">Without steep grades; not affected by 100-year or 500-year flood plains, rock outcroppings, or adverse subsurface conditions</span>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;font-size:13px;">
+            <span style="color:var(--mercy-green);font-weight:700;margin-top:2px;">SITE</span>
+            <span style="color:var(--mercy-muted);">Free of environmental hazards or restrictions; prominent visibility from major public thoroughfares</span>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;font-size:13px;">
+            <span style="color:var(--mercy-green);font-weight:700;margin-top:2px;">INGRESS/EGRESS</span>
+            <span style="color:var(--mercy-muted);">Easily accessible from major thoroughfares; at lighted intersections for safe entry and exit</span>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;font-size:13px;">
+            <span style="color:var(--mercy-green);font-weight:700;margin-top:2px;">LANDSCAPE</span>
+            <span style="color:var(--mercy-muted);">Natural landscape features considered for enhancement of the patient experience</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-sub">Technical Wayfinding</div>
+        <div class="card-title">Building-Level Wayfinding</div>
+        <div style="margin-top:12px;font-size:13px;color:var(--mercy-muted);line-height:1.7;">
+          <p style="margin-bottom:10px;">Wayfinding is to be thought of broadly as building elements, color, texture and pattern cues, as well as a coordinated concept established for signage and artwork.</p>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:7px;">
+            <li>✦ Main gallery as primary spine and wayfinding anchor</li>
+            <li>✦ Flooring material changes to define zones and reinforce direction</li>
+            <li>✦ Color accent walls to identify zones and create landmarks</li>
+            <li>✦ Bright colors at MA Work Area for emergency navigation</li>
+            <li>✦ Elevators and stairs in highly visible locations</li>
+            <li>✦ Restrooms and stairs findable without assistance</li>
+            <li>✦ Clear signage throughout; reference Signage Guidelines</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Technical Considerations Reference</strong>
+      <p>For a more in-depth examination of wayfinding, signage, site, landscaping, and exterior architecture, designers should reference the Interior, Site & Landscape, and Exterior Architectural Guidelines for Clinics (separate document series).</p>
+    </div>
+  </section>
+
+  <!-- ══ TECHNICAL ══ -->
+  <section class="section-panel" id="section-technical">
+    <div class="page-header">
+      <div>
+        <h1>Technical Standards</h1>
+        <p>Space planning principles, structural standards, and leased space guidelines for Mercy clinic projects.</p>
+      </div>
+      <span class="section-tag">Technical Reference</span>
+    </div>
+
+    <div class="grid-3" style="margin-bottom:28px;">
+      <div class="card">
+        <div class="card-sub">Flexibility</div>
+        <div class="card-title">Adaptable Design</div>
+        <p style="font-size:13px;color:var(--mercy-muted);margin-top:10px;line-height:1.7;">Designers should maximize the use of flex spaces designed to accommodate a range of related functions. A standard planning module or column grid spacing throughout the clinic is encouraged. Standard column grid: <strong>29' for 1-story clinics</strong>.</p>
+      </div>
+      <div class="card">
+        <div class="card-sub">Efficiency</div>
+        <div class="card-title">Operational Priority</div>
+        <p style="font-size:13px;color:var(--mercy-muted);margin-top:10px;line-height:1.7;">Efficiency of long-term utilization, construction methods, and ongoing operations should be a key priority to each space planning exercise and design. Lean Design with central physician/MA work core.</p>
+      </div>
+      <div class="card">
+        <div class="card-sub">Organization</div>
+        <div class="card-title">Modular Clinic Concept</div>
+        <p style="font-size:13px;color:var(--mercy-muted);margin-top:10px;line-height:1.7;">Prototype Concepts address modular construction including <strong>11-foot deep exam zones</strong> and <strong>6-foot patient corridor widths</strong> with minimal exceptions. Functional layering includes waiting, reception, exam rooms, and support areas.</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-sub">Leased Space and Renovation</div>
+      <div class="card-title">Community-Based Clinic Guidance</div>
+      <p style="font-size:13px;color:var(--mercy-muted);margin-top:12px;line-height:1.7;">Because of their limited size and complexity, community-based clinics are often located in leased space and require renovation of existing spaces. The design flow and patient experience outlined in this design guide must be created in the design plans. Space program listings should be adapted for leased/renovated spaces using the defined workflow and room sizing standards.</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-sub">Workflow Principle</div>
+        <div class="card-title">Patient Flow Design</div>
+        <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--mercy-text);">
+          <div style="display:flex;gap:10px;align-items:center;padding:8px;background:var(--mercy-green-light);border-radius:6px;">
+            <span style="color:var(--mercy-green);font-size:18px;">→</span>
+            <span>Patient enters through <strong>gallery / waiting</strong></span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;padding:8px;background:var(--mercy-green-light);border-radius:6px;">
+            <span style="color:var(--mercy-green);font-size:18px;">→</span>
+            <span>Checks in at <strong>reception</strong>; proceeds to intake</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;padding:8px;background:var(--mercy-green-light);border-radius:6px;">
+            <span style="color:var(--mercy-green);font-size:18px;">→</span>
+            <span>Roomed by MA through <strong>6' patient corridor</strong></span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;padding:8px;background:var(--mercy-green-light);border-radius:6px;">
+            <span style="color:var(--mercy-green);font-size:18px;">→</span>
+            <span>Seen in <strong>exam room</strong>; provider works off-stage</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;padding:8px;background:var(--mercy-green-light);border-radius:6px;">
+            <span style="color:var(--mercy-green);font-size:18px;">→</span>
+            <span>Services come to <strong>patient in exam room</strong></span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-sub">Staff Flow Design</div>
+        <div class="card-title">Off-Stage Operations</div>
+        <div style="margin-top:12px;font-size:13px;color:var(--mercy-muted);line-height:1.7;">
+          <p style="margin-bottom:10px;"><strong>MA Work Area</strong> — Central work core with counters and freestanding charting kiosks. In back of layout to provide buffer and prevent overhearing private conversations.</p>
+          <p style="margin-bottom:10px;"><strong>Staff Corridor</strong> — 5'-0" minimum width, separate from 6'-0" patient corridor, allowing staff to move independently of patient flow.</p>
+          <p><strong>Shared Provider Offices</strong> — Located along back lane of suite. Two providers per office (typical 11'-6½"×6'-8"). Pocket office for Office Manager.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+</div>
+
+<script>
+// -- NAVIGATION --
+function showSection(id, el) {
+  document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + id).classList.add('active');
+  el.classList.add('active');
+  window.scrollTo(0,0);
+  closeSearch();
+}
+
+// -- ACCORDION --
+function toggleAcc(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+// -- TABS --
+// Each tab button calls showTab(targetId, this)
+// The tab-panes are direct siblings of the .tabs container
+function showTab(id, btn) {
+  // 1. The .tabs div contains the buttons
+  var tabsDiv = btn.parentElement; // the .tabs div
+
+  // 2. Deactivate all buttons in this tab bar
+  var btns = tabsDiv.querySelectorAll('.tab-btn');
+  for (var i = 0; i < btns.length; i++) { btns[i].classList.remove('active'); }
+  btn.classList.add('active');
+
+  // 3. The tab-panes are siblings of tabsDiv - walk next siblings
+  var el = tabsDiv.nextElementSibling;
+  while (el) {
+    if (el.classList.contains('tab-pane')) {
+      el.classList.remove('active');
+    }
+    el = el.nextElementSibling;
+  }
+  // Also walk previous siblings in case panes come before (shouldn't but safe)
+  el = tabsDiv.previousElementSibling;
+  while (el) {
+    if (el.classList.contains('tab-pane')) {
+      el.classList.remove('active');
+    }
+    el = el.previousElementSibling;
+  }
+
+  // 4. Activate the target
+  var target = document.getElementById(id);
+  if (target) { target.classList.add('active'); }
+}
+
+// -- ROOM GUIDE SELECTOR --
+function showRoom(id, btn) {
+  document.querySelectorAll('.room-guide-panel').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.room-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('room-' + id).style.display = 'block';
+  btn.classList.add('active');
+}
+
+// -- SEARCH --
+const searchData = [
+  { title: "Design Guideline Intent", section: "overview", keywords: "design intent overview kick-off prototype", excerpt: "Planning tool to support initial planning process for approved Mercy projects." },
+  { title: "Mercy Experience - Vibrant", section: "experience", keywords: "vibrant natural light color brand", excerpt: "Natural light, bright colors, live plants, brand elements." },
+  { title: "Mercy Experience - Easy", section: "experience", keywords: "easy wayfinding navigation simple", excerpt: "Intuitive wayfinding, open waiting spaces, moving forward." },
+  { title: "Mercy Experience - Personal", section: "experience", keywords: "personal choice control seating", excerpt: "Choice and control, variety of seating, personal devices." },
+  { title: "Mercy Experience - Comprehensive", section: "experience", keywords: "comprehensive perspective materials stakeholders", excerpt: "Patient perspective, finish materials, stakeholder inclusion." },
+  { title: "Mercy Experience - Professional", section: "experience", keywords: "professional steward storage clean orderly", excerpt: "Financial stewardship, storage, clean and orderly spaces." },
+  { title: "Facility Principles - Lantern", section: "principles", keywords: "lantern beacon light entry exterior", excerpt: "Identifiable exterior feature and beacon of light at entry." },
+  { title: "Facility Principles - Site Access", section: "principles", keywords: "site accessible parking navigation pedestrian", excerpt: "Easy vehicular and pedestrian access, clear wayfinding on site." },
+  { title: "Facility Principles - Gallery Pathway", section: "principles", keywords: "gallery pathway circulation intuitive navigation", excerpt: "Gallery as main circulation and wayfinding spine." },
+  { title: "Facility Principles - Authentic Materials", section: "principles", keywords: "materials authentic local community natural", excerpt: "Native landscaping, local artwork, natural lighting." },
+  { title: "Facility Principles - Mercy Heritage", section: "principles", keywords: "heritage sisters mercy cross history", excerpt: "Hospitality of Sisters of Mercy, cross, thought of before arrival." },
+  { title: "Brand Elements - The Lantern", section: "branding", keywords: "lantern beacon light cross exterior entry heritage", excerpt: "Main exterior identity element; cross embedded in lantern." },
+  { title: "Brand Elements - Mission Statement BE004", section: "branding", keywords: "mission statement vestibule lobby", excerpt: "Displayed in vestibule or prominent lobby location." },
+  { title: "Brand Elements - Crucifix BE005", section: "branding", keywords: "crucifix entry prominent wall healing ministry", excerpt: "Placed at entry on prominent interior wall." },
+  { title: "Brand Elements - Scripture on Glass", section: "branding", keywords: "scripture glass windows catherine quotes", excerpt: "Exterior windows and public transition spaces." },
+  { title: "Clinic Models Overview", section: "prototypes", keywords: "prototype model retail 1-pod 1.5-pod 2-pod multi-specialty", excerpt: "Eight prototype types from Retail to Multi-Specialty Large." },
+  { title: "Retail Clinic Model", section: "prototypes", keywords: "retail 2 providers 2400 3000 165 days", excerpt: "2 providers; 2,400-3,000 SF; 165-day delivery; 6 exam rooms." },
+  { title: "1-Pod Clinic Model", section: "prototypes", keywords: "1 pod 5 providers 5730 small", excerpt: "3-5 providers; 5,730 DGSF; 8 standard + 6 large exam rooms." },
+  { title: "1.5-Pod Clinic Model", section: "prototypes", keywords: "1.5 pod 6 7 providers 8570 butler hill", excerpt: "6-7 providers; 8,570 DGSF; 14 standard exam rooms." },
+  { title: "2-Pod Clinic Model", section: "prototypes", keywords: "2 pod 8 10 providers 10130 greenwood", excerpt: "8-10 providers; 10,130 DGSF; 18 standard exam rooms." },
+  { title: "Prototype Requirements - Corridors", section: "requirements", keywords: "corridor width 60 72 patient stretcher gurney", excerpt: "Mercy minimum: 60-72 inch wide; 6-foot min for stretcher/gurney transport." },
+  { title: "Prototype Requirements - Exam Rooms", section: "requirements", keywords: "exam room 80 sf 100 sf minimum size clearance", excerpt: "Standard min 80 SF; Large min 100 SF with 3-foot clearance at work position." },
+  { title: "Prototype Requirements - MEP", section: "requirements", keywords: "mechanical electrical plumbing RTU voltage breaker water", excerpt: "Retail: 120/208V 3-phase 400A main breaker; domestic water and sewer service." },
+  { title: "Space Program - 1-Pod", section: "programs", keywords: "space program 1 pod square feet NSF DGSF net gross", excerpt: "Total 4,366 NSF / 5,727-6,242 BGSF for 5-provider model." },
+  { title: "KPI Timeline - Retail", section: "kpi", keywords: "KPI retail 165 days timeline schedule delivery permit", excerpt: "165 business day start-to-finish; permit benchmarks included." },
+  { title: "KPI Timeline - Freestanding", section: "kpi", keywords: "freestanding KPI timeline schedule months entitlements", excerpt: "12-13 months design/construction; add 90-150 days if entitlements required." },
+  { title: "Room Guide - Vestibule Entry", section: "rooms", keywords: "vestibule entry design standards finishes L-shaped", excerpt: "11-foot ceiling; Walk-Off C3 floor; brand elements BE004 and BE005." },
+  { title: "Room Guide - Gallery", section: "rooms", keywords: "gallery seating waiting Halcyon Green ACT1A scripture", excerpt: "11-foot ceiling; ACT1A tile; Green P3 soffit; variety of seating types." },
+  { title: "Room Guide - Corridor", section: "rooms", keywords: "corridor 6 foot patient ACT6 carpet Rainwashed", excerpt: "8-6 ceiling; ACT6 tile; C1A or C2A carpet; LED wall sconces." },
+  { title: "Room Guide - Exam Room", section: "rooms", keywords: "exam room standard large ACT6 Rainwashed Softened Green RT1X", excerpt: "9-foot ceiling; ACT6; Solid Surface SSM1C counters; hinge door for privacy." },
+  { title: "Room Guide - Lab", section: "rooms", keywords: "lab point of care stat blood draw centrifuge specimen", excerpt: "8-6 ceiling; Solid Surface SSM1C; two work zones in 1.5 and 2-Pod." },
+  { title: "Room Guide - X-Ray", section: "rooms", keywords: "x-ray 22 foot 12 foot lead shielding physicist", excerpt: "22-6 by 12-0 min room size; lead requirements coordinated with physicist." },
+  { title: "Room Guide - Blood Draw", section: "rooms", keywords: "blood draw bariatric chair rack ACT6 RT1X", excerpt: "8-6 ceiling; ACT6; Bariatric blood draw chair (EQ032)." },
+  { title: "Room Guide - Vaccine Room", section: "rooms", keywords: "vaccine room refrigerator temperature guard locked secure", excerpt: "9-foot ceiling; 2 refrigerators with temperature guards; private locked storage." },
+  { title: "Room Guide - MA Work Area", section: "rooms", keywords: "MA work area bullpen workstation off-stage ryegrass", excerpt: "Bullpen concept; Ryegrass P9A accent wall; off-stage from patient flow." },
+  { title: "Finishes - Paint Colors", section: "finishes", keywords: "paint sherwin williams navajo white rainwashed halcyon green", excerpt: "SW palette: P1.1 Navajo White, P5 Rainwashed, P3 Halcyon Green, P9A Ryegrass." },
+  { title: "Finishes - Flooring", section: "finishes", keywords: "flooring carpet resilient porcelain tile RT1X C10B PT2A", excerpt: "C10B gallery carpet; RT1X/RT2X exam and lab; PT2A toilets; SC1 back-of-house." },
+  { title: "Finishes - Ceilings", section: "finishes", keywords: "ceiling ACT6 ACT1A gypsum pure white height", excerpt: "ACT1A at gallery 11-foot; ACT6 exam and corridor 8-6 to 9-0." },
+  { title: "Site Selection Criteria", section: "site", keywords: "site topography flood plain visibility ingress egress landscape", excerpt: "No steep grades, no flood plains, prominent visibility, lighted intersections." },
+  { title: "Technical - Structural Grid", section: "technical", keywords: "column grid 29 foot structural module flex", excerpt: "29-foot standard column grid for 1-story clinics; maximize flex spaces." },
+  { title: "Technical - Patient Flow", section: "technical", keywords: "patient flow gallery exam services come to patient off-stage", excerpt: "Gallery to Reception to Intake to Exam Room; services come to patient." }
+];
+
+const searchInput = document.getElementById('searchInput');
+const searchResults = document.getElementById('searchResults');
+
+searchInput.addEventListener('input', function() {
+  const q = this.value.trim().toLowerCase();
+  if (q.length < 2) { closeSearch(); return; }
+
+  const matches = searchData.filter(d =>
+    d.title.toLowerCase().includes(q) ||
+    d.keywords.toLowerCase().includes(q) ||
+    d.excerpt.toLowerCase().includes(q)
+  ).slice(0, 8);
+
+  if (!matches.length) { searchResults.innerHTML = '<div style="padding:12px;color:var(--mercy-muted);font-size:13px;">No results found.</div>'; }
+  else {
+    searchResults.innerHTML = matches.map(m => `
+      <div class="search-result-item" onclick="gotoResult('${m.section}')">
+        <div class="result-section">${m.section}</div>
+        <div class="result-title">${m.title}</div>
+        <div class="result-excerpt">${m.excerpt}</div>
+      </div>
+    `).join('');
+  }
+  searchResults.classList.add('visible');
+});
+
+function gotoResult(sectionId) {
+  const navItem = document.querySelector(`[data-section="${sectionId}"]`);
+  if (navItem) showSection(sectionId, navItem);
+  closeSearch();
+}
+
+function closeSearch() {
+  searchResults.classList.remove('visible');
+  // Do NOT clear searchInput.value here - let user keep their text
+}
+
+document.addEventListener('click', function(e) {
+  // Only close results dropdown, never clear the input
+  if (!e.target.closest('#searchInput') && !e.target.closest('#searchResults')) {
+    searchResults.classList.remove('visible');
+  }
+});
+
+// Clear input only when user explicitly presses Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    searchResults.classList.remove('visible');
+    searchInput.value = '';
+    searchInput.blur();
+  }
+});
+</script>
+
+</body>
+</html>
