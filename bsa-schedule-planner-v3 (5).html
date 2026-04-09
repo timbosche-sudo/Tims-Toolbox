@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>BSA — Project Schedule Planner</title>
+<style>
+:root{
+  --navy:#2D3B8C;--navy-dark:#1e2a6e;--blue:#00529B;
+  --light-blue:#70AFD7;--ink:#17324d;--muted:#687c91;
+  --good:#2d8f57;--bad:#b25340;--gold:#C8972B;
+  --line:#c8d5e5;--bg-left:linear-gradient(180deg,#f2f7fc,#eaf0f8);
+  --radius-xl:20px;--radius-lg:14px;--radius:10px;
+  --shadow:0 18px 36px rgba(0,40,100,0.11);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;color:var(--ink);}
+body{background:linear-gradient(160deg,#e4eaf5,#d8e2ef);overflow:hidden;}
+
+/* ── SHELL ── */
+.shell{
+  width:min(1720px,calc(100vw - 16px));height:calc(100vh - 16px);
+  margin:8px auto;background:rgba(255,255,255,0.82);
+  border:1px solid #c8d5e5;border-radius:26px;
+  box-shadow:var(--shadow);backdrop-filter:blur(12px);
+  overflow:hidden;display:grid;grid-template-rows:108px 44px 1fr;
+}
+
+/* ── HEADER ── */
+.header{display:grid;grid-template-columns:220px 1fr 280px;
+  background:linear-gradient(135deg,var(--navy),var(--navy-dark) 60%,#1a2560);
+  border-bottom:1px solid rgba(255,255,255,0.1);}
+.logo-panel{padding:12px 16px;border-right:1px solid rgba(255,255,255,0.12);
+  display:flex;align-items:center;justify-content:center;}
+.logo-panel img{width:175px;height:auto;display:block;object-fit:contain;}
+.logo-fallback{color:#fff;font-size:22px;font-weight:900;display:none;}
+.title-panel{padding:14px 24px;display:flex;flex-direction:column;justify-content:center;gap:5px;}
+.eyebrow{font-size:10px;font-weight:800;letter-spacing:0.22em;text-transform:uppercase;color:var(--light-blue);}
+h1{font-size:clamp(17px,1.9vw,28px);font-weight:900;color:#fff;letter-spacing:0.02em;line-height:1.05;}
+.subtitle{font-size:12px;color:rgba(255,255,255,0.6);line-height:1.35;}
+.info-panel{padding:12px 18px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;gap:8px;border-left:1px solid rgba(255,255,255,0.12);}
+.header-pills{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end;}
+.pill{font-size:10px;font-weight:800;padding:4px 11px;border-radius:999px;
+  border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.85);
+  background:rgba(255,255,255,0.1);letter-spacing:0.04em;white-space:nowrap;}
+.pill.lit{background:linear-gradient(135deg,var(--blue),#0066c2);border-color:var(--blue);
+  color:#fff;box-shadow:0 4px 12px rgba(0,82,155,0.25);}
+
+/* ── TAB BAR ── */
+.tabbar{display:flex;align-items:center;padding:0 16px;
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,#f2f7fc,#eaf0f8);
+  overflow-x:auto;overflow-y:hidden;flex-shrink:0;gap:2px;}
+.tabbar::-webkit-scrollbar{height:3px;}
+.tabbar::-webkit-scrollbar-thumb{background:#c8d5e5;border-radius:2px;}
+.tab-btn{flex-shrink:0;border:none;background:transparent;
+  padding:0 14px;height:44px;font-size:12px;font-weight:800;
+  color:var(--muted);cursor:pointer;letter-spacing:0.03em;
+  border-bottom:3px solid transparent;margin-bottom:-1px;
+  display:flex;align-items:center;gap:7px;white-space:nowrap;font-family:inherit;
+  transition:color 0.15s;}
+.tab-btn:hover{color:var(--navy);}
+.tab-btn.active{color:var(--navy);border-bottom-color:var(--navy);}
+.tab-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;transition:background 0.2s;}
+.tab-close{font-size:10px;color:#aab;margin-left:2px;
+  border:none;background:none;cursor:pointer;padding:2px 4px;border-radius:3px;line-height:1;}
+.tab-close:hover{color:var(--bad);background:#fff0ee;}
+.tab-add{flex-shrink:0;border:1.5px dashed #bccfe0;background:transparent;
+  color:var(--blue);border-radius:8px;padding:4px 12px;font-size:11px;
+  font-weight:800;cursor:pointer;margin-left:8px;font-family:inherit;height:28px;
+  align-self:center;}
+.tab-add:hover{background:#eef5ff;}
+.tab-add:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* ── PANEL HOST ── */
+#panelHost{overflow:hidden;height:100%;display:block;position:relative;}
+
+/* ── MASTER PANEL ── */
+#masterPanel{display:grid;grid-template-columns:300px 1fr;position:absolute;inset:0;overflow:hidden;transition:grid-template-columns 0.28s cubic-bezier(0.4,0,0.2,1);}
+#masterPanel.drawer-closed{grid-template-columns:0px 1fr;}
+
+.master-left{background:var(--bg-left);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;overflow:hidden;
+  transition:opacity 0.2s;position:relative;}
+#masterPanel.drawer-closed .master-left{opacity:0;pointer-events:none;}
+.master-left-scroll{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:12px;}
+.master-left-scroll::-webkit-scrollbar{width:5px;}
+.master-left-scroll::-webkit-scrollbar-thumb{background:#c8d5e5;border-radius:3px;}
+
+/* master proj cards */
+.mpc{background:#fff;border:1px solid var(--line);border-radius:var(--radius-lg);
+  overflow:visible;box-shadow:0 2px 8px rgba(0,40,100,0.05);}
+.mpc-head{display:flex;align-items:center;gap:8px;padding:9px 11px;
+  border-bottom:1px solid #edf2f8;}
+.mpc-dot-wrap{position:relative;cursor:pointer;flex-shrink:0;}
+.mpc-dot{width:14px;height:14px;border-radius:50%;border:2px solid rgba(0,0,0,0.08);transition:transform 0.15s;}
+.mpc-dot:hover{transform:scale(1.2);}
+.mpc-name{flex:1;font-size:12px;font-weight:800;color:var(--ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mpc-vis{border:none;background:none;cursor:pointer;font-size:12px;
+  color:var(--muted);padding:2px 5px;border-radius:4px;line-height:1;}
+.mpc-vis:hover{background:#f0f6ff;color:var(--blue);}
+.mpc-body{padding:10px 11px;display:flex;flex-direction:column;gap:8px;}
+.sec-label{font-size:10px;font-weight:800;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--muted);}
+.slider-toggle{border:none;background:none;cursor:pointer;font-size:10px;
+  font-weight:800;color:var(--blue);padding:2px 6px;border-radius:4px;
+  letter-spacing:0.04em;font-family:inherit;margin-left:auto;}
+.slider-toggle:hover{background:#eef5ff;}
+.slider-section{display:flex;flex-direction:column;gap:5px;}
+.slider-section.hidden{display:none;}
+.slider-row{display:grid;grid-template-columns:80px 1fr 36px;gap:6px;align-items:center;}
+.slider-pname{font-size:11px;font-weight:700;color:var(--ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+input[type=range]{width:100%;height:4px;border-radius:2px;border:none;
+  background:linear-gradient(90deg,var(--navy),var(--light-blue));
+  -webkit-appearance:none;padding:0;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;
+  border-radius:50%;background:var(--navy);border:2px solid #fff;
+  box-shadow:0 2px 6px rgba(45,59,140,0.3);cursor:pointer;}
+.slider-val{font-size:11px;font-weight:800;color:var(--navy);text-align:right;}
+
+/* COLOR PICKER */
+.color-pop{position:absolute;top:22px;left:0;z-index:200;
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius-lg);
+  padding:10px;box-shadow:0 8px 28px rgba(0,40,100,0.18);
+  display:none;flex-direction:column;gap:8px;width:188px;}
+.color-pop.open{display:flex;}
+.swatch-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;}
+.swatch{width:28px;height:28px;border-radius:6px;border:2px solid transparent;
+  cursor:pointer;transition:transform 0.1s,box-shadow 0.1s;}
+.swatch:hover{transform:scale(1.12);}
+.swatch.sel{border-color:#fff;box-shadow:0 0 0 2.5px var(--navy);}
+.custom-row{display:flex;align-items:center;gap:8px;}
+.custom-lbl{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;}
+.custom-inp{width:36px;height:28px;border:1.5px solid var(--line);border-radius:6px;cursor:pointer;padding:2px;}
+.divhr{height:1px;background:var(--line);}
+
+/* ── GANTT (shared) ── */
+.gantt-toolbar{padding:8px 14px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:8px;flex-shrink:0;background:#fff;flex-wrap:wrap;}
+.drawer-toggle{flex-shrink:0;border:1.5px solid #ccd8ea;background:#fff;color:var(--blue);
+  border-radius:8px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer;
+  font-family:inherit;display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.drawer-toggle:hover{background:#eef5ff;border-color:var(--blue);}
+.drawer-toggle.closed{background:linear-gradient(135deg,var(--navy),var(--navy-dark));
+  border-color:var(--navy);color:#fff;}
+.tbar-label{font-size:10px;font-weight:800;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--muted);}
+.zoom-btn{border:1.5px solid #ccd8ea;background:#fff;color:var(--blue);
+  border-radius:8px;padding:4px 10px;font-size:11px;font-weight:800;
+  cursor:pointer;font-family:inherit;transition:background 0.15s;}
+.zoom-btn.active{background:linear-gradient(135deg,var(--blue),#0066c2);
+  border-color:var(--blue);color:#fff;box-shadow:0 3px 8px rgba(0,82,155,0.2);}
+.zoom-btn:hover:not(.active){background:#f0f6ff;border-color:var(--blue);}
+.tbar-sep{width:1px;height:18px;background:var(--line);flex-shrink:0;}
+.legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--muted);}
+.legend-bar{width:18px;height:8px;border-radius:3px;opacity:0.85;}
+.legend-diamond{width:9px;height:9px;border-radius:1px;transform:rotate(45deg);}
+.tbar-right{margin-left:auto;display:flex;gap:7px;align-items:center;}
+.act-btn{border:none;color:#fff;border-radius:9px;padding:6px 12px;
+  font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.act-btn.navy{background:linear-gradient(135deg,var(--navy),var(--navy-dark));}
+.act-btn.blue{background:linear-gradient(135deg,var(--blue),#0066c2);}
+.act-btn.gold{background:linear-gradient(135deg,var(--gold),#e0a830);}
+.act-btn:hover{filter:brightness(1.08);}
+
+.gantt-scroll{flex:1;overflow:auto;min-height:0;}
+.gantt-scroll::-webkit-scrollbar{width:6px;height:6px;}
+.gantt-scroll::-webkit-scrollbar-thumb{background:#c8d5e5;border-radius:3px;}
+.gantt-canvas{padding:12px 12px 20px;position:relative;min-width:max-content;}
+
+/* GANTT TABLE */
+.gt{border-collapse:collapse;}
+.gt-sticky{position:sticky;left:0;z-index:10;}
+.gt-head-bg{background:linear-gradient(180deg,var(--navy),var(--navy-dark));}
+.gt-head-lbl{color:rgba(255,255,255,0.75);font-size:10px;font-weight:800;
+  letter-spacing:0.1em;text-transform:uppercase;padding:7px 12px;white-space:nowrap;}
+.gt-month{color:#fff;font-size:10px;font-weight:800;text-align:center;
+  padding:7px 3px;border-left:1px solid rgba(255,255,255,0.1);white-space:nowrap;}
+.gt-wk-row td{background:#f2f7fc;font-size:9px;font-weight:700;color:var(--muted);
+  padding:3px 2px;border-left:1px solid #dce6f0;text-align:center;white-space:nowrap;}
+.gt-wk-lbl{padding:3px 12px !important;border-left:none !important;background:#f2f7fc;}
+.gt-proj-lbl{background:linear-gradient(180deg,#eef5ff,#e4eef8);
+  font-size:11px;font-weight:900;color:var(--navy);
+  padding:5px 12px;border-top:2px solid var(--line);
+  white-space:nowrap;display:flex;align-items:center;gap:6px;}
+.gt-proj-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.gt-proj-cell{border-top:2px solid var(--line);border-left:1px solid #edf2f8;
+  background:#f8fbfd;height:24px;position:relative;}
+.gt-ph-lbl{background:#fff;font-size:10px;font-weight:700;color:var(--ink);
+  padding:4px 12px 4px 20px;border-top:1px solid #edf2f8;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gt-ph-cell{border-top:1px solid #edf2f8;border-left:1px solid #f0f4f8;
+  background:#fff;height:21px;position:relative;}
+.gt-ms-lbl{background:#fff;font-size:9px;font-weight:800;color:var(--muted);
+  padding:3px 12px 3px 20px;letter-spacing:0.07em;text-transform:uppercase;}
+.gt-ms-cell{border-left:1px solid #f0f4f8;background:#fff;height:20px;position:relative;}
+.gt-den-lbl{background:linear-gradient(180deg,#f2f7fc,#eaf0f8);font-size:9px;
+  font-weight:800;color:var(--muted);padding:3px 12px;
+  letter-spacing:0.07em;text-transform:uppercase;}
+.gt-den-cell{border-left:1px solid #f0f4f8;height:11px;}
+.today-hi{background:#fde68a !important;}
+.phase-bar{position:absolute;top:3px;bottom:3px;border-radius:4px;opacity:0.82;pointer-events:none;}
+.ms-wrap{position:absolute;top:0;bottom:0;display:flex;align-items:center;cursor:default;}
+.ms-dia{width:10px;height:10px;border-radius:1px;transform:rotate(45deg);flex-shrink:0;}
+.ms-tip{position:absolute;bottom:calc(100% + 18px);left:50%;transform:translateX(-50%);
+  background:var(--navy);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;
+  border-radius:6px;white-space:nowrap;pointer-events:none;opacity:0;
+  transition:opacity 0.15s;z-index:50;}
+.ms-wrap:hover .ms-tip{opacity:1;}
+.today-line{position:absolute;top:0;bottom:0;width:2px;
+  background:rgba(200,151,43,0.75);z-index:15;pointer-events:none;}
+.gantt-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:200px;gap:10px;color:var(--muted);text-align:center;}
+.gantt-empty .ico{font-size:38px;opacity:0.3;}
+.gantt-empty p{font-size:12px;max-width:260px;line-height:1.5;}
+
+/* master right */
+.master-right{display:flex;flex-direction:column;overflow:hidden;}
+#masterGanttScroll{flex:1;overflow:auto;min-height:0;}
+#masterGanttScroll::-webkit-scrollbar{width:6px;height:6px;}
+#masterGanttScroll::-webkit-scrollbar-thumb{background:#c8d5e5;border-radius:3px;}
+
+/* ── PROJECT PANEL ── */
+.proj-panel{display:none;position:absolute;inset:0;grid-template-columns:480px 1fr;overflow:hidden;}
+.proj-panel.active{display:grid;}
+
+/* proj left */
+.proj-left{background:var(--bg-left);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+.proj-left-scroll{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:14px;min-height:0;}
+.proj-left-scroll::-webkit-scrollbar{width:5px;}
+.proj-left-scroll::-webkit-scrollbar-thumb{background:#c8d5e5;border-radius:3px;}
+
+/* proj right */
+.proj-right{display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+
+/* form elements */
+.pp-section{background:#fff;border:1px solid var(--line);border-radius:var(--radius-xl);
+  padding:14px 16px;box-shadow:0 2px 8px rgba(0,40,100,0.05);}
+.pp-sec-head{display:flex;align-items:center;gap:9px;margin-bottom:12px;
+  padding-bottom:10px;border-bottom:1px solid #edf2f8;}
+.pp-ico{width:26px;height:26px;border-radius:7px;
+  background:linear-gradient(135deg,var(--navy),var(--navy-dark));
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pp-ico svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;}
+.pp-sec-title{font-size:11px;font-weight:800;color:var(--navy);
+  letter-spacing:0.1em;text-transform:uppercase;}
+.pp-sec-sub{font-size:11px;color:var(--muted);margin-left:auto;}
+.fg{display:grid;gap:9px;}
+.fg2{grid-template-columns:1fr 1fr;}
+.field{display:flex;flex-direction:column;gap:3px;}
+.field label{font-size:10px;font-weight:800;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--muted);}
+.field input,.field select{border:1.5px solid #ccd8ea;border-radius:9px;
+  background:#f8fafd;color:var(--ink);padding:7px 10px;font-size:13px;
+  font-weight:600;outline:none;font-family:inherit;width:100%;}
+.field input:focus,.field select:focus{border-color:var(--blue);background:#fff;}
+.field input[readonly]{background:#f0f4f8;color:var(--muted);cursor:default;}
+
+/* phases / ms table */
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--muted);padding:5px 8px;text-align:left;border-bottom:1px solid #edf2f8;}
+.data-table td{padding:4px 5px;border-bottom:1px solid #f5f8fc;vertical-align:middle;}
+.ph-inp{border:1.5px solid #ccd8ea;border-radius:8px;background:#f8fafd;
+  color:var(--ink);padding:5px 8px;font-size:12px;font-weight:600;
+  outline:none;font-family:inherit;width:100%;}
+.ph-inp:focus{border-color:var(--blue);background:#fff;}
+.ph-inp.ro{background:#f0f4f8;color:var(--muted);cursor:default;}
+.row-del{border:none;background:none;cursor:pointer;color:#bbc;
+  font-size:12px;padding:2px 5px;border-radius:4px;}
+.row-del:hover{color:var(--bad);background:#fff0ee;}
+.add-row-btn{border:1.5px dashed #bccfe0;background:transparent;color:var(--blue);
+  border-radius:9px;padding:6px 14px;font-size:11px;font-weight:800;
+  cursor:pointer;font-family:inherit;margin-top:8px;}
+.add-row-btn:hover{background:#eef5ff;}
+.del-proj-btn{border:1.5px solid #f0ccc8;background:#fff8f7;color:var(--bad);
+  border-radius:9px;padding:7px 14px;font-size:12px;font-weight:800;
+  cursor:pointer;font-family:inherit;}
+.del-proj-btn:hover{background:#ffeeeb;border-color:var(--bad);}
+
+/* collapsible sections */
+.pp-sec-toggle{border:none;background:none;cursor:pointer;
+  font-size:11px;font-weight:800;color:var(--blue);
+  padding:2px 8px;border-radius:6px;font-family:inherit;
+  letter-spacing:0.04em;margin-left:auto;flex-shrink:0;}
+.pp-sec-toggle:hover{background:#eef5ff;}
+.pp-sec-body.collapsed{display:none;}
+.pp-section.collapsed .pp-sec-head{margin-bottom:0;padding-bottom:0;border-bottom:none;}
+
+/* milestone card UI */
+.ms-card{background:#f8fafd;border:1px solid #dce6f0;border-radius:var(--radius);
+  padding:9px 11px;display:flex;flex-direction:column;gap:7px;margin-bottom:7px;}
+.ms-row1{display:flex;align-items:center;gap:6px;}
+.ms-row2{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.ms-rel-grid{display:grid;grid-template-columns:auto 1fr;gap:5px 8px;align-items:center;width:100%;}
+.ms-rel-row{display:flex;align-items:center;gap:6px;}
+.ms-name-inp{flex:1 !important;min-width:0 !important;}
+.ms-type-btn{flex-shrink:0;border:1.5px solid #ccd8ea;background:#fff;
+  color:var(--muted);border-radius:8px;padding:4px 9px;font-size:11px;
+  font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.ms-type-btn:hover{border-color:var(--blue);color:var(--blue);background:#eef5ff;}
+.ms-type-btn.rel{border-color:var(--gold);color:var(--gold);background:#fffbf0;}
+.ms-type-btn.rel:hover{background:#fff5dc;}
+.ms-ctrl-lbl{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:0.1em;
+  text-transform:uppercase;white-space:nowrap;flex-shrink:0;}
+.ms-phase-sel{flex:1 !important;min-width:80px !important;font-size:11px !important;}
+.ms-mode-sel{flex-shrink:0 !important;font-size:11px !important;width:auto !important;padding-right:24px !important;}
+.ms-offset-inp{width:58px !important;text-align:center !important;flex-shrink:0 !important;}
+.ms-resolved-disp{font-size:11px;font-weight:800;color:var(--gold);background:#fffbf0;
+  border:1px solid #f0d890;border-radius:7px;padding:4px 8px;white-space:nowrap;flex-shrink:0;}
+/* ── PRINT ── */
+@media print{
+  body{background:#fff;overflow:auto;}
+  .shell{box-shadow:none;border:none;border-radius:0;height:auto;display:block;}
+  .header{background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .tabbar,.master-left,.proj-left,.tbar-right{display:none!important;}
+  #masterPanel{grid-template-columns:1fr!important;}
+  .master-right,.proj-right{overflow:visible;}
+  .gantt-scroll,#masterGanttScroll{overflow:visible;}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo-panel">
+      <img src="https://timbosche-sudo.github.io/Tims-Toolbox/BSA-white.png" alt="BSA LifeStructures"
+        onerror="this.style.display='none';document.getElementById('lf').style.display='block';"/>
+      <div id="lf" class="logo-fallback">BSA</div>
+    </div>
+    <div class="title-panel">
+      <p class="eyebrow">Project Management Intelligence</p>
+      <h1>PROJECT SCHEDULE PLANNER</h1>
+      <div class="subtitle">Build and compare multi-project design schedules. Visualize phase overlaps, manage milestones, and identify deadline clustering across your portfolio.</div>
+    </div>
+    <div class="info-panel">
+      <div class="header-pills">
+        <span class="pill lit" id="pillProjects">1 Project</span>
+        <span class="pill" id="pillMilestones">0 Milestones</span>
+      </div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.05em;text-align:right;">Design &amp; Planning Intelligence</div>
+    </div>
+  </header>
+
+  <!-- TAB BAR -->
+  <div class="tabbar" id="tabbar"></div>
+
+  <!-- PANEL HOST -->
+  <div id="panelHost">
+
+    <!-- MASTER PANEL (static, always in DOM) -->
+    <div id="masterPanel">
+      <div class="master-left">
+        <div class="master-left-scroll" id="masterLeftScroll"></div>
+      </div>
+      <div class="master-right">
+        <div class="gantt-toolbar" id="masterToolbar">
+          <button class="drawer-toggle" id="drawerToggleBtn" onclick="toggleDrawer()">&#9776; Controls</button>
+          <div class="tbar-sep"></div>
+          <span class="tbar-label">View</span>
+          <button class="zoom-btn active" data-z="week" onclick="setZoom('week')">Weeks</button>
+          <button class="zoom-btn" data-z="month" onclick="setZoom('month')">Months</button>
+          <div class="tbar-sep"></div>
+          <div class="legend" id="masterLegend"></div>
+          <div class="tbar-right">
+            <button class="act-btn gold" onclick="importCSV()">⬆ Import</button>
+            <button class="act-btn navy" onclick="exportCSV()">⬇ Export CSV</button>
+            <button class="act-btn blue" onclick="window.print()">🖨 Print / PDF</button>
+          </div>
+        </div>
+        <div id="masterGanttScroll"><div class="gantt-canvas" id="masterGantt"></div></div>
+      </div>
+    </div>
+
+    <!-- PROJECT PANELS injected by JS -->
+    <div id="projPanelHost"></div>
+
+  </div><!-- /panelHost -->
+</div><!-- /shell -->
+
+<script>
+// ────────────────────────────────────────────────────────────────────────────
+// CONSTANTS
+// ────────────────────────────────────────────────────────────────────────────
+const SWATCHES=['#2D3B8C','#00529B','#C8972B','#2d8f57','#b25340',
+                '#5a3a8c','#1a7a6e','#c45e1a','#3a6ea8','#687c91'];
+
+const DEF_PHASES=[
+  {name:'Programming',        weeks:4},
+  {name:'Schematic Design',   weeks:6},
+  {name:'Design Development', weeks:8},
+  {name:'Construction Docs',  weeks:12},
+  {name:'Bidding',            weeks:4},
+  {name:'Construction Admin', weeks:52},
+];
+
+// ────────────────────────────────────────────────────────────────────────────
+// STATE
+// ────────────────────────────────────────────────────────────────────────────
+let projects=[], idCtr=0, activeTab='master', zoom='week';
+let slidersVisible={}; // pid -> bool
+let sectionCollapsed={}; // 'pid-info'|'pid-phases'|'pid-ms' -> bool
+
+// ────────────────────────────────────────────────────────────────────────────
+// DATE HELPERS
+// ────────────────────────────────────────────────────────────────────────────
+const pd   = s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);};
+const fd   = d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const fdisp= d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+const addd = (d,n)=>{const r=new Date(d);r.setDate(r.getDate()+n);return r;};
+const addw = (d,w)=>addd(d,w*7);
+const diffd= (a,b)=>Math.round((b-a)/864e5);
+const mon  = d=>{const r=new Date(d);const dw=r.getDay();r.setDate(r.getDate()-(dw===0?6:dw-1));return r;};
+const todayMon=()=>fd(mon(new Date()));
+const mid  =()=>Math.random().toString(36).slice(2,9);
+const esc  = s=>String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+// ────────────────────────────────────────────────────────────────────────────
+// FACTORY
+// ────────────────────────────────────────────────────────────────────────────
+function makeProj(){
+  const id=++idCtr;
+  slidersVisible[id]=true;
+  sectionCollapsed[id+'-info']=false;
+  sectionCollapsed[id+'-phases']=false;
+  sectionCollapsed[id+'-ms']=false;
+  return{id,name:`Project ${id}`,color:SWATCHES[(projects.length)%SWATCHES.length],
+    visible:true,start:todayMon(),
+    phases:DEF_PHASES.map(p=>({...p,id:mid(),color:null})),milestones:[]};  // color:null = use project color
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// LOOKUPS
+// ────────────────────────────────────────────────────────────────────────────
+const proj =id=>projects.find(p=>p.id===id);
+const phase=(pid,phid)=>proj(pid).phases.find(x=>x.id===phid);
+const mst  =(pid,mid_)=>proj(pid).milestones.find(x=>x.id===mid_);
+
+function phaseRanges(p){
+  let d=pd(p.start);
+  return p.phases.map(ph=>{
+    const s=new Date(d),e=addw(d,ph.weeks||1);
+    d=new Date(e);
+    return{start:s,end:e,name:ph.name,id:ph.id,phColor:ph.color||null};
+  });
+}
+function projEnd(p){let d=pd(p.start);p.phases.forEach(ph=>{d=addw(d,ph.weeks||1);});return d;}
+function totalDur(p){const w=p.phases.reduce((a,b)=>a+(+b.weeks||0),0);return w<8?w+' wks':`${w} wks (≈${(w/4.33).toFixed(1)} mo)`;}
+
+// Resolve a milestone's effective date (fixed or phase-relative)
+function resolveMsDate(m, p){
+  if(!m.relative || !m.relPhaseId) return m.date;
+  const ranges = phaseRanges(p);
+  const r = ranges.find(r=>r.id===m.relPhaseId);
+  if(!r) return m.date;
+  const phDays = diffd(r.start, r.end);
+  let resolved;
+  if(m.relMode==='pct'){
+    const pct = Math.max(0, Math.min(100, m.relPct||0));
+    resolved = addd(r.start, Math.round(phDays * pct / 100));
+  } else {
+    const wks = m.relWeeks||0;
+    resolved = addd(r.end, -(wks*7));
+    if(resolved < r.start) resolved = new Date(r.start);
+  }
+  return fd(resolved);
+}
+function resolvedMilestones(p){
+  return p.milestones.map(m=>({...m, resolvedDate: resolveMsDate(m,p)}));
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// MUTATIONS  (minimal re-render — never rebuild whole DOM on text input)
+// ────────────────────────────────────────────────────────────────────────────
+
+// Project name: update state, tab label, gantt only — NO full re-render
+function setProjName(id,v){
+  proj(id).name=v;
+  // update tab label span
+  const tspan=document.getElementById('tabname-'+id);
+  if(tspan) tspan.textContent=v;
+  // update master card label
+  const mlbl=document.getElementById('mpc-name-'+id);
+  if(mlbl) mlbl.textContent=v;
+  refreshGantt();
+  updatePills();
+}
+
+function setProjStart(id,v){ proj(id).start=v; refreshGantt(); refreshProjGantt(id); refreshProjDateReadouts(id); }
+function setProjColor(id,v){
+  proj(id).color=v;
+  // update dot colors everywhere
+  document.querySelectorAll('.dot-'+id).forEach(el=>el.style.background=v);
+  refreshGantt(); refreshProjGantt(id);
+}
+function toggleVis(id){ proj(id).visible=!proj(id).visible; refreshMasterLeft(); refreshGantt(); }
+function toggleSliders(id){
+  slidersVisible[id]=!slidersVisible[id];
+  const sec=document.getElementById('sliders-'+id);
+  const btn=document.getElementById('stoggle-'+id);
+  if(sec){ sec.classList.toggle('hidden',!slidersVisible[id]); }
+  if(btn){ btn.textContent=slidersVisible[id]?'Hide':'Show'; }
+}
+
+function setPhName(pid,phid,v){
+  phase(pid,phid).name=v;
+  refreshGantt(); refreshProjGantt(pid);
+  // update slider label
+  const sl=document.getElementById('slname-'+pid+'-'+phid);
+  if(sl) sl.textContent=v;
+}
+function setPhWeeks(pid,phid,v){
+  v=Math.max(1,+v||1);
+  phase(pid,phid).weeks=v;
+  // sync all bound inputs/sliders
+  document.querySelectorAll(`[data-phbind="${pid}-${phid}"]`).forEach(el=>{
+    if(el!==document.activeElement) el.value=v;
+  });
+  document.querySelectorAll(`[data-phval="${pid}-${phid}"]`).forEach(el=>el.textContent=v+'w');
+  // update computed readouts
+  refreshProjDateReadouts(pid);
+  refreshGantt(); refreshProjGantt(pid);
+}
+function setPhColor(pid,phid,v){
+  phase(pid,phid).color = v||null;
+  // proj gantt uses per-phase color; master gantt uses project color only
+  refreshProjGantt(pid);
+  // update any inline dot
+  const dot=document.getElementById('phdot-'+pid+'-'+phid);
+  if(dot) dot.style.background = v||(proj(pid).color);
+}
+function setMsName(pid,mid_,v){ mst(pid,mid_).name=v; refreshGantt(); refreshProjGantt(pid); }
+function setMsDate(pid,mid_,v){ mst(pid,mid_).date=v; refreshGantt(); refreshProjGantt(pid); }
+function setMsRelative(pid,mid_,isRel){
+  const m=mst(pid,mid_); const p=proj(pid);
+  if(!isRel){
+    // switching to fixed: snapshot current resolved date
+    const resolved=resolveMsDate(m,p);
+    m.date=resolved||m.date;
+  }
+  m.relative=isRel;
+  // ensure a valid phase is assigned
+  if(isRel){
+    if(!m.relPhaseId || !p.phases.find(ph=>ph.id===m.relPhaseId)){
+      m.relPhaseId=p.phases[0]?.id||null;
+    }
+  }
+  rebuildProjLeftPanel(pid); refreshGantt(); refreshProjGantt(pid);
+}
+function setMsRelPhase(pid,mid_,phid){ mst(pid,mid_).relPhaseId=phid; refreshMsDisp(pid,mid_); refreshGantt(); refreshProjGantt(pid); }
+function setMsRelMode(pid,mid_,mode){ mst(pid,mid_).relMode=mode; rebuildProjLeftPanel(pid); refreshGantt(); refreshProjGantt(pid); }
+function setMsRelWeeks(pid,mid_,v){ mst(pid,mid_).relWeeks=Math.max(0,+v||0); refreshMsDisp(pid,mid_); refreshGantt(); refreshProjGantt(pid); }
+function setMsRelPct(pid,mid_,v){ mst(pid,mid_).relPct=Math.max(0,Math.min(100,+v||0)); refreshMsDisp(pid,mid_); refreshGantt(); refreshProjGantt(pid); }
+function refreshMsDisp(pid,mid_){
+  const el=document.getElementById('ms-res-'+pid+'-'+mid_);
+  if(el) el.textContent='-> '+fdisp(pd(resolveMsDate(mst(pid,mid_),proj(pid))));
+}
+
+function addPhase(pid){
+  proj(pid).phases.push({id:mid(),name:'New Phase',weeks:4});
+  rebuildProjLeftPanel(pid); refreshMasterLeft(); refreshGantt(); refreshProjGantt(pid);
+}
+function removePhase(pid,phid){
+  const p=proj(pid); if(p.phases.length<=1)return;
+  p.phases=p.phases.filter(x=>x.id!==phid);
+  rebuildProjLeftPanel(pid); refreshMasterLeft(); refreshGantt(); refreshProjGantt(pid);
+}
+function addMilestone(pid){
+  const p=proj(pid);
+  const firstPhId=p.phases.length?p.phases[0].id:null;
+  p.milestones.push({id:mid(),name:'New Milestone',date:p.start,
+    relative:false,relPhaseId:firstPhId,relMode:'weeks',relWeeks:2,relPct:90});
+  rebuildProjLeftPanel(pid); refreshGantt(); refreshProjGantt(pid); updatePills();
+}
+function removeMilestone(pid,mid_){
+  proj(pid).milestones=proj(pid).milestones.filter(x=>x.id!==mid_);
+  rebuildProjLeftPanel(pid); refreshGantt(); refreshProjGantt(pid); updatePills();
+}
+function addProject(){
+  if(projects.length>=5)return;
+  const p=makeProj(); projects.push(p);
+  activeTab='proj-'+p.id;
+  buildProjPanel(p);
+  refreshTabBar();
+  refreshMasterLeft();
+  refreshGantt();
+  showActivePanel();
+  updatePills();
+}
+function removeProject(id){
+  if(projects.length<=1)return;
+  projects=projects.filter(p=>p.id!==id);
+  delete slidersVisible[id];
+  delete sectionCollapsed[id+'-info'];
+  delete sectionCollapsed[id+'-phases'];
+  delete sectionCollapsed[id+'-ms'];
+  const el=document.getElementById('projpanel-'+id);
+  if(el) el.remove();
+  if(activeTab==='proj-'+id) activeTab='master';
+  refreshTabBar();
+  refreshMasterLeft();
+  refreshGantt();
+  showActivePanel();
+  updatePills();
+}
+function setZoom(z){
+  zoom=z;
+  document.querySelectorAll('.zoom-btn').forEach(b=>b.classList.toggle('active',b.dataset.z===z));
+  refreshGantt();
+  // also refresh visible proj gantt
+  projects.forEach(p=>{ if(document.getElementById('projpanel-'+p.id)?.classList.contains('active')) refreshProjGantt(p.id); });
+}
+
+let drawerOpen=true;
+function toggleDrawer(){
+  drawerOpen=!drawerOpen;
+  const panel=document.getElementById('masterPanel');
+  const btn=document.getElementById('drawerToggleBtn');
+  panel.classList.toggle('drawer-closed',!drawerOpen);
+  if(btn){
+    btn.classList.toggle('closed',!drawerOpen);
+    btn.innerHTML=drawerOpen?'&#9776; Controls':'&#9776; Controls';
+    btn.title=drawerOpen?'Hide phase controls':'Show phase controls';
+  }
+}
+
+function updatePills(){
+  const vis=projects.filter(p=>p.visible).length;
+  document.getElementById('pillProjects').textContent=vis+' Project'+(vis!==1?'s':'');
+  const tot=projects.reduce((a,p)=>a+p.milestones.length,0);
+  document.getElementById('pillMilestones').textContent=tot+' Milestone'+(tot!==1?'s':'');
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// SHOW/HIDE PANELS (no DOM rebuild — just CSS)
+// ────────────────────────────────────────────────────────────────────────────
+function showActivePanel(){
+  // master
+  const mp=document.getElementById('masterPanel');
+  mp.style.display= activeTab==='master'?'grid':'none';
+  // project panels
+  projects.forEach(p=>{
+    const el=document.getElementById('projpanel-'+p.id);
+    if(el){
+      el.classList.toggle('active', activeTab==='proj-'+p.id);
+      el.style.display= activeTab==='proj-'+p.id?'grid':'none';
+    }
+  });
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// TAB BAR
+// ────────────────────────────────────────────────────────────────────────────
+function refreshTabBar(){
+  const bar=document.getElementById('tabbar');
+  bar.innerHTML='';
+
+  // Master tab
+  const mt=document.createElement('button');
+  mt.className='tab-btn'+(activeTab==='master'?' active':'');
+  mt.innerHTML='<span style="font-size:13px">📊</span> Master View';
+  mt.onclick=()=>{ activeTab='master'; refreshTabBar(); showActivePanel(); refreshGantt(); };
+  bar.appendChild(mt);
+
+  projects.forEach(p=>{
+    const bt=document.createElement('button');
+    bt.className='tab-btn'+(activeTab==='proj-'+p.id?' active':'');
+    const closePart=projects.length>1?`<button class="tab-close" onclick="event.stopPropagation();removeProject(${p.id})">✕</button>`:'';
+    bt.innerHTML=`<div class="tab-dot dot-${p.id}" style="background:${p.color};"></div><span id="tabname-${p.id}">${esc(p.name)}</span>${closePart}`;
+    bt.onclick=e=>{ if(e.target.classList.contains('tab-close'))return; activeTab='proj-'+p.id; refreshTabBar(); showActivePanel(); refreshProjGantt(p.id); };
+    bar.appendChild(bt);
+  });
+
+  const ab=document.createElement('button');
+  ab.className='tab-add';
+  ab.disabled=projects.length>=5;
+  ab.textContent=projects.length>=5?'Max 5':'＋ Add Project';
+  ab.onclick=addProject;
+  bar.appendChild(ab);
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// MASTER LEFT PANEL (sliders + visibility — rebuilt on structural changes)
+// ────────────────────────────────────────────────────────────────────────────
+function refreshMasterLeft(){
+  const scr=document.getElementById('masterLeftScroll');
+  scr.innerHTML='';
+
+  projects.forEach(p=>{
+    const card=document.createElement('div');
+    card.className='mpc';
+
+    // HEAD
+    const head=document.createElement('div');
+    head.className='mpc-head';
+
+    // color dot
+    const dw=document.createElement('div');
+    dw.className='mpc-dot-wrap';
+    const dot=document.createElement('div');
+    dot.className=`mpc-dot dot-${p.id}`;
+    dot.style.background=p.color;
+    dot.title='Change color';
+    dot.onclick=e=>{ e.stopPropagation(); openColorPop(p.id,dw); };
+    dw.appendChild(dot);
+    head.appendChild(dw);
+
+    const nm=document.createElement('span');
+    nm.className='mpc-name';
+    nm.id='mpc-name-'+p.id;
+    nm.textContent=p.name;
+    head.appendChild(nm);
+
+    const vis=document.createElement('button');
+    vis.className='mpc-vis';
+    vis.title=p.visible?'Hide from Gantt':'Show on Gantt';
+    vis.textContent=p.visible?'👁':'🚫';
+    vis.onclick=()=>toggleVis(p.id);
+    head.appendChild(vis);
+    card.appendChild(head);
+
+    // BODY
+    const body=document.createElement('div');
+    body.className='mpc-body';
+
+    // slider header row
+    const slhdr=document.createElement('div');
+    slhdr.style.cssText='display:flex;align-items:center;';
+    const slbl=document.createElement('span');
+    slbl.className='sec-label';
+    slbl.textContent='Phase Durations';
+    const stog=document.createElement('button');
+    stog.className='slider-toggle';
+    stog.id='stoggle-'+p.id;
+    stog.textContent=slidersVisible[p.id]?'Hide':'Show';
+    stog.onclick=()=>toggleSliders(p.id);
+    slhdr.appendChild(slbl); slhdr.appendChild(stog);
+    body.appendChild(slhdr);
+
+    // sliders
+    const ssec=document.createElement('div');
+    ssec.className='slider-section'+(slidersVisible[p.id]?'':' hidden');
+    ssec.id='sliders-'+p.id;
+
+    p.phases.forEach(ph=>{
+      const row=document.createElement('div');
+      row.className='slider-row';
+
+      const nm2=document.createElement('div');
+      nm2.className='slider-pname';
+      nm2.id=`slname-${p.id}-${ph.id}`;
+      nm2.title=ph.name; nm2.textContent=ph.name;
+
+      const sli=document.createElement('input');
+      sli.type='range'; sli.min=1; sli.max=104; sli.value=ph.weeks;
+      sli.dataset.phbind=`${p.id}-${ph.id}`;
+      sli.oninput=function(){ setPhWeeks(p.id,ph.id,+this.value); };
+
+      const val=document.createElement('div');
+      val.className='slider-val';
+      val.dataset.phval=`${p.id}-${ph.id}`;
+      val.textContent=ph.weeks+'w';
+
+      row.appendChild(nm2); row.appendChild(sli); row.appendChild(val);
+      ssec.appendChild(row);
+    });
+    body.appendChild(ssec);
+    card.appendChild(body);
+    scr.appendChild(card);
+  });
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// COLOR PICKER
+// ────────────────────────────────────────────────────────────────────────────
+let openPop=null;
+function openColorPop(pid,anchor){
+  if(openPop){ openPop.remove(); openPop=null; }
+  const pop=document.createElement('div');
+  pop.className='color-pop open';
+
+  const sg=document.createElement('div');
+  sg.className='swatch-grid';
+  SWATCHES.forEach(c=>{
+    const s=document.createElement('div');
+    s.className='swatch'+(proj(pid).color===c?' sel':'');
+    s.style.background=c;
+    s.onclick=e=>{ e.stopPropagation(); setProjColor(pid,c); pop.remove(); openPop=null; };
+    sg.appendChild(s);
+  });
+  pop.appendChild(sg);
+
+  const dv=document.createElement('div'); dv.className='divhr'; pop.appendChild(dv);
+
+  const cr=document.createElement('div'); cr.className='custom-row';
+  const lbl=document.createElement('span'); lbl.className='custom-lbl'; lbl.textContent='Custom';
+  const ci=document.createElement('input'); ci.type='color'; ci.className='custom-inp';
+  ci.value=proj(pid).color;
+  ci.oninput=e=>setProjColor(pid,e.target.value);
+  cr.appendChild(lbl); cr.appendChild(ci);
+  pop.appendChild(cr);
+
+  anchor.appendChild(pop);
+  openPop=pop;
+  setTimeout(()=>document.addEventListener('click',function h(){ pop.remove(); openPop=null; document.removeEventListener('click',h); }),0);
+}
+
+// Phase-level color picker (includes "Reset to project color" option)
+function openPhaseColorPop(pid,phid,anchor){
+  if(openPop){ openPop.remove(); openPop=null; }
+  const pop=document.createElement('div');
+  pop.className='color-pop open';
+  pop.style.width='188px';
+
+  const sg=document.createElement('div');
+  sg.className='swatch-grid';
+  const curColor=phase(pid,phid).color||proj(pid).color;
+  SWATCHES.forEach(c=>{
+    const s=document.createElement('div');
+    s.className='swatch'+(curColor===c?' sel':'');
+    s.style.background=c;
+    s.onclick=e=>{ e.stopPropagation(); setPhColor(pid,phid,c); pop.remove(); openPop=null; };
+    sg.appendChild(s);
+  });
+  pop.appendChild(sg);
+
+  const dv=document.createElement('div'); dv.className='divhr'; pop.appendChild(dv);
+  const cr=document.createElement('div'); cr.className='custom-row';
+  const lbl=document.createElement('span'); lbl.className='custom-lbl'; lbl.textContent='Custom';
+  const ci=document.createElement('input'); ci.type='color'; ci.className='custom-inp';
+  ci.value=phase(pid,phid).color||proj(pid).color;
+  ci.oninput=e=>setPhColor(pid,phid,e.target.value);
+  cr.appendChild(lbl); cr.appendChild(ci);
+  pop.appendChild(cr);
+
+  const dv2=document.createElement('div'); dv2.className='divhr'; pop.appendChild(dv2);
+  const resetBtn=document.createElement('button');
+  resetBtn.style.cssText='width:100%;border:1.5px solid var(--line);background:#f8fafd;color:var(--muted);border-radius:7px;padding:5px 8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;';
+  resetBtn.textContent='↺ Reset to project color';
+  resetBtn.onclick=e=>{ e.stopPropagation(); setPhColor(pid,phid,null); pop.remove(); openPop=null; };
+  pop.appendChild(resetBtn);
+
+  anchor.appendChild(pop);
+  openPop=pop;
+  setTimeout(()=>document.addEventListener('click',function h(){ pop.remove(); openPop=null; document.removeEventListener('click',h); }),0);
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// PROJECT PANEL  (built once per project, then mutated in place)
+// ────────────────────────────────────────────────────────────────────────────
+function buildProjPanel(p){
+  const host=document.getElementById('projPanelHost');
+
+  const panel=document.createElement('div');
+  panel.className='proj-panel';
+  panel.id='projpanel-'+p.id;
+  panel.style.display='none';
+
+  // LEFT: inputs
+  const left=document.createElement('div');
+  left.className='proj-left';
+  const lscr=document.createElement('div');
+  lscr.className='proj-left-scroll';
+  lscr.id='projleft-'+p.id;
+  left.appendChild(lscr);
+  panel.appendChild(left);
+
+  // RIGHT: mini gantt
+  const right=document.createElement('div');
+  right.className='proj-right';
+
+  const tb=document.createElement('div');
+  tb.className='gantt-toolbar';
+  tb.innerHTML=`<span class="tbar-label">Schedule Preview</span>
+    <div class="tbar-sep"></div>
+    <div class="legend" id="projLegend-${p.id}"></div>`;
+  right.appendChild(tb);
+
+  const gs=document.createElement('div');
+  gs.className='gantt-scroll';
+  gs.id='projGanttScroll-'+p.id;
+  const gc=document.createElement('div');
+  gc.className='gantt-canvas';
+  gc.id='projGantt-'+p.id;
+  gs.appendChild(gc);
+  right.appendChild(gs);
+  panel.appendChild(right);
+
+  host.appendChild(panel);
+
+  // populate inputs
+  rebuildProjLeftPanel(p.id);
+}
+
+// Rebuild only the left input panel for a project (called on structural changes like add/remove phase)
+function rebuildProjLeftPanel(pid){
+  const p=proj(pid);
+  const scr=document.getElementById('projleft-'+pid);
+  if(!scr) return;
+
+  // Save collapse state from DOM before wiping
+  const prevInfo=sectionCollapsed[pid+'-info'];
+  const prevPhases=sectionCollapsed[pid+'-phases'];
+  const prevMs=sectionCollapsed[pid+'-ms'];
+  // If state not yet recorded, read from DOM if possible
+  const infoEl=document.getElementById('sec-info-'+pid);
+  const phEl=document.getElementById('sec-phases-'+pid);
+  const msEl=document.getElementById('sec-ms-'+pid);
+  if(infoEl)   sectionCollapsed[pid+'-info']  =infoEl.classList.contains('collapsed');
+  if(phEl)     sectionCollapsed[pid+'-phases']=phEl.classList.contains('collapsed');
+  if(msEl)     sectionCollapsed[pid+'-ms']    =msEl.classList.contains('collapsed');
+
+  scr.innerHTML='';
+
+  const ranges=phaseRanges(p);
+  const endDate=ranges.length?fd(ranges[ranges.length-1].end):p.start;
+
+  // ── INFO SECTION ──
+  const infoSec=makeSec('Project Information',
+    `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>`, true, !!sectionCollapsed[pid+'-info']);
+  infoSec.id='sec-info-'+pid;
+  const infoBody=infoSec.querySelector('.pp-sec-body');
+  infoBody.innerHTML=`
+    <div class="fg fg2">
+      <div class="field"><label>Project Name</label>
+        <input id="pname-${pid}" value="${esc(p.name)}" placeholder="Project name"
+          oninput="setProjName(${pid},this.value)"/></div>
+      <div class="field"><label>Start Date</label>
+        <input type="date" value="${p.start}" onchange="setProjStart(${pid},this.value)"/></div>
+      <div class="field"><label>Total Duration</label>
+        <input readonly id="pdur-${pid}" value="${totalDur(p)}"/></div>
+      <div class="field"><label>Est. Completion</label>
+        <input readonly id="pend-${pid}" value="${endDate}"/></div>
+    </div>`;
+  scr.appendChild(infoSec);
+
+  // ── PHASES SECTION ──
+  const phSec=makeSec('Phases',`<svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>`, true, !!sectionCollapsed[pid+'-phases']);
+  phSec.id='sec-phases-'+pid;
+  phSec.querySelector('.pp-sec-sub').textContent=p.phases.length+' phase'+(p.phases.length!==1?'s':'');
+  const phBody=phSec.querySelector('.pp-sec-body');
+
+  const tbl=document.createElement('table');
+  tbl.className='data-table';
+  tbl.innerHTML=`<thead><tr>
+    <th style="width:22px"></th>
+    <th>Phase Name</th>
+    <th style="width:62px">Weeks</th>
+    <th style="width:100px">Start</th>
+    <th style="width:100px">End</th>
+    <th style="width:28px"></th>
+  </tr></thead>`;
+  const tbody=document.createElement('tbody');
+  p.phases.forEach(ph=>{
+    const r=ranges.find(r=>r.id===ph.id);
+    const phColor=ph.color||p.color;
+    const tr=document.createElement('tr');
+
+    // color dot cell — opens inline phase color picker
+    const tdDot=document.createElement('td');
+    tdDot.style.cssText='padding:2px 4px;vertical-align:middle;';
+    const dotWrap=document.createElement('div');
+    dotWrap.style.cssText='position:relative;display:inline-block;';
+    const dot=document.createElement('div');
+    dot.id='phdot-'+pid+'-'+ph.id;
+    dot.style.cssText=`width:13px;height:13px;border-radius:50%;background:${phColor};border:1.5px solid rgba(0,0,0,0.1);cursor:pointer;transition:transform 0.12s;`;
+    dot.title='Change phase color';
+    dot.onmouseenter=()=>dot.style.transform='scale(1.25)';
+    dot.onmouseleave=()=>dot.style.transform='scale(1)';
+    dot.onclick=e=>{ e.stopPropagation(); openPhaseColorPop(pid,ph.id,dotWrap); };
+    dotWrap.appendChild(dot);
+    tdDot.appendChild(dotWrap);
+
+    const tdName=document.createElement('td');
+    tdName.innerHTML=`<input class="ph-inp" value="${esc(ph.name)}" oninput="setPhName(${pid},'${ph.id}',this.value)" placeholder="Phase name"/>`;
+
+    const tdWks=document.createElement('td');
+    tdWks.innerHTML=`<input class="ph-inp" type="number" min="1" max="200" value="${ph.weeks}" data-phbind="${pid}-${ph.id}" oninput="setPhWeeks(${pid},'${ph.id}',+this.value)" style="text-align:center;"/>`;
+
+    const tdStart=document.createElement('td');
+    tdStart.innerHTML=`<input class="ph-inp ro" readonly value="${r?fd(r.start):p.start}" id="phstart-${pid}-${ph.id}"/>`;
+
+    const tdEnd=document.createElement('td');
+    tdEnd.innerHTML=`<input class="ph-inp ro" readonly value="${r?fd(r.end):p.start}" id="phend-${pid}-${ph.id}"/>`;
+
+    const tdDel=document.createElement('td');
+    tdDel.innerHTML=`<button class="row-del" onclick="removePhase(${pid},'${ph.id}')">✕</button>`;
+
+    tr.appendChild(tdDot); tr.appendChild(tdName); tr.appendChild(tdWks);
+    tr.appendChild(tdStart); tr.appendChild(tdEnd); tr.appendChild(tdDel);
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
+  phBody.appendChild(tbl);
+  const addPhBtn=document.createElement('button');
+  addPhBtn.className='add-row-btn';
+  addPhBtn.textContent='＋ Add Phase';
+  addPhBtn.onclick=()=>addPhase(pid);
+  phBody.appendChild(addPhBtn);
+  scr.appendChild(phSec);
+
+  // ── MILESTONES SECTION ──
+  const msSec=makeSec('Milestones',`<svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`, true, !!sectionCollapsed[pid+'-ms']);
+  msSec.id='sec-ms-'+pid;
+  msSec.querySelector('.pp-sec-sub').textContent=p.milestones.length+' milestone'+(p.milestones.length!==1?'s':'');
+  const msBody=msSec.querySelector('.pp-sec-body');
+  if(!p.milestones.length){
+    const emptyDiv=document.createElement('div');
+    emptyDiv.style.cssText='padding:12px;text-align:center;font-size:12px;color:var(--muted);';
+    emptyDiv.textContent='No milestones yet.';
+    msBody.appendChild(emptyDiv);
+  } else {
+    p.milestones.forEach(m=>{
+      if(m.relative===undefined) m.relative=false;
+      if(!m.relMode) m.relMode='weeks';
+      if(m.relWeeks===undefined) m.relWeeks=2;
+      if(m.relPct===undefined) m.relPct=90;
+      const resolvedDate=resolveMsDate(m,p);
+      const msCard=document.createElement('div');
+      msCard.className='ms-card';
+      // Row 1: name + toggle + delete
+      const r1=document.createElement('div'); r1.className='ms-row1';
+      const nameInp=document.createElement('input');
+      nameInp.className='ph-inp ms-name-inp';
+      nameInp.value=m.name; nameInp.placeholder='Milestone name';
+      nameInp.oninput=()=>setMsName(pid,m.id,nameInp.value);
+      const typBtn=document.createElement('button');
+      typBtn.className='ms-type-btn'+(m.relative?' rel':'');
+      typBtn.textContent=m.relative?'~ Relative':'* Fixed';
+      typBtn.title=m.relative?'Anchored to phase - click for fixed date':'Fixed calendar date - click to anchor to phase';
+      typBtn.onclick=()=>setMsRelative(pid,m.id,!m.relative);
+      const delBtn=document.createElement('button');
+      delBtn.className='row-del'; delBtn.textContent='X';
+      delBtn.onclick=()=>removeMilestone(pid,m.id);
+      r1.appendChild(nameInp); r1.appendChild(typBtn); r1.appendChild(delBtn);
+      msCard.appendChild(r1);
+      // Row 2: date controls
+      const r2=document.createElement('div'); r2.className='ms-row2';
+      if(!m.relative){
+        const lbl=document.createElement('span'); lbl.className='ms-ctrl-lbl'; lbl.textContent='Date';
+        const dInp=document.createElement('input');
+        dInp.className='ph-inp'; dInp.type='date'; dInp.value=m.date; dInp.style.flex='1';
+        dInp.onchange=()=>setMsDate(pid,m.id,dInp.value);
+        r2.appendChild(lbl); r2.appendChild(dInp);
+      } else {
+        // ensure relPhaseId is set — default to first phase
+        if(!m.relPhaseId && p.phases.length) m.relPhaseId=p.phases[0].id;
+        const resolvedDateStr=resolveMsDate(m,p);
+
+        // Row: Phase label + phase select
+        const phRow=document.createElement('div'); phRow.className='ms-rel-row';
+        const phLbl=document.createElement('span'); phLbl.className='ms-ctrl-lbl'; phLbl.style.cssText='width:44px;flex-shrink:0;'; phLbl.textContent='Phase';
+        const phSel=document.createElement('select'); phSel.className='ph-inp'; phSel.style.cssText='flex:1;font-size:12px;min-width:100px;';
+        p.phases.forEach(ph=>{
+          const o=document.createElement('option');
+          o.value=ph.id;
+          o.textContent=ph.name;
+          if(ph.id===m.relPhaseId) o.selected=true;
+          phSel.appendChild(o);
+        });
+        // sync state if nothing was selected
+        if(!m.relPhaseId || !p.phases.find(ph=>ph.id===m.relPhaseId)){
+          m.relPhaseId=phSel.value;
+        }
+        phSel.onchange=function(){ setMsRelPhase(pid,m.id,this.value); };
+        phRow.appendChild(phLbl); phRow.appendChild(phSel);
+
+        // Row: Offset label + mode select + number input + resolved display
+        const offRow=document.createElement('div'); offRow.className='ms-rel-row'; offRow.style.marginTop='4px';
+        const offLbl=document.createElement('span'); offLbl.className='ms-ctrl-lbl'; offLbl.style.cssText='width:44px;flex-shrink:0;'; offLbl.textContent='Offset';
+        const offInp=document.createElement('input'); offInp.className='ph-inp'; offInp.type='number'; offInp.min=0; offInp.style.cssText='width:58px;text-align:center;flex-shrink:0;font-size:12px;';
+        const modeSel=document.createElement('select'); modeSel.className='ph-inp'; modeSel.style.cssText='flex:1;font-size:12px;';
+        [['weeks','wks before end'],['pct','% through']].forEach(([v,l])=>{
+          const o=document.createElement('option'); o.value=v; o.textContent=l;
+          if(v===m.relMode) o.selected=true;
+          modeSel.appendChild(o);
+        });
+        modeSel.onchange=function(){ setMsRelMode(pid,m.id,this.value); };
+        if(m.relMode==='pct'){ offInp.max=100; offInp.value=m.relPct; offInp.oninput=function(){ setMsRelPct(pid,m.id,+this.value); }; }
+        else { offInp.max=200; offInp.value=m.relWeeks; offInp.oninput=function(){ setMsRelWeeks(pid,m.id,+this.value); }; }
+        const resDisp=document.createElement('div'); resDisp.className='ms-resolved-disp';
+        resDisp.id='ms-res-'+pid+'-'+m.id;
+        resDisp.textContent='-> '+fdisp(pd(resolvedDateStr));
+        offRow.appendChild(offLbl); offRow.appendChild(offInp); offRow.appendChild(modeSel); offRow.appendChild(resDisp);
+
+        r2.style.flexDirection='column'; r2.style.alignItems='stretch';
+        r2.appendChild(phRow); r2.appendChild(offRow);
+      }
+      msCard.appendChild(r2);
+      msBody.appendChild(msCard);
+    });
+  }
+  const addMsBtn=document.createElement('button');
+  addMsBtn.className='add-row-btn'; addMsBtn.textContent='+ Add Milestone';
+  addMsBtn.onclick=()=>addMilestone(pid);
+  msBody.appendChild(addMsBtn);
+  scr.appendChild(msSec);
+
+  // ── REMOVE ──
+  if(projects.length>1){
+    const delSec=document.createElement('div');
+    delSec.className='pp-section';
+    delSec.style.borderColor='#f0ccc8';
+    delSec.innerHTML=`<button class="del-proj-btn" onclick="removeProject(${pid})">Remove "${esc(p.name)}" from planner</button>`;
+    scr.appendChild(delSec);
+  }
+}
+
+function makeSec(title, iconSvg, collapsible=false, startCollapsed=false){
+  const sec=document.createElement('div');
+  sec.className='pp-section'+(startCollapsed?' collapsed':'');
+
+  const head=document.createElement('div');
+  head.className='pp-sec-head';
+  head.innerHTML=`<div class="pp-ico">${iconSvg}</div><div class="pp-sec-title">${title}</div>`;
+
+  const sub=document.createElement('div');
+  sub.className='pp-sec-sub';
+  head.appendChild(sub);
+
+  if(collapsible){
+    const tog=document.createElement('button');
+    tog.className='pp-sec-toggle';
+    tog.textContent=startCollapsed?'\u25b6 Show':'\u25bc Hide';
+    tog.onclick=()=>{
+      const collapsed=sec.classList.toggle('collapsed');
+      const bd=sec.querySelector('.pp-sec-body');
+      bd.classList.toggle('collapsed', collapsed);
+      tog.textContent=collapsed?'\u25b6 Show':'\u25bc Hide';
+    };
+    head.appendChild(tog);
+  }
+
+  const body=document.createElement('div');
+  body.className='pp-sec-body'+(startCollapsed?' collapsed':'');
+  sec.appendChild(head);
+  sec.appendChild(body);
+  return sec;
+}
+
+// Refresh only the computed date readouts in a project panel (no DOM rebuild)
+function refreshProjDateReadouts(pid){
+  const p=proj(pid);
+  const ranges=phaseRanges(p);
+  const durEl=document.getElementById('pdur-'+pid);
+  const endEl=document.getElementById('pend-'+pid);
+  if(durEl) durEl.value=totalDur(p);
+  if(endEl && ranges.length) endEl.value=fd(ranges[ranges.length-1].end);
+  p.phases.forEach(ph=>{
+    const r=ranges.find(r=>r.id===ph.id);
+    if(!r) return;
+    const se=document.getElementById('phstart-'+pid+'-'+ph.id);
+    const ee=document.getElementById('phend-'+pid+'-'+ph.id);
+    if(se) se.value=fd(r.start);
+    if(ee) ee.value=fd(r.end);
+  });
+  p.milestones.forEach(m=>{ if(m.relative) refreshMsDisp(pid,m.id); });
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// GANTT BUILDER  (shared for both master + per-project)
+// ────────────────────────────────────────────────────────────────────────────
+function buildGantt(targetEl, legendEl, projList, showDensity){
+  if(!targetEl) return;
+  const vis=projList.filter(p=>p.visible);
+  if(!vis.length){
+    targetEl.innerHTML=`<div class="gantt-empty"><div class="ico">📅</div><p>${projList.length?'All projects hidden — use visibility toggles on Master View.':'No phases yet.'}</p></div>`;
+    if(legendEl) legendEl.innerHTML='';
+    return;
+  }
+
+  let minD=null,maxD=null;
+  vis.forEach(p=>{
+    const s=pd(p.start),e=projEnd(p);
+    if(!minD||s<minD)minD=s; if(!maxD||e>maxD)maxD=e;
+    resolvedMilestones(p).forEach(m=>{const d=pd(m.resolvedDate);if(d<minD)minD=d;if(d>maxD)maxD=d;});
+  });
+  minD=addd(mon(minD),-7); maxD=addd(maxD,14);
+
+  const weeks=[];
+  let cur=new Date(mon(minD));
+  while(cur<=maxD){ weeks.push(new Date(cur)); cur=addd(cur,7); }
+
+  const CW=zoom==='week'?28:14;
+  const today=new Date();
+  const todayI=weeks.findIndex(w=>w<=today&&today<addd(w,7));
+  const LW=160;
+
+  const tbl=document.createElement('table');
+  tbl.className='gt';
+  tbl.style.cssText=`min-width:${LW+weeks.length*CW}px;border-collapse:collapse;table-layout:fixed;`;
+
+  // Month header
+  const thead=tbl.createTHead();
+  const mrow=document.createElement('tr');
+  mrow.className='gt-head-bg';
+  const ml=document.createElement('th');
+  ml.className='gt-sticky gt-head-lbl';
+  ml.style.cssText=`width:${LW}px;min-width:${LW}px;background:linear-gradient(180deg,var(--navy),var(--navy-dark));`;
+  ml.textContent='Project / Phase';
+  mrow.appendChild(ml);
+
+  let lastMo=null,moSp=0,moCells=[];
+  weeks.forEach((w,i)=>{
+    const mo=w.toLocaleDateString('en-US',{month:'short',year:'2-digit'});
+    if(mo!==lastMo){if(lastMo)moCells.push({l:lastMo,s:moSp});lastMo=mo;moSp=1;}else moSp++;
+    if(i===weeks.length-1)moCells.push({l:lastMo,s:moSp});
+  });
+  moCells.forEach(mc=>{
+    const th=document.createElement('th');
+    th.className='gt-month'; th.colSpan=mc.s;
+    th.style.minWidth=(mc.s*CW)+'px'; th.textContent=mc.l;
+    mrow.appendChild(th);
+  });
+  thead.appendChild(mrow);
+
+  if(zoom==='week'){
+    const wr=document.createElement('tr');
+    wr.className='gt-wk-row';
+    const wl=document.createElement('td');
+    wl.className='gt-sticky gt-wk-lbl';
+    wl.style.cssText=`width:${LW}px;min-width:${LW}px;`;
+    wr.appendChild(wl);
+    weeks.forEach(w=>{
+      const td=document.createElement('td');
+      td.className='gt-wk-row';
+      td.style.cssText=`width:${CW}px;min-width:${CW}px;font-size:9px;font-weight:700;color:var(--muted);text-align:center;padding:3px 2px;border-left:1px solid #dce6f0;white-space:nowrap;`;
+      td.textContent=(w.getMonth()+1)+'/'+w.getDate();
+      wr.appendChild(td);
+    });
+    thead.appendChild(wr);
+  }
+
+  const tbody=tbl.createTBody();
+
+  vis.forEach(p=>{
+    const ranges=phaseRanges(p);
+
+    // proj row
+    const pr=document.createElement('tr');
+    const plbl=document.createElement('td');
+    plbl.className='gt-sticky';
+    plbl.style.cssText=`width:${LW}px;min-width:${LW}px;background:linear-gradient(180deg,#eef5ff,#e4eef8);font-size:11px;font-weight:900;color:var(--navy);padding:5px 12px;border-top:2px solid var(--line);position:sticky;left:0;z-index:9;white-space:nowrap;`;
+    plbl.innerHTML=`<div style="display:flex;align-items:center;gap:6px;"><div class="gt-proj-dot dot-${p.id}" style="background:${p.color};"></div>${esc(p.name)}</div>`;
+    pr.appendChild(plbl);
+    weeks.forEach((_,wi)=>{
+      const td=document.createElement('td');
+      td.className='gt-proj-cell'+(wi===todayI?' today-hi':'');
+      td.style.cssText=`width:${CW}px;min-width:${CW}px;`;
+      pr.appendChild(td);
+    });
+    tbody.appendChild(pr);
+
+    // phase rows
+    ranges.forEach(r=>{
+      const row=document.createElement('tr');
+      const lbl=document.createElement('td');
+      lbl.className='gt-ph-lbl gt-sticky';
+      lbl.style.cssText=`width:${LW}px;min-width:${LW}px;`;
+      lbl.textContent=r.name; row.appendChild(lbl);
+      weeks.forEach((w,wi)=>{
+        const td=document.createElement('td');
+        td.className='gt-ph-cell'+(wi===todayI?' today-hi':'');
+        const wEnd=addd(w,7);
+        if(w<r.end&&wEnd>r.start){
+          let lp=0,rp=0;
+          if(r.start>w)lp=Math.min(100,diffd(w,r.start)/7*100);
+          if(r.end<wEnd)rp=Math.min(100,diffd(r.end,wEnd)/7*100);
+          const bar=document.createElement('div');
+          bar.className='phase-bar';
+          const barColor = (!showDensity && r.phColor) ? r.phColor : p.color;
+          bar.style.cssText=`background:${barColor};left:${lp}%;right:${rp}%;`;
+          td.appendChild(bar);
+        }
+        row.appendChild(td);
+      });
+      tbody.appendChild(row);
+    });
+
+    // milestone row
+    if(p.milestones.length){
+      const mr=document.createElement('tr');
+      const ml2=document.createElement('td');
+      ml2.className='gt-ms-lbl gt-sticky';
+      ml2.style.cssText=`width:${LW}px;min-width:${LW}px;`;
+      ml2.textContent='Milestones'; mr.appendChild(ml2);
+      weeks.forEach((w,wi)=>{
+        const td=document.createElement('td');
+        td.className='gt-ms-cell'+(wi===todayI?' today-hi':'');
+        const wEnd=addd(w,7);
+        resolvedMilestones(p).forEach(m=>{
+          const md=pd(m.resolvedDate);
+          if(md>=w&&md<wEnd){
+            const pct=diffd(w,md)/7*100;
+            const wrap=document.createElement('div');
+            wrap.className='ms-wrap'; wrap.style.left=pct+'%';
+            const dia=document.createElement('div');
+            dia.className='ms-dia'; dia.style.background=p.color;
+            const tip=document.createElement('div');
+            tip.className='ms-tip'; tip.textContent=(m.relative?'~ ':'')+m.name+' · '+fdisp(md);
+            wrap.appendChild(dia); wrap.appendChild(tip);
+            td.appendChild(wrap);
+          }
+        });
+        mr.appendChild(td);
+      });
+      tbody.appendChild(mr);
+    }
+  });
+
+  // density row
+  if(showDensity){
+    const dr=document.createElement('tr');
+    const dl=document.createElement('td');
+    dl.className='gt-den-lbl gt-sticky';
+    dl.style.cssText=`width:${LW}px;min-width:${LW}px;`;
+    dl.textContent='Deadline Density'; dr.appendChild(dl);
+    const cnts=new Array(weeks.length).fill(0);
+    vis.forEach(p=>resolvedMilestones(p).forEach(m=>{
+      const md=pd(m.resolvedDate);
+      weeks.forEach((w,wi)=>{ if(md>=w&&md<addd(w,7))cnts[wi]++; });
+    }));
+    const mx=Math.max(...cnts,1);
+    weeks.forEach((_,wi)=>{
+      const td=document.createElement('td');
+      td.className='gt-den-cell';
+      const inten=cnts[wi]/mx;
+      if(inten>0){
+        const r2=Math.round(45+(200-45)*inten);
+        const g2=Math.round(59+(151-59)*inten);
+        const b2=Math.round(140+(43-140)*inten);
+        td.style.background=`rgba(${r2},${g2},${b2},${0.15+inten*0.65})`;
+      }
+      dr.appendChild(td);
+    });
+    tbody.appendChild(dr);
+  }
+
+  targetEl.innerHTML='';
+  targetEl.appendChild(tbl);
+
+  // today line
+  if(todayI>=0){
+    const line=document.createElement('div');
+    line.className='today-line';
+    line.style.left=(LW+todayI*CW+CW/2)+'px';
+    line.title='Today';
+    targetEl.appendChild(line);
+  }
+
+  // legend
+  if(legendEl){
+    legendEl.innerHTML='';
+    vis.forEach(p=>{
+      const item=document.createElement('div');
+      item.className='legend-item';
+      item.innerHTML=`<div class="legend-bar dot-${p.id}" style="background:${p.color};"></div>${esc(p.name)}`;
+      legendEl.appendChild(item);
+    });
+    if(vis.some(p=>p.milestones.length)){
+      const item=document.createElement('div');
+      item.className='legend-item';
+      item.innerHTML=`<div class="legend-diamond" style="background:var(--muted);"></div>Milestone`;
+      legendEl.appendChild(item);
+    }
+    const t=document.createElement('div');
+    t.className='legend-item';
+    t.innerHTML=`<div style="width:2px;height:14px;background:rgba(200,151,43,0.8);border-radius:1px;"></div>Today`;
+    legendEl.appendChild(t);
+  }
+}
+
+// ── Master gantt
+function refreshGantt(){
+  buildGantt(
+    document.getElementById('masterGantt'),
+    document.getElementById('masterLegend'),
+    projects, true
+  );
+}
+
+// ── Single-project gantt on project tab
+function refreshProjGantt(pid){
+  const canvas=document.getElementById('projGantt-'+pid);
+  const legend=document.getElementById('projLegend-'+pid);
+  if(!canvas) return;
+  const p=proj(pid);
+  if(!p) return;
+  // Show as visible for its own panel even if hidden on master
+  const snapshot=[{...p, visible:true}];
+  buildGantt(canvas, legend, snapshot, false);
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// IMPORT / EXPORT
+// ────────────────────────────────────────────────────────────────────────────
+function exportCSV(){
+  const state=JSON.stringify({v:3,idCtr,slidersVisible,sectionCollapsed,projects});
+  const rows=[
+    ['#BSA_STATE',state,'','','',''],
+    ['Project','Color','Type','Name','Date/Start','Weeks/End'],
+  ];
+  projects.forEach(p=>{
+    const ranges=phaseRanges(p);
+    rows.push([p.name,p.color,'PROJECT','',p.start,'']);
+    ranges.forEach(r=>rows.push([p.name,p.color,'Phase',r.name,fd(r.start),fd(r.end)]));
+    resolvedMilestones(p).forEach(m=>rows.push([p.name,p.color,'Milestone',m.name,m.resolvedDate,m.relative?'relative':'fixed']));
+  });
+  const csv=rows.map(r=>r.map(c=>'"'+String(c||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='bsa-schedule.csv'; a.click();
+}
+
+function importCSV(){
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='.csv';
+  inp.onchange=e=>{
+    const file=e.target.files[0]; if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const text=ev.target.result;
+      const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+      if(!lines.length){alert('Empty file.');return;}
+      const firstCols=parseCSVRow(lines[0]);
+      if(firstCols[0]==='#BSA_STATE'){
+        try{
+          const st=JSON.parse(firstCols[1]);
+          if(st.v===3&&Array.isArray(st.projects)){
+            projects=st.projects;
+            idCtr=st.idCtr||projects.reduce((a,p)=>Math.max(a,p.id),0);
+            slidersVisible=st.slidersVisible||{};
+            sectionCollapsed=st.sectionCollapsed||{};
+            projects.forEach(p=>{
+              if(slidersVisible[p.id]===undefined) slidersVisible[p.id]=true;
+              if(sectionCollapsed[p.id+'-info']===undefined) sectionCollapsed[p.id+'-info']=false;
+              if(sectionCollapsed[p.id+'-phases']===undefined) sectionCollapsed[p.id+'-phases']=false;
+              if(sectionCollapsed[p.id+'-ms']===undefined) sectionCollapsed[p.id+'-ms']=false;
+              // Ensure phases have color field
+              p.phases.forEach(ph=>{ if(ph.color===undefined) ph.color=null; });
+            });
+            activeTab='master';
+            fullRebuild();
+            return;
+          }
+        }catch(err){/* fall through */}
+      }
+      // fallback manual parse
+      const rows=lines.slice(1).map(parseCSVRow);
+      const newP=[];
+      let cur=null;
+      rows.forEach(r=>{
+        const[pname,,type,name,dateOrStart,weeksOrEnd]=r;
+        if(!pname)return;
+        if(!cur||cur.name!==pname){
+          cur=newP.find(p=>p.name===pname);
+          if(!cur){
+            cur={id:++idCtr,name:pname,color:r[1]||SWATCHES[newP.length%SWATCHES.length],
+              visible:true,start:dateOrStart||todayMon(),phases:[],milestones:[]};
+            slidersVisible[cur.id]=true;
+            newP.push(cur);
+          }
+        }
+        if(type==='Phase'&&name){
+          const wks=weeksOrEnd&&dateOrStart?Math.max(1,Math.round(diffd(pd(dateOrStart),pd(weeksOrEnd))/7)):4;
+          cur.phases.push({id:mid(),name,weeks:wks});
+        }
+        if(type==='Milestone'&&name) cur.milestones.push({id:mid(),name,date:dateOrStart||todayMon()});
+      });
+      newP.forEach(p=>{ if(!p.phases.length) p.phases=DEF_PHASES.map(ph=>({...ph,id:mid()})); });
+      if(newP.length){ projects=newP; activeTab='master'; fullRebuild(); }
+      else alert('Could not parse any projects from this file.');
+    };
+    reader.readAsText(file);
+  };
+  inp.click();
+}
+
+function parseCSVRow(line){
+  const cols=[];let cur='',inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}
+    else if(c===','&&!inQ){cols.push(cur);cur='';}
+    else cur+=c;
+  }
+  cols.push(cur);
+  return cols.map(c=>c.trim());
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// FULL REBUILD  (only called on init and import)
+// ────────────────────────────────────────────────────────────────────────────
+function fullRebuild(){
+  // clear project panel host
+  document.getElementById('projPanelHost').innerHTML='';
+  // build all project panels
+  projects.forEach(p=>buildProjPanel(p));
+  // tab bar
+  refreshTabBar();
+  // master left
+  refreshMasterLeft();
+  // show active
+  showActivePanel();
+  // gantt
+  refreshGantt();
+  updatePills();
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// INIT
+// ────────────────────────────────────────────────────────────────────────────
+function init(){
+  const p=makeProj();
+  p.milestones=[{id:mid(),name:'Kickoff Meeting',date:p.start}];
+  projects.push(p);
+  fullRebuild();
+}
+
+init();
+</script>
+</body>
+</html>
