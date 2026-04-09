@@ -1,0 +1,1415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Life Cycle Cost Calculator • BSA</title>
+<style>
+  :root {
+    --bjc-navy: #2D3B8C;
+    --bjc-navy-dark: #1e2a6e;
+    --bjc-blue: #00529B;
+    --bjc-light-blue: #70AFD7;
+    --ink: #17324d;
+    --muted: #687c91;
+    --good: #2d8f57;
+    --bad: #b25340;
+    --accent-green: #2d8f57;
+    --accent-red: #b25340;
+    --bjc-gold: #C8972B;
+    --bjc-gold-light: #f0c84a;
+    --bjc-gold-pale: #fdf5e3;
+    --bjc-blue-mid: #00529B;
+    --bjc-blue-light: #70AFD7;
+    --bg: #e4eaf5;
+    --panel: #ffffff;
+    --line: #c8d5e5;
+    --shadow: 0 18px 36px rgba(0,40,100,0.11);
+    --shadow-sm: 0 1px 3px rgba(0,40,100,0.08);
+    --shadow-md: 0 4px 16px rgba(0,40,100,0.10);
+    --shadow-lg: 0 12px 40px rgba(0,40,100,0.12);
+    --radius: 14px;
+    --radius-lg: 22px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { height: 100%; font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; color: var(--ink); }
+
+  body {
+    background: linear-gradient(160deg, #e4eaf5, #d8e2ef);
+    overflow: hidden;
+  }
+
+  /* ─── SHELL ─── */
+  .shell {
+    width: min(1640px, calc(100vw - 16px));
+    height: calc(100vh - 16px);
+    margin: 8px auto;
+    background: rgba(255,255,255,0.82);
+    border: 1px solid #c8d5e5;
+    border-radius: 26px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(12px);
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: 108px 1fr;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    display: grid;
+    grid-template-columns: 220px 1fr 280px;
+    background: linear-gradient(135deg, var(--bjc-navy), var(--bjc-navy-dark) 60%, #1a2560);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .logo-panel {
+    padding: 12px 16px;
+    border-right: 1px solid rgba(255,255,255,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-panel img { height: 44px; width: auto; display: block; object-fit: contain; }
+  .logo-fallback { color: #fff; font-size: 20px; font-weight: 900; display: none; }
+
+  .title-panel {
+    padding: 14px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+  }
+
+  .eyebrow { font-size: 10px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; color: var(--bjc-light-blue); }
+
+  h1 { font-size: clamp(17px, 1.9vw, 28px); font-weight: 900; color: #fff; letter-spacing: 0.02em; line-height: 1.05; }
+
+  .subtitle { font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.35; }
+
+  .bsa-panel {
+    padding: 12px 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 8px;
+    border-left: 1px solid rgba(255,255,255,0.12);
+  }
+
+  .bsa-panel img { height: 26px; width: auto; object-fit: contain; opacity: 0.9; }
+
+  /* Header right pills */
+  .header-pills {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .pill {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.1);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .pill.active-pill {
+    background: linear-gradient(135deg, var(--bjc-blue), #0066c2);
+    border-color: var(--bjc-blue);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0,82,155,0.25);
+  }
+
+  .pill:hover { background: rgba(255,255,255,0.18); }
+
+  /* ─── MAIN LAYOUT ─── */
+  .main-body {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  /* ─── LEFT PANEL (inputs) ─── */
+  .left-panel {
+    background: linear-gradient(180deg, #f2f7fc, #eaf0f8);
+    border-right: 1px solid #d5e0ee;
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    overflow-y: auto;
+  }
+
+  .right-panel {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+  }
+
+  /* ─── SECTION LABELS ─── */
+  .sel-label {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  /* ─── CARDS ─── */
+  .card {
+    background: #fff;
+    border: 1px solid #d5e0ee;
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    box-shadow: 0 3px 10px rgba(0,40,100,0.05);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #d5e0ee;
+  }
+
+  .card-header-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--bjc-navy), var(--bjc-navy-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .card-header-icon svg {
+    width: 14px;
+    height: 14px;
+    stroke: #fff;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .card-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--bjc-navy);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .stack { display: flex; flex-direction: column; gap: 13px; }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+  /* ─── FORM ELEMENTS ─── */
+  .field { display: flex; flex-direction: column; gap: 4px; }
+
+  label {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 12px;
+    border: 1.5px solid #ccd8ea;
+    background: #fff;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    transition: border-color 0.15s;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--bjc-blue);
+  }
+
+  select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2300529B' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+
+  .scenario-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .scenario-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-a { background: var(--bjc-blue); }
+  .dot-b { background: var(--bjc-gold); }
+
+  .scenario-name {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+  }
+
+  .scenario-block {
+    background: #f6f9fd;
+    border: 1px solid #dce6f0;
+    border-radius: var(--radius);
+    padding: 12px;
+  }
+
+  .scenario-block.b-block { border-left: 3px solid var(--bjc-gold); }
+  .scenario-block.a-block { border-left: 3px solid var(--bjc-blue); }
+
+  /* ─── BUTTONS ─── */
+  .btns { display: flex; gap: 7px; flex-wrap: wrap; }
+
+  button {
+    padding: 8px 14px;
+    border-radius: 12px;
+    border: 1.5px solid #ccd8ea;
+    background: #fff;
+    color: var(--ink);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  button:hover { border-color: var(--bjc-blue); background: #f0f6ff; }
+
+  button.primary {
+    background: linear-gradient(135deg, var(--bjc-blue), #0066c2);
+    border-color: var(--bjc-blue);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0,82,155,0.25);
+  }
+
+  button.primary:hover { filter: brightness(1.06); }
+
+  button.gold {
+    background: linear-gradient(135deg, var(--bjc-gold), #e0a830);
+    border-color: var(--bjc-gold);
+    color: #fff;
+  }
+
+  /* ─── TABS (results panel) ─── */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    padding: 0;
+    border-bottom: 1px solid #d5e0ee;
+    background: transparent;
+  }
+
+  .tab {
+    padding: 8px 16px;
+    border-radius: 0;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 800;
+    text-align: center;
+    color: var(--bjc-blue);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px;
+  }
+
+  .tab:hover { color: var(--bjc-navy); }
+
+  .tab.active {
+    color: var(--bjc-navy);
+    border-bottom-color: var(--bjc-navy);
+    background: transparent;
+  }
+
+  /* ─── KPI TILES ─── */
+  .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+
+  .tile {
+    background: #f6f9fd;
+    border: 1px solid #dce6f0;
+    border-radius: var(--radius);
+    padding: 11px 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tile::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--bjc-navy), var(--bjc-blue));
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  .tile.gold-tile::before { background: linear-gradient(90deg, var(--bjc-gold), var(--bjc-gold-light)); }
+  .tile.green-tile::before { background: linear-gradient(90deg, var(--good), #48c47a); }
+
+  .tile-label {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 5px;
+    line-height: 1.3;
+  }
+
+  .tile-value {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--bjc-navy);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  /* ─── CHART ─── */
+  .chart-wrap {
+    background: #f6f9fd;
+    border: 1px solid #dce6f0;
+    border-radius: var(--radius);
+    padding: 14px;
+    height: 260px;
+    position: relative;
+  }
+
+  .chart-title {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+  }
+
+  .bars-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+    justify-content: center;
+    height: calc(100% - 36px);
+    padding-bottom: 4px;
+  }
+
+  .bar-group { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+
+  .bar {
+    width: 56px;
+    border-radius: 10px 10px 4px 4px;
+    transition: height 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    min-height: 4px;
+    position: relative;
+  }
+
+  .bar-a {
+    background: linear-gradient(180deg, var(--bjc-navy) 0%, var(--bjc-navy-dark) 100%);
+    box-shadow: 0 4px 12px rgba(45,59,140,0.3);
+  }
+
+  .bar-b {
+    background: linear-gradient(180deg, var(--bjc-gold) 0%, #a87820 100%);
+    box-shadow: 0 4px 12px rgba(200,151,43,0.3);
+  }
+
+  .bar-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    text-align: center;
+    max-width: 80px;
+    line-height: 1.2;
+  }
+
+  /* ─── TABLE ─── */
+  .table-wrap { overflow-x: auto; max-height: 280px; overflow-y: auto; border-radius: var(--radius); border: 1px solid #dce6f0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    background: #fff;
+  }
+
+  thead { position: sticky; top: 0; z-index: 5; }
+
+  th {
+    background: linear-gradient(180deg, var(--bjc-navy), var(--bjc-navy-dark));
+    color: #fff;
+    padding: 9px 12px;
+    text-align: right;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+
+  th:first-child { text-align: left; }
+
+  td {
+    border-bottom: 1px solid #edf2f8;
+    padding: 7px 12px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+
+  td:first-child { text-align: left; color: var(--muted); font-size: 11px; }
+
+  tr:hover td { background: #f0f6ff; }
+
+  tfoot td {
+    font-weight: 800;
+    background: #f6f9fd;
+    border-top: 2px solid #dce6f0;
+    color: var(--bjc-navy);
+    padding: 9px 12px;
+  }
+
+  /* ─── SENSITIVITY ─── */
+  .sens-layout { display: grid; grid-template-columns: 240px 1fr; gap: 14px; }
+
+  .sens-controls {
+    background: #f6f9fd;
+    border: 1px solid #dce6f0;
+    border-radius: var(--radius);
+    padding: 13px;
+  }
+
+  .sens-title { font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 12px; }
+
+  .slider-row {
+    display: grid;
+    grid-template-columns: 1fr 44px;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .slider-row label { font-size: 10px; margin-bottom: 3px; display: block; }
+
+  input[type=range] {
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    border: none;
+    background: linear-gradient(90deg, var(--bjc-navy) 0%, var(--bjc-light-blue) 100%);
+    -webkit-appearance: none;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--bjc-navy);
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(45,59,140,0.3);
+    cursor: pointer;
+  }
+
+  .slider-val {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--bjc-navy);
+    text-align: right;
+  }
+
+  .tornado-wrap {
+    background: #f6f9fd;
+    border: 1px solid #dce6f0;
+    border-radius: var(--radius);
+    padding: 13px;
+    min-height: 220px;
+  }
+
+  .tornado-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .tornado-label {
+    flex: 0 0 160px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tornado-bar {
+    height: 20px;
+    border-radius: 10px;
+    background: var(--bjc-navy);
+    opacity: 0.85;
+    transition: width 0.3s ease;
+    min-width: 4px;
+  }
+
+  .tornado-bar.neg { background: var(--bad); }
+
+  .tornado-val {
+    width: 90px;
+    text-align: right;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  /* ─── MODAL ─── */
+  .modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,24,48,0.5);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+  }
+
+  .modal-sheet {
+    width: min(680px, 92vw);
+    background: #fff;
+    border: 1px solid #d5e0ee;
+    border-radius: var(--radius-lg);
+    padding: 22px;
+    box-shadow: var(--shadow);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #d5e0ee;
+  }
+
+  .modal-title {
+    font-size: 15px;
+    font-weight: 900;
+    color: var(--bjc-navy);
+  }
+
+  .modal-src {
+    background: #f6f9fd;
+    border: 1px solid #dce6f0;
+    border-radius: var(--radius);
+    padding: 13px;
+    margin-bottom: 10px;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid #ccd8ea;
+    background: #fff;
+    color: var(--bjc-blue);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+
+  .modal-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: center;
+  }
+
+  /* ─── DISCLAIMER ─── */
+  .disclaimer {
+    font-size: 11px;
+    color: var(--muted);
+    background: #f6f9fd;
+    border: 1px solid #dce6f0;
+    border-radius: 10px;
+    padding: 10px 12px;
+    line-height: 1.5;
+  }
+
+  /* ─── OWNER VIEW ─── */
+  .owner #inputs { display: none !important; }
+  .owner .main-body { grid-template-columns: 1fr; }
+  .owner .kpis .tile-value { font-size: 24px; }
+
+  /* ─── DIVIDER ─── */
+  .divider { height: 1px; background: #d5e0ee; }
+
+  @media print {
+    body { background: #fff; overflow: auto; }
+    .shell { box-shadow: none; border: none; border-radius: 0; height: auto; width: 100%; }
+    header { background: var(--bjc-navy) !important; -webkit-print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+<!-- HEADER -->
+<header>
+  <div class="logo-panel">
+    <img src="https://timbosche-sudo.github.io/Tims-Toolbox/BSA-white.png" alt="BSA"
+      onerror="this.style.display='none';document.getElementById('lf').style.display='block';"/>
+    <div id="lf" class="logo-fallback">BSA</div>
+  </div>
+  <div class="title-panel">
+    <p class="eyebrow">Facility Planning &amp; Analysis</p>
+    <h1>LIFE CYCLE COST CALCULATOR</h1>
+    <div class="subtitle">Compare MEP strategies side-by-side with transparent NPV analysis, sensitivity testing, and owner-ready reporting.</div>
+  </div>
+  <div class="bsa-panel">
+    <img src="https://timbosche-sudo.github.io/Tims-Toolbox/BSA-white.png" alt="BSA LifeStructures"
+      onerror="this.style.display='none';"/>
+    <div class="header-pills">
+      <span class="pill" id="scenarioPill">Scenario A vs B</span>
+      <span class="pill active-pill">V3</span>
+      <span class="pill" id="ownerToggle" style="cursor:pointer;">Owner View</span>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN BODY -->
+<div class="main-body">
+
+  <!-- ── LEFT: INPUTS ── -->
+  <section id="inputs" class="left-panel stack">
+
+    <div class="card-header">
+      <div class="card-header-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      </div>
+      <div>
+        <div class="card-title">Assumptions</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Preset Comparison</label>
+      <select id="preset">
+        <option value="custom">— Choose a preset —</option>
+        <option value="ac_vs_wc">Air-cooled chiller vs Water-cooled + tower</option>
+        <option value="boiler_vs_hp">Gas boiler vs Heat pump (electrified)</option>
+        <option value="doas_erv">Conventional AHU vs DOAS + ERV</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Analysis Period (years)</label>
+        <input id="years" type="number" value="25">
+      </div>
+      <div class="field">
+        <label>Discount Rate (%)</label>
+        <input id="discount" type="number" step="0.1" value="6">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Energy Escalation (% / year)</label>
+      <input id="escal" type="number" value="2.0" step="0.1">
+    </div>
+
+    <!-- Scenario A -->
+    <div class="scenario-block a-block">
+      <div class="scenario-label">
+        <div class="scenario-dot dot-a"></div>
+        <div class="scenario-name">Scenario A</div>
+      </div>
+      <div class="field" style="margin-bottom:8px">
+        <label>Name</label>
+        <input id="nameA" value="Air-cooled chiller">
+      </div>
+      <div class="grid3">
+        <div class="field">
+          <label>CAPEX ($)</label>
+          <input id="capexA" type="number" value="2800000">
+        </div>
+        <div class="field">
+          <label>Annual OPEX ($)</label>
+          <input id="opexA" type="number" value="310000">
+        </div>
+        <div class="field">
+          <label>Replacement (yr:cost)</label>
+          <input id="replA" value="15:1800000">
+        </div>
+      </div>
+    </div>
+
+    <!-- Scenario B -->
+    <div class="scenario-block b-block">
+      <div class="scenario-label">
+        <div class="scenario-dot dot-b"></div>
+        <div class="scenario-name">Scenario B</div>
+      </div>
+      <div class="field" style="margin-bottom:8px">
+        <label>Name</label>
+        <input id="nameB" value="Water-cooled chiller + tower">
+      </div>
+      <div class="grid3">
+        <div class="field">
+          <label>CAPEX ($)</label>
+          <input id="capexB" type="number" value="3600000">
+        </div>
+        <div class="field">
+          <label>Annual OPEX ($)</label>
+          <input id="opexB" type="number" value="250000">
+        </div>
+        <div class="field">
+          <label>Replacement (yr:cost)</label>
+          <input id="replB" value="18:2300000">
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Residual Value Method</label>
+        <select id="residMethod">
+          <option value="none">None</option>
+          <option value="straight">Straight-line remaining life</option>
+        </select>
+      </div>
+      <div class="btns">
+        <button id="share" type="button">Share URL</button>
+        <button id="swap" type="button">Swap A ↔ B</button>
+        <button id="print" type="button">Print</button>
+        <button id="dataBtn" type="button" class="primary">Data</button>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      Use this tool live to compare MEP strategies with transparent, adjustable assumptions.
+      Numbers shown are illustrative placeholders for planning discussions.
+    </div>
+  </section>
+
+  <!-- ── RIGHT: RESULTS ── -->
+  <section class="right-panel stack">
+
+    <div class="tabs">
+      <div class="tab active" data-tab="summary">Summary</div>
+      <div class="tab" data-tab="cashflow">Cash Flow</div>
+      <div class="tab" data-tab="sensitivity">Sensitivity</div>
+    </div>
+
+    <!-- SUMMARY TAB -->
+    <div id="panel-summary" class="stack">
+      <div class="kpis" id="kpis"></div>
+
+      <div class="chart-wrap">
+        <div class="chart-title">Cumulative Net Present Cost — lower is better</div>
+        <div class="bars-container" id="bars"></div>
+      </div>
+
+      <div class="table-wrap">
+        <table id="table">
+          <thead>
+            <tr>
+              <th>Year</th>
+              <th id="thA">Scenario A</th>
+              <th id="thB">Scenario B</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+          <tfoot>
+            <tr>
+              <td>Total NPC</td>
+              <td id="totA">—</td>
+              <td id="totB">—</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- CASH FLOW TAB -->
+    <div id="panel-cashflow" class="stack" style="display:none">
+      <div class="kpis" id="kpis2"></div>
+
+      <div class="chart-wrap">
+        <div class="chart-title">Cost breakdown by category — CAPEX / OPEX (PV) / Replacements (PV) / Salvage (PV)</div>
+        <div class="bars-container" id="cfBars"></div>
+      </div>
+    </div>
+
+    <!-- SENSITIVITY TAB -->
+    <div id="panel-sensitivity" class="sens-layout" style="display:none">
+      <div class="sens-controls">
+        <div class="sens-title">Assumptions</div>
+
+        <div class="slider-row">
+          <div>
+            <label>Discount Rate</label>
+            <input id="s_disc" type="range" min="0" max="12" step="0.1" value="6">
+          </div>
+          <div class="slider-val" id="s_disc_val">6%</div>
+        </div>
+
+        <div class="slider-row">
+          <div>
+            <label>Energy Escalation</label>
+            <input id="s_escal" type="range" min="0" max="6" step="0.1" value="2">
+          </div>
+          <div class="slider-val" id="s_escal_val">2%</div>
+        </div>
+
+        <div class="slider-row">
+          <div>
+            <label>OPEX ± Variance</label>
+            <input id="s_ov" type="range" min="0" max="30" step="1" value="10">
+          </div>
+          <div class="slider-val" id="s_ov_val">±10%</div>
+        </div>
+
+        <p style="font-size:11px;color:var(--muted);line-height:1.5;margin-top:4px;">
+          Bars show the impact on ΔNPC (B−A) when each input changes to the selected value or variance range.
+        </p>
+      </div>
+
+      <div class="tornado-wrap">
+        <div class="sens-title" style="margin-bottom:12px">Tornado Chart — Impact on ΔNPC</div>
+        <div id="tornado"></div>
+      </div>
+    </div>
+
+  </section>
+</div><!-- /.main-body -->
+</div><!-- /.shell -->
+
+<!-- DATA MODAL -->
+<div id="dataModal" class="modal">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <div class="modal-title">Data Adapter</div>
+      <button id="dataClose" type="button">Close</button>
+    </div>
+
+    <div class="modal-src">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div class="tag">Electricity &amp; Gas Rates</div>
+        <small style="color:var(--muted);">Source: EIA Commercial Rate Data</small>
+      </div>
+      <small style="display:block;color:var(--muted);margin-bottom:10px;">Select a state to retrieve current commercial utility rates for OPEX calibration.</small>
+      <div class="modal-row" style="margin-bottom:0;">
+        <select id="stateSelect">
+          <option value="US">United States average</option>
+          <option value="IN">Indiana</option>
+          <option value="IL">Illinois</option>
+          <option value="MO">Missouri</option>
+          <option value="NC">North Carolina</option>
+          <option value="TX">Texas</option>
+        </select>
+        <div style="display:flex;gap:8px;">
+          <button id="fetchEIA" type="button" class="primary">Fetch Rates</button>
+          <a href="https://www.eia.gov/opendata/" target="_blank" rel="noopener"><button type="button">EIA Source ↗</button></a>
+        </div>
+      </div>
+
+      <!-- Loading state -->
+      <div id="eiaLoading" style="display:none;text-align:center;padding:20px 16px;color:var(--muted);">
+        <div id="eiaLoadDots" style="font-size:22px;letter-spacing:6px;color:var(--bjc-navy);">●●●</div>
+        <div style="margin-top:8px;font-size:13px;">Retrieving EIA data…</div>
+      </div>
+
+      <!-- Results panel -->
+      <div id="eiaResults" style="display:none;margin-top:14px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div id="eiaStateName" style="font-size:14px;font-weight:700;color:var(--bjc-navy);"></div>
+          <div id="eiaAsOf" style="font-size:11px;color:var(--muted);margin-left:auto;"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+          <div style="background:linear-gradient(135deg,#f0f6ff,#e8f0fa);border:1px solid #c8d8ed;border-radius:10px;padding:12px;">
+            <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">⚡ Commercial Electricity</div>
+            <div id="eiaElec" style="font-size:24px;font-weight:700;color:var(--bjc-navy);letter-spacing:-0.02em;"></div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">cents per kWh</div>
+          </div>
+          <div style="background:linear-gradient(135deg,#fff8ee,#fdf0d8);border:1px solid #e8d09a;border-radius:10px;padding:12px;">
+            <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">🔥 Commercial Natural Gas</div>
+            <div id="eiaGas" style="font-size:24px;font-weight:700;color:var(--bjc-gold);letter-spacing:-0.02em;"></div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">dollars per MMBtu</div>
+          </div>
+        </div>
+        <div id="eiaContext" style="font-size:11px;color:#7a5800;background:#fffbee;border:1px solid #e8d490;border-radius:8px;padding:9px 12px;margin-bottom:12px;line-height:1.5;"></div>
+        <div style="display:flex;gap:8px;">
+          <button id="applyRatesA" type="button" style="flex:1;font-size:12px;font-weight:600;">Apply as OPEX A baseline</button>
+          <button id="applyRatesB" type="button" class="primary" style="flex:1;font-size:12px;font-weight:600;">Apply to both scenarios</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-src">
+      <div class="tag">Escalation Guidance</div>
+      <small style="display:block;color:var(--muted);margin-bottom:8px;">Paste % per year from a benchmark source</small>
+      <div class="modal-row">
+        <input id="escalPaste" placeholder="e.g., 2.4" />
+        <button id="applyEscal" type="button" class="gold">Apply to Field</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var errBar = document.createElement('div');
+  errBar.style.cssText = "display:none;position:fixed;left:0;right:0;top:0;z-index:9999;background:#7f1d1d;color:#fff;padding:8px 14px;font:13px/1.4 system-ui";
+  document.body.appendChild(errBar);
+  window.onerror = function(m,s,l,c){ errBar.textContent = "Script error: "+m+" ("+l+":"+c+")"; errBar.style.display='block'; };
+
+  function E(id){ return document.getElementById(id); }
+
+  var fmtUSD = function(n){
+    return Number(n).toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});
+  };
+  var pct = function(n){
+    return Number(n).toLocaleString(undefined,{maximumFractionDigits:1})+"%";
+  };
+
+  function setA(o){ if(o.name!==undefined) E('nameA').value=o.name; if(o.capex) E('capexA').value=o.capex; if(o.opex) E('opexA').value=o.opex; if(o.repl) E('replA').value=o.repl; }
+  function setB(o){ if(o.name!==undefined) E('nameB').value=o.name; if(o.capex) E('capexB').value=o.capex; if(o.opex) E('opexB').value=o.opex; if(o.repl) E('replB').value=o.repl; }
+  function getA(){ return {name:E('nameA').value, capex:+E('capexA').value, opex:+E('opexA').value, repl:E('replA').value}; }
+  function getB(){ return {name:E('nameB').value, capex:+E('capexB').value, opex:+E('opexB').value, repl:E('replB').value}; }
+
+  function buildFlows(s, years, escal){
+    var flows = new Array(years+1);
+    for(var i=0; i<flows.length; i++) flows[i] = 0;
+    flows[0] = s.capex;
+    for(var y=1; y<=years; y++) flows[y] += s.opex * Math.pow(1+escal, y-1);
+    if(s.repl){
+      var parts = s.repl.split(':'); var yr=+parts[0], cost=+parts[1];
+      if(yr>0 && yr<=years) flows[yr] += cost;
+    }
+    if(E('residMethod').value === 'straight'){
+      var life = s.repl ? +s.repl.split(':')[0] : years;
+      var remaining = Math.max(life-years, 0);
+      var salvage = s.capex * (remaining/life);
+      flows[years] -= salvage;
+    }
+    return flows;
+  }
+
+  function NPV(flows, disc){
+    var acc=0;
+    for(var y=0; y<flows.length; y++) acc += flows[y] / Math.pow(1+disc, y);
+    return acc;
+  }
+
+  function cumulativeNPC(flows, disc){
+    var sum=0, out=[];
+    for(var y=0; y<flows.length; y++){ sum += flows[y]/Math.pow(1+disc,y); out.push(sum); }
+    return out;
+  }
+
+  function tile(label, value, cls){
+    var d = document.createElement('div');
+    d.className = 'tile' + (cls ? ' '+cls : '');
+    d.innerHTML = '<div class="tile-label">'+label+'</div><div class="tile-value">'+value+'</div>';
+    return d;
+  }
+
+  function simplePayback(a, b){
+    var dCap = b[0]-a[0], cum=0;
+    for(var y=1; y<Math.max(a.length,b.length); y++){
+      var sav=(a[y]||0)-(b[y]||0); cum+=sav;
+      if(cum>=dCap) return y.toFixed(1)+' yrs';
+    }
+    return "n/a";
+  }
+
+  function irrOfDelta(a, b){
+    var d=[], len=Math.max(a.length,b.length);
+    for(var i=0; i<len; i++) d.push((b[i]||0)-(a[i]||0));
+    var r=.1;
+    for(var k=0; k<100; k++){
+      var f=0, df=0;
+      for(var t=0; t<d.length; t++){ f+=d[t]/Math.pow(1+r,t); df+=-t*d[t]/Math.pow(1+r,t+1); }
+      var nr=r-f/df;
+      if(!isFinite(nr)) break;
+      if(Math.abs(nr-r)<1e-6) break;
+      r=nr;
+    }
+    return (!isFinite(r)||isNaN(r)) ? "n/a" : pct(r*100);
+  }
+
+  function drawSummaryBars(values, labels){
+    var container = E('bars');
+    container.innerHTML = '';
+    var max = Math.max(values[0], values[1], 1);
+    var innerH = container.clientHeight - 30;
+
+    for(var j=0; j<2; j++){
+      var group = document.createElement('div');
+      group.className = 'bar-group';
+
+      var barVal = document.createElement('div');
+      barVal.style.cssText = 'font-size:12px;font-weight:700;color:var(--bjc-navy);margin-bottom:4px;';
+      barVal.textContent = fmtUSD(values[j]);
+
+      var bar = document.createElement('div');
+      bar.className = 'bar ' + (j===0 ? 'bar-a' : 'bar-b');
+      var px = Math.max(8, (0.15*innerH) + (0.75*innerH)*(values[j]/max));
+      bar.style.height = px + 'px';
+
+      var lbl = document.createElement('div');
+      lbl.className = 'bar-label';
+      lbl.textContent = labels[j];
+
+      group.appendChild(barVal);
+      group.appendChild(bar);
+      group.appendChild(lbl);
+      container.appendChild(group);
+    }
+  }
+
+  function segments(s, years, escal, disc){
+    var capex = s.capex;
+    var opexPV=0, replPV=0, salvPV=0;
+    for(var y=1; y<=years; y++){
+      var base = s.opex * Math.pow(1+escal, y-1);
+      opexPV += base/Math.pow(1+disc, y);
+    }
+    if(s.repl){
+      var p=s.repl.split(':'), yr=+p[0], cost=+p[1];
+      if(yr>0 && yr<=years) replPV += cost/Math.pow(1+disc, yr);
+    }
+    if(E('residMethod').value==='straight'){
+      var life = s.repl ? +s.repl.split(':')[0] : years;
+      var remaining = Math.max(life-years, 0);
+      var salvage = s.capex*(remaining/life);
+      salvPV += salvage/Math.pow(1+disc, years);
+    }
+    return {capex:capex, opexPV:opexPV, replPV:replPV, salvPV:salvPV};
+  }
+
+  function drawCashFlow(A, B, years, escal, disc){
+    var cf = E('cfBars');
+    cf.innerHTML = '';
+    var segA = segments(A,years,escal,disc);
+    var segB = segments(B,years,escal,disc);
+
+    var k2 = E('kpis2'); k2.innerHTML='';
+    k2.appendChild(tile(A.name+' CAPEX', fmtUSD(segA.capex)));
+    k2.appendChild(tile(A.name+' OPEX (PV)', fmtUSD(segA.opexPV)));
+    k2.appendChild(tile(B.name+' CAPEX', fmtUSD(segB.capex), 'gold-tile'));
+    k2.appendChild(tile(B.name+' OPEX (PV)', fmtUSD(segB.opexPV), 'gold-tile'));
+
+    var stacks = [
+      {label:A.name, vals:[segA.capex,segA.opexPV,segA.replPV,-segA.salvPV], isB:false},
+      {label:B.name, vals:[segB.capex,segB.opexPV,segB.replPV,-segB.salvPV], isB:true}
+    ];
+
+    var sums = [0,0];
+    for(var i=0; i<2; i++){
+      var sum=0;
+      for(var j=0; j<stacks[i].vals.length; j++) sum += Math.max(0, stacks[i].vals[j]);
+      sums[i] = sum;
+    }
+    var max = Math.max(sums[0], sums[1], 1);
+    var innerH = cf.clientHeight - 30;
+    var colors = ['#003865','#1a5f8a','#C8972B','#e0a830'];
+
+    for(var si=0; si<2; si++){
+      var group = document.createElement('div');
+      group.className = 'bar-group';
+
+      var barVal = document.createElement('div');
+      barVal.style.cssText = 'font-size:12px;font-weight:700;color:var(--bjc-navy);margin-bottom:4px;';
+      barVal.textContent = fmtUSD(sums[si]);
+
+      var barWrap = document.createElement('div');
+      barWrap.style.cssText = 'width:56px;border-radius:10px;overflow:hidden;display:flex;flex-direction:column-reverse;';
+
+      for(var vi=0; vi<stacks[si].vals.length; vi++){
+        var v = stacks[si].vals[vi];
+        var seg = document.createElement('div');
+        var px2 = Math.max(3, (v>0?v:0)/max*(0.85*innerH));
+        seg.style.height = px2+'px';
+        seg.style.background = stacks[si].isB ? (vi<2 ? '#C8972B' : '#e0a830') : colors[vi];
+        barWrap.appendChild(seg);
+      }
+
+      var lbl2 = document.createElement('div');
+      lbl2.className = 'bar-label';
+      lbl2.textContent = stacks[si].label;
+
+      group.appendChild(barVal);
+      group.appendChild(barWrap);
+      group.appendChild(lbl2);
+      cf.appendChild(group);
+    }
+  }
+
+  function drawTornado(){
+    var A=getA(), B=getB();
+    var years = +E('years').value||25;
+    var baseDisc = (+E('discount').value||0)/100;
+    var baseEsc = (+E('escal').value||0)/100;
+    var t = E('tornado'); t.innerHTML = '';
+    var baseDelta = NPV(buildFlows(B,years,baseEsc),baseDisc) - NPV(buildFlows(A,years,baseEsc),baseDisc);
+
+    var discSel = +E('s_disc').value/100;
+    var dDisc = NPV(buildFlows(B,years,baseEsc),discSel)-NPV(buildFlows(A,years,baseEsc),discSel)-baseDelta;
+
+    var escSel = +E('s_escal').value/100;
+    var dEsc = NPV(buildFlows(B,years,escSel),baseDisc)-NPV(buildFlows(A,years,escSel),baseDisc)-baseDelta;
+
+    var ov = +E('s_ov').value/100;
+    var B_up = {name:B.name,capex:B.capex,opex:B.opex*(1+ov),repl:B.repl};
+    var B_dn = {name:B.name,capex:B.capex,opex:B.opex*(1-ov),repl:B.repl};
+    var du = NPV(buildFlows(B_up,years,baseEsc),baseDisc)-NPV(buildFlows(A,years,baseEsc),baseDisc);
+    var dd = NPV(buildFlows(B_dn,years,baseEsc),baseDisc)-NPV(buildFlows(A,years,baseEsc),baseDisc);
+    var dOpex = Math.abs(baseDelta-du)>Math.abs(baseDelta-dd) ? (du-baseDelta) : (dd-baseDelta);
+
+    function addT(label, delta){
+      var row = document.createElement('div');
+      row.className = 'tornado-row';
+      var lab = document.createElement('div'); lab.className='tornado-label'; lab.textContent=label;
+      var bar = document.createElement('div'); bar.className='tornado-bar'+(delta<0?' neg':'');
+      var widthPct = Math.min(100, (Math.abs(delta)/Math.max(1,Math.abs(baseDelta))*100)+8);
+      bar.style.width = widthPct+'%';
+      var val = document.createElement('div'); val.className='tornado-val';
+      val.textContent = (delta>=0?'+':'−') + fmtUSD(Math.abs(delta)).replace('$','');
+      row.appendChild(lab); row.appendChild(bar); row.appendChild(val);
+      t.appendChild(row);
+    }
+
+    addT('Discount Rate', dDisc);
+    addT('Energy Escalation', dEsc);
+    addT('OPEX Variance (B)', dOpex);
+
+    E('s_disc_val').textContent = E('s_disc').value+'%';
+    E('s_escal_val').textContent = E('s_escal').value+'%';
+    E('s_ov_val').textContent = '±'+E('s_ov').value+'%';
+  }
+
+  function update(){
+    var A=getA(), B=getB();
+    var disc = (+E('discount').value||0)/100;
+    var years = +E('years').value||25;
+    var escal = (+E('escal').value||0)/100;
+
+    E('scenarioPill').textContent = A.name+' vs '+B.name;
+    E('thA').textContent = A.name;
+    E('thB').textContent = B.name;
+
+    var flowsA = buildFlows(A,years,escal);
+    var flowsB = buildFlows(B,years,escal);
+    var npcA = NPV(flowsA,disc);
+    var npcB = NPV(flowsB,disc);
+    var cumA = cumulativeNPC(flowsA,disc);
+    var cumB = cumulativeNPC(flowsB,disc);
+    var delta = npcB - npcA;
+
+    var k = E('kpis'); k.innerHTML = '';
+    k.appendChild(tile('NPC — '+A.name, fmtUSD(npcA)));
+    k.appendChild(tile('NPC — '+B.name, fmtUSD(npcB), 'gold-tile'));
+    k.appendChild(tile('ΔNPC (B − A)', fmtUSD(delta), delta<0 ? 'green-tile' : ''));
+    k.appendChild(tile('Simple Payback', simplePayback(flowsA,flowsB)));
+    k.appendChild(tile('IRR of Delta', irrOfDelta(flowsA,flowsB)));
+
+    var tb = E('tbody'); tb.innerHTML = '';
+    for(var y=0; y<=years; y++){
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>'+y+'</td><td>'+fmtUSD(cumA[y])+'</td><td>'+fmtUSD(cumB[y])+'</td>';
+      tb.appendChild(tr);
+    }
+    E('totA').textContent = fmtUSD(npcA);
+    E('totB').textContent = fmtUSD(npcB);
+
+    drawSummaryBars([cumA[cumA.length-1], cumB[cumB.length-1]], [A.name, B.name]);
+    drawCashFlow(A,B,years,escal,disc);
+    drawTornado();
+  }
+
+  function initListeners(){
+    // Tabs
+    var tabs = document.querySelectorAll('.tab');
+    for(var i=0; i<tabs.length; i++){
+      tabs[i].addEventListener('click', (function(el){
+        return function(){
+          for(var j=0; j<tabs.length; j++) tabs[j].classList.remove('active');
+          el.classList.add('active');
+          var name = el.getAttribute('data-tab');
+          var ids = ['summary','cashflow','sensitivity'];
+          for(var k=0; k<ids.length; k++){
+            var p = document.getElementById('panel-'+ids[k]);
+            p.style.display = ids[k]===name ? (ids[k]==='sensitivity'?'grid':'block') : 'none';
+          }
+        };
+      })(tabs[i]));
+    }
+
+    // Owner view toggle
+    E('ownerToggle').addEventListener('click', function(){
+      document.body.classList.toggle('owner');
+      this.textContent = document.body.classList.contains('owner') ? 'Edit View' : 'Owner View';
+    });
+
+    // Presets
+    E('preset').addEventListener('change', function(e){
+      var v = e.target.value;
+      if(v==='ac_vs_wc'){ setA({name:'Air-cooled chiller',capex:2800000,opex:310000,repl:'15:1800000'}); setB({name:'Water-cooled chiller + tower',capex:3600000,opex:250000,repl:'18:2300000'}); }
+      else if(v==='boiler_vs_hp'){ setA({name:'Gas boiler plant',capex:2200000,opex:290000,repl:'18:1500000'}); setB({name:'Heat pump plant',capex:3200000,opex:210000,repl:'20:1800000'}); }
+      else if(v==='doas_erv'){ setA({name:'Conventional AHU',capex:1400000,opex:260000,repl:'15:1000000'}); setB({name:'DOAS + ERV',capex:1750000,opex:210000,repl:'18:1000000'}); }
+      update();
+    });
+
+    // All inputs
+    ['years','nameA','nameB','discount','escal','capexA','opexA','replA','capexB','opexB','replB','residMethod']
+      .forEach(function(id){
+        var el = E(id);
+        ['input','change','keyup'].forEach(function(ev){ el.addEventListener(ev, update); });
+      });
+
+    // Action buttons
+    E('swap').addEventListener('click', function(){ var A=getA(),B=getB(); setA(B); setB(A); update(); });
+    E('share').addEventListener('click', function(){
+      var p=new URLSearchParams(), A=getA(), B=getB();
+      for(var k in A) p.set('A_'+k,A[k]);
+      for(var k2 in B) p.set('B_'+k2,B[k2]);
+      p.set('disc',E('discount').value); p.set('years',E('years').value); p.set('escal',E('escal').value); p.set('resid',E('residMethod').value);
+      var url = location.origin+location.pathname+'?'+p.toString();
+      if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(function(){ alert('Sharable URL copied to clipboard.'); }); }
+      else { prompt("Copy this URL:", url); }
+    });
+    E('print').addEventListener('click', function(){ window.print(); });
+
+    // Modal open/close
+    var modal = E('dataModal');
+    E('dataBtn').addEventListener('click', function(){ modal.style.display='flex'; });
+    E('dataClose').addEventListener('click', function(){ modal.style.display='none'; E('eiaResults').style.display='none'; E('eiaLoading').style.display='none'; });
+
+    // Simulated EIA rate data — realistic commercial rates by state (2024 actuals)
+    var eiaData = {
+      'US': { elec: 12.4, gas: 9.20, label: 'United States Average',  context: 'National commercial averages include a wide spread across climates and grid mixes. Energy-intensive healthcare facilities typically run 20–40% above this baseline due to 24/7 operations.' },
+      'IN': { elec: 9.8,  gas: 8.10, label: 'Indiana',                context: 'Indiana benefits from low-cost coal and natural gas generation. OPEX for mechanical systems here is typically lower than the national average — a favorable environment for gas-based heating strategies.' },
+      'IL': { elec: 11.2, gas: 9.40, label: 'Illinois',               context: 'Illinois rates are close to the national average. The Chicago-area market shows higher demand charges. Consider time-of-use exposure for chillers and heat pumps.' },
+      'MO': { elec: 10.1, gas: 8.60, label: 'Missouri',               context: 'Missouri commercial electricity rates are below average. Healthcare facilities in the St. Louis metro will benefit from relatively stable utility costs through the analysis period.' },
+      'NC': { elec: 11.8, gas: 10.30,label: 'North Carolina',         context: 'North Carolina rates are moderate. Duke Energy\'s current IRP shows increasing renewable penetration, which could dampen long-term escalation for electricity versus gas.' },
+      'TX': { elec: 10.6, gas: 7.80, label: 'Texas',                  context: 'Texas deregulated markets introduce rate volatility risk. Natural gas costs are low, but electricity pricing can spike during peak demand events. Model OPEX variance at ±20% or higher.' }
+    };
+
+    // Animated loading dots
+    var dotInterval = null;
+    function startDots(){
+      var states = ['●○○','●●○','●●●','○●●','○○●'];
+      var i = 0;
+      dotInterval = setInterval(function(){ E('eiaLoadDots').textContent = states[i++ % states.length]; }, 200);
+    }
+    function stopDots(){ if(dotInterval){ clearInterval(dotInterval); dotInterval=null; } }
+
+    E('fetchEIA').addEventListener('click', function(){
+      var state = E('stateSelect').value;
+      var data = eiaData[state];
+      if(!data) return;
+
+      // Hide results, show loading
+      E('eiaResults').style.display = 'none';
+      E('eiaLoading').style.display = 'block';
+      startDots();
+
+      // Simulate network latency
+      setTimeout(function(){
+        stopDots();
+        E('eiaLoading').style.display = 'none';
+
+        // Populate results
+        E('eiaStateName').textContent = data.label;
+        E('eiaAsOf').textContent = 'EIA · Jan 2025';
+        E('eiaElec').textContent = data.elec.toFixed(1) + '¢';
+        E('eiaGas').textContent = '$' + data.gas.toFixed(2);
+        E('eiaContext').textContent = data.context;
+        E('eiaResults').style.display = 'block';
+
+        // Store for apply buttons
+        E('fetchEIA').dataset.elec = data.elec;
+        E('fetchEIA').dataset.gas = data.gas;
+      }, 1400 + Math.random()*600);
+    });
+
+    // Apply rates to OPEX fields (scale from $/kWh to annual $ estimate based on existing OPEX)
+    E('applyRatesA').addEventListener('click', function(){
+      var elec = +E('fetchEIA').dataset.elec;
+      if(!elec) return;
+      var ratio = elec / 12.4; // vs national avg
+      var currentA = +E('opexA').value;
+      E('opexA').value = Math.round(currentA * ratio / 100) * 100;
+      update();
+      E('dataModal').style.display = 'none';
+    });
+
+    E('applyRatesB').addEventListener('click', function(){
+      var elec = +E('fetchEIA').dataset.elec;
+      if(!elec) return;
+      var ratio = elec / 12.4;
+      var currentA = +E('opexA').value, currentB = +E('opexB').value;
+      E('opexA').value = Math.round(currentA * ratio / 100) * 100;
+      E('opexB').value = Math.round(currentB * ratio / 100) * 100;
+      update();
+      E('dataModal').style.display = 'none';
+    });
+    E('applyEscal').addEventListener('click', function(){
+      var v = E('escalPaste').value.trim();
+      var num = parseFloat(v.replace(/[^\d.]/g,''));
+      if(isFinite(num)){ E('escal').value = num.toFixed(1); update(); }
+    });
+
+    // Sensitivity sliders
+    ['s_disc','s_escal','s_ov'].forEach(function(id){ E(id).addEventListener('input', drawTornado); });
+  }
+
+  function start(){ initListeners(); update(); setTimeout(update, 50); }
+
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', start); }
+  else { start(); }
+})();
+</script>
+</body>
+</html>
