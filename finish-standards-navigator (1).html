@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>BSA — Finish Standards Navigator</title>
+<style>
+:root{
+  --bjc-navy:#2D3B8C;--bjc-navy-dark:#1e2a6e;--bjc-blue:#00529B;
+  --bjc-light-blue:#70AFD7;--ink:#17324d;--muted:#687c91;
+  --good:#2d8f57;--bad:#b25340;
+  --radius-xl:22px;--radius-lg:14px;--shadow:0 18px 36px rgba(0,40,100,0.11);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;color:var(--ink);}
+body{background:linear-gradient(160deg,#e4eaf5,#d8e2ef);overflow:hidden;}
+.shell{
+  width:min(1640px,calc(100vw - 16px));height:calc(100vh - 16px);
+  margin:8px auto;background:rgba(255,255,255,0.82);
+  border:1px solid #c8d5e5;border-radius:26px;
+  box-shadow:var(--shadow);backdrop-filter:blur(12px);
+  overflow:hidden;display:grid;grid-template-rows:108px 46px 1fr;
+}
+
+/* HEADER */
+.header{display:grid;grid-template-columns:220px 1fr 280px;background:linear-gradient(135deg,var(--bjc-navy),var(--bjc-navy-dark) 60%,#1a2560);border-bottom:1px solid rgba(255,255,255,0.1);}
+.logo-panel{padding:12px 16px;border-right:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;}
+.logo-panel img{height:44px;width:auto;display:block;object-fit:contain;}
+.logo-fallback{color:#fff;font-size:20px;font-weight:900;display:none;}
+.title-panel{padding:14px 24px;display:flex;flex-direction:column;justify-content:center;gap:5px;}
+.eyebrow{font-size:10px;font-weight:800;letter-spacing:0.22em;text-transform:uppercase;color:var(--bjc-light-blue);}
+h1{font-size:clamp(17px,1.9vw,32px);font-weight:900;color:#fff;letter-spacing:0.02em;line-height:1.05;}
+.subtitle{font-size:12px;color:rgba(255,255,255,0.6);line-height:1.35;}
+.bsa-panel{padding:12px 18px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;gap:8px;border-left:1px solid rgba(255,255,255,0.12);}
+.bsa-panel img{height:26px;width:auto;object-fit:contain;opacity:0.9;}
+
+/* TABS */
+.tabs-bar{display:flex;align-items:center;gap:6px;padding:6px 16px;border-bottom:1px solid #d5e0ee;background:linear-gradient(180deg,#f2f7fc,#eaf0f8);}
+.tab-btn{border:none;background:transparent;color:var(--bjc-blue);padding:6px 14px;border-radius:999px;font-size:12px;font-weight:800;cursor:pointer;}
+.tab-btn.active{color:#fff;background:linear-gradient(135deg,var(--bjc-blue),#0066c2);box-shadow:0 4px 12px rgba(0,82,155,0.25);}
+.zone-count{margin-left:auto;font-size:11px;color:var(--muted);font-weight:700;}
+
+/* PANELS */
+.panel{display:none;height:100%;overflow:hidden;}
+.panel.active{display:grid;}
+#browsePanel{grid-template-columns:300px 1fr;}
+#playbookPanel{grid-template-columns:260px 1fr;}
+
+/* SELECTOR */
+.selector{background:linear-gradient(180deg,#f2f7fc,#eaf0f8);border-right:1px solid #d5e0ee;padding:16px 14px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;}
+.sel-label{font-size:10px;font-weight:800;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+
+/* Dropdown for care setting */
+.care-select{
+  width:100%;border:1.5px solid #ccd8ea;border-radius:12px;
+  background:#fff;color:var(--ink);padding:10px 12px;
+  font-size:13px;font-weight:600;outline:none;cursor:pointer;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2300529B' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+  padding-right:32px;
+}
+.care-select:focus{border-color:var(--bjc-blue);}
+
+.option-group{display:flex;flex-direction:column;gap:5px;}
+.opt{border:1.5px solid #ccd8ea;background:#fff;color:var(--ink);border-radius:12px;padding:9px 12px;font-size:12px;font-weight:600;text-align:left;cursor:pointer;line-height:1.3;}
+.opt:hover{border-color:var(--bjc-blue);background:#f0f6ff;}
+.opt.active{border-color:var(--bjc-blue);background:linear-gradient(135deg,var(--bjc-blue),#0066c2);color:#fff;}
+.opt .sub{font-size:10px;opacity:0.72;margin-top:2px;}
+.divider{height:1px;background:#d5e0ee;}
+
+/* CONTENT */
+.content{padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;color:var(--muted);text-align:center;}
+.empty .ico{font-size:44px;opacity:0.3;}
+.empty p{font-size:14px;max-width:300px;line-height:1.5;}
+
+/* PALETTE HEADER */
+.pal-hdr{background:linear-gradient(135deg,var(--bjc-navy),var(--bjc-navy-dark));border-radius:var(--radius-xl);padding:16px 20px;color:#fff;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+.fac-tag{display:inline-block;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:999px;padding:3px 10px;font-size:10px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--bjc-light-blue);margin-bottom:7px;}
+.pal-hdr h2{font-size:18px;font-weight:900;}
+.pal-hdr p{margin-top:5px;font-size:12px;color:rgba(255,255,255,0.68);line-height:1.4;max-width:580px;}
+.add-btn{flex-shrink:0;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.35);color:#fff;border-radius:12px;padding:10px 16px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;}
+.add-btn:hover{background:rgba(255,255,255,0.28);}
+.add-btn.added{background:rgba(45,143,87,0.35);border-color:rgba(45,143,87,0.6);}
+
+/* SWATCHES */
+.swatches-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.sw-card{background:#fff;border:1px solid #d5e0ee;border-radius:var(--radius-lg);overflow:hidden;box-shadow:0 3px 10px rgba(0,40,100,0.05);}
+.sw-color{height:90px;position:relative;}
+.sw-role{position:absolute;top:7px;left:7px;background:rgba(0,0,0,0.42);color:#fff;font-size:9px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;border-radius:999px;padding:2px 7px;}
+.sw-info{padding:9px 10px;}
+.sw-name{font-size:12px;font-weight:700;line-height:1.2;}
+.sw-num{font-size:10px;color:var(--muted);margin-top:1px;}
+.sw-hex{display:inline-block;margin-top:5px;font-size:10px;font-weight:700;background:#f3f6fa;border:1px solid #dce6f0;border-radius:5px;padding:2px 6px;color:#4a6070;cursor:pointer;font-family:monospace;}
+.sw-hex:hover{background:#e5eef7;}
+
+/* MATERIALS */
+.mat-section{background:#fff;border:1px solid #d5e0ee;border-radius:var(--radius-xl);padding:14px 16px;}
+.sec-title{font-size:11px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.mat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.mat-card{background:#f6f9fd;border:1px solid #dce6f0;border-radius:var(--radius-lg);padding:10px 12px;}
+.mat-code{font-size:11px;font-weight:900;color:var(--bjc-blue);letter-spacing:0.06em;margin-bottom:4px;}
+.mat-name{font-size:12px;font-weight:700;line-height:1.2;}
+.mat-spec{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.35;}
+
+/* RATIONALE */
+.rat-section{background:#fff;border:1px solid #d5e0ee;border-radius:var(--radius-xl);padding:14px 16px;}
+.rat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.rat-item{background:#f6f9fd;border:1px solid #dce6f0;border-radius:var(--radius-lg);padding:10px 12px;}
+.rat-label{font-size:10px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:var(--bjc-blue);margin-bottom:4px;}
+.rat-item p{font-size:12px;line-height:1.45;color:#334e68;}
+
+/* PLAYBOOK */
+.pb-sidebar{background:linear-gradient(180deg,#f2f7fc,#eaf0f8);border-right:1px solid #d5e0ee;padding:14px 12px;display:flex;flex-direction:column;gap:11px;overflow-y:auto;}
+.pb-field{display:grid;gap:4px;}
+.pb-field label{font-size:10px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);}
+.pb-field input{width:100%;border:1.5px solid #ccd8ea;border-radius:10px;background:#fff;padding:8px 10px;font-size:13px;color:var(--ink);outline:none;}
+.pb-field input:focus{border-color:var(--bjc-blue);}
+.pb-floor-list{display:flex;flex-direction:column;gap:5px;}
+.pb-floor-item{display:flex;align-items:center;justify-content:space-between;gap:6px;background:#fff;border:1.5px solid #ccd8ea;border-radius:10px;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer;}
+.pb-floor-item:hover{border-color:var(--bjc-blue);}
+.pb-floor-item.active-floor{border-color:var(--bjc-blue);background:#eef5ff;color:var(--bjc-blue);}
+.pb-floor-del{border:none;background:none;cursor:pointer;color:#aab;font-size:14px;padding:0 2px;line-height:1;}
+.pb-floor-del:hover{color:var(--bad);}
+.pb-add-floor{border:1.5px dashed #bccfe0;background:transparent;color:var(--bjc-blue);border-radius:10px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;width:100%;}
+.pb-add-floor:hover{background:#eef5ff;}
+.pb-export{background:linear-gradient(135deg,var(--bjc-blue),#0066c2);color:#fff;border:none;border-radius:12px;padding:10px;font-size:12px;font-weight:800;cursor:pointer;width:100%;margin-top:auto;}
+
+.pb-main{padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;}
+.pb-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;color:var(--muted);text-align:center;}
+.pb-empty .ico{font-size:44px;opacity:0.3;}
+.pb-empty p{font-size:13px;max-width:320px;line-height:1.5;}
+.pb-proj-hdr{background:linear-gradient(135deg,var(--bjc-navy),var(--bjc-navy-dark));border-radius:var(--radius-xl);padding:16px 20px;color:#fff;}
+.pb-proj-eyebrow{font-size:10px;font-weight:800;letter-spacing:0.2em;text-transform:uppercase;color:var(--bjc-light-blue);margin-bottom:4px;}
+.pb-proj-name{font-size:20px;font-weight:900;}
+.pb-proj-sub{font-size:12px;color:rgba(255,255,255,0.65);margin-top:4px;}
+.pb-floor-sec{}
+.pb-floor-hdr{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,var(--bjc-navy),var(--bjc-navy-dark));border-radius:14px 14px 0 0;padding:10px 16px;cursor:pointer;}
+.pb-floor-hdr h3{font-size:13px;font-weight:900;color:#fff;}
+.pb-floor-hdr .zc{font-size:11px;color:var(--bjc-light-blue);font-weight:700;}
+.pb-floor-toggle{color:rgba(255,255,255,0.7);font-size:16px;transition:transform .2s;display:inline-block;}
+.pb-floor-toggle.col{transform:rotate(-90deg);}
+.pb-floor-body{border:1px solid #d5e0ee;border-top:none;border-radius:0 0 14px 14px;overflow:hidden;}
+.pb-zone{border-top:1px solid #edf2f8;padding:14px 16px;}
+.pb-zone:first-child{border-top:none;}
+.pb-zone-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;}
+.pb-zone-title{font-size:14px;font-weight:800;}
+.pb-zone-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.pb-zone-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.move-label{font-size:11px;color:var(--muted);font-weight:700;white-space:nowrap;}
+.move-select{border:1.5px solid #ccd8ea;border-radius:8px;padding:5px 8px;font-size:12px;font-weight:700;color:var(--bjc-blue);background:#fff;cursor:pointer;outline:none;}
+.move-select:focus{border-color:var(--bjc-blue);}
+.zone-del{border:1px solid #efd0c8;background:#fff7f5;color:var(--bad);border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;}
+.fs-table{display:grid;gap:5px;}
+.fs-head{display:grid;grid-template-columns:70px 1fr 1fr 1fr;gap:8px;padding:5px 10px;font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);}
+.fs-row{display:grid;grid-template-columns:70px 1fr 1fr 1fr;gap:8px;align-items:center;padding:7px 10px;background:#f8fafd;border:1px solid #e4edf5;border-radius:10px;font-size:12px;}
+.fs-code{font-weight:900;color:var(--bjc-blue);font-size:11px;}
+.fs-color-cell{display:flex;align-items:center;gap:8px;}
+.fs-dot{width:20px;height:20px;border-radius:5px;border:1px solid rgba(0,0,0,0.1);flex-shrink:0;}
+.fs-name{font-weight:700;}
+.fs-spec{color:var(--muted);}
+.fs-spacer{margin-top:6px;}
+
+@media print{
+  body{background:#fff;overflow:auto;}
+  .shell{box-shadow:none;border:none;border-radius:0;height:auto;width:100%;display:block;}
+  .header{background:#2D3B8C!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .tabs-bar{display:none;}
+  #browsePanel{display:none!important;}
+  #playbookPanel{display:block!important;height:auto;}
+  .pb-sidebar{display:none;}
+  .pb-main{padding:0;gap:20px;}
+  .pb-floor-hdr{background:#2D3B8C!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .pb-zone-actions,.pb-add-floor,.pb-export,.pb-floor-del{display:none!important;}
+  .pb-floor-body{border:1px solid #ccc;border-radius:0 0 8px 8px;}
+  .fs-row{break-inside:avoid;}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="header">
+    <div class="logo-panel">
+      <img src="https://timbosche-sudo.github.io/Tims-Toolbox/BSA-white.png" alt="BSA" onerror="this.style.display='none';document.getElementById('lf').style.display='block';"/>
+      <div id="lf" class="logo-fallback">BSA</div>
+    </div>
+    <div class="title-panel">
+      <p class="eyebrow">Interior Finish Standards</p>
+      <h1>FINISH STANDARDS NAVIGATOR</h1>
+      <div class="subtitle">Select a care setting and functional zone to view standard finish palettes with clinical rationale and material specifications.</div>
+    </div>
+    <div class="bsa-panel">
+      <div style="font-size:10px;color:rgba(255,255,255,0.4);">Design &amp; Planning Intelligence</div>
+    </div>
+  </header>
+
+  <div class="tabs-bar">
+    <button class="tab-btn active" onclick="switchTab('browse')">Browse Palettes</button>
+    <button class="tab-btn" onclick="switchTab('playbook')">Project Playbook</button>
+    <div class="zone-count" id="zoneCount">0 zones added</div>
+  </div>
+
+  <!-- BROWSE -->
+  <div id="browsePanel" class="panel active">
+    <div class="selector">
+      <div>
+        <div class="sel-label">Step 1 · Care Setting</div>
+        <select class="care-select" id="careSelect" onchange="onCareChange()">
+          <option value="">— Select care setting —</option>
+        </select>
+        <div id="careDesc" style="margin-top:8px;font-size:11px;color:var(--muted);line-height:1.4;"></div>
+      </div>
+      <div class="divider"></div>
+      <div>
+        <div class="sel-label" id="zoneLabel" style="display:none;">Step 2 · Functional Zone</div>
+        <div class="option-group" id="zoneGroup"></div>
+      </div>
+    </div>
+    <div class="content" id="browseContent">
+      <div class="empty"><div class="ico">🎨</div><p>Select a care setting and functional zone to view the standard finish palette and material specifications.</p></div>
+    </div>
+  </div>
+
+  <!-- PLAYBOOK -->
+  <div id="playbookPanel" class="panel">
+    <div class="pb-sidebar">
+      <div class="pb-field"><label>Project Name</label><input id="pbName" placeholder="e.g. West Campus Clinic" oninput="renderPlaybook()"/></div>
+      <div class="pb-field"><label>Project Number</label><input id="pbNum" placeholder="e.g. 2025-0142" oninput="renderPlaybook()"/></div>
+      <div class="pb-field"><label>Architect of Record</label><input id="pbArch" value="BSA" oninput="renderPlaybook()"/></div>
+      <div class="divider"></div>
+      <div class="sel-label">Floors / Zones</div>
+      <div class="pb-floor-list" id="pbFloorList"></div>
+      <button class="pb-add-floor" onclick="addFloor()">+ Add Floor / Zone</button>
+      <div class="divider"></div>
+      <button class="pb-export" onclick="window.print()">🖨 Print / Export PDF</button>
+    </div>
+    <div class="pb-main" id="pbMain">
+      <div class="pb-empty"><div class="ico">📋</div><p>Your playbook is empty. Browse palettes and click "Add to Project" to build your finish schedule.</p></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CARE SETTINGS ─────────────────────────────────────────────────────────────
+const CARE=[
+  {id:'retail',   label:'Retail / Community Clinic',      desc:'2–3 providers, 2,400–3,000 SF. Leased retail space. General and senior care variants. Walk-in and scheduled visits.'},
+  {id:'pod1',     label:'Primary Care Clinic — Small',    desc:'3–5 providers, ~6,200 SF. 1-Pod prototype. 8 standard + 6 large exam rooms, lab/blood draw. Freestanding or campus-based.'},
+  {id:'pod2',     label:'Primary Care Clinic — Medium',   desc:'8–10 providers, ~11,000 SF. 2-Pod prototype. 18 standard + 6 large exam rooms, lab, optional imaging.'},
+  {id:'multi',    label:'Multispecialty Clinic',          desc:'15–30+ providers, 25,000–34,000 SF. Multiple pods + pharmacy, imaging suite, PT/OT, café, conference center.'},
+  {id:'asc',      label:'Ambulatory Surgery Center',      desc:'Outpatient surgical. Pre-op, OR suites, PACU, sterile processing. High clinical standards, precision environments.'},
+  {id:'mob',      label:'Medical Office Building',        desc:'Multi-tenant physician offices, specialty practices. Professional and welcoming. Lower clinical intensity than hospital.'},
+  {id:'inpatient',label:'Inpatient Hospital Unit',        desc:'Med-surg, ICU, women\'s health, behavioral health. Extended patient stay. Higher acuity. FGI-governed standards.'},
+  {id:'admin',    label:'Administrative / Corporate',     desc:'Corporate headquarters, HR, finance, operations, IT, community health. Office environment with strong brand presence.'},
+];
+
+// ── FUNCTIONAL ZONES ──────────────────────────────────────────────────────────
+const ZONES=[
+  {id:'arrival',  label:'Patient Arrival & Gallery',    sub:'Vestibule, waiting, reception'},
+  {id:'exam',     label:'Exam / Treatment Rooms',       sub:'Standard, large, and flex exam'},
+  {id:'ma',       label:'MA Work Area & Intake',        sub:'Clinical workcore, intake stations'},
+  {id:'lab',      label:'Lab & Blood Draw',             sub:'Point-of-care lab, blood draw alcove'},
+  {id:'imaging',  label:'Imaging / X-Ray',              sub:'Radiology, X-ray, mobile imaging'},
+  {id:'staff',    label:'Staff Support & Break Room',   sub:'Lounge, lockers, break, housekeeping'},
+  {id:'office',   label:'Provider Offices',             sub:'Shared and manager offices'},
+  {id:'corridor', label:'Corridors & Transitions',      sub:'Patient and staff circulation'},
+  {id:'support',  label:'Building Support',             sub:'Mech, elec, data, housekeeping'},
+];
+
+// ── SW COLOR LIBRARY ──────────────────────────────────────────────────────────
+const SW={
+  'Navajo White':      {n:6126,h:'#EEE4CC'},
+  'Eider White':       {n:7014,h:'#E2DED8'},
+  'Alabaster':         {n:7008,h:'#EDEAE0'},
+  'Pure White':        {n:7005,h:'#EDECE6'},
+  'Greek Villa':       {n:7551,h:'#F0ECE2'},
+  'Cachet Cream':      {n:6365,h:'#F3D9BA'},
+  'Repose Gray':       {n:7015,h:'#CCC9C0'},
+  'Agreeable Gray':    {n:7029,h:'#D1CBC1'},
+  'Colonnade Gray':    {n:7641,h:'#C6C0B6'},
+  'Dovetail':          {n:7018,h:'#908A83'},
+  'Naval':             {n:6244,h:'#2F3D4C'},
+  'Indigo':            {n:6531,h:'#284A70'},
+  'Secure Blue':       {n:6508,h:'#5389A1'},
+  'Rainwashed':        {n:6211,h:'#C2CDC5'},
+  'Halcyon Green':     {n:6213,h:'#9BAAA2'},
+  'Softened Green':    {n:6177,h:'#CBCDB4'},
+  'Ryegrass':          {n:6423,h:'#AEAC7A'},
+  'Sleepy Hollow':     {n:9145,h:'#B7C9D1'},
+  'Smoky Azurite':     {n:9148,h:'#8595AA'},
+  'Scanda':            {n:6529,h:'#6B8CA9'},
+  'Honey Blush':       {n:6660,h:'#F5CF9B'},
+  'Sea Salt':          {n:6204,h:'#CDD2CA'},
+  'Topsail':           {n:6217,h:'#DAE2E0'},
+  'Distance':          {n:6243,h:'#5D6F7F'},
+  'Georgian Bay':      {n:6509,h:'#22657F'},
+  'Meditative':        {n:6227,h:'#96AAB0'},
+  'Rocky River':       {n:6215,h:'#5E706A'},
+  'Clary Sage':        {n:6178,h:'#ACAD97'},
+  'Svelte Sage':       {n:6164,h:'#B2AC96'},
+  'Basil':             {n:6194,h:'#626E60'},
+  'Haven':             {n:6437,h:'#A3B48C'},
+  'Intellectual Gray': {n:7045,h:'#A8A093'},
+  'Mindful Gray':      {n:7016,h:'#BCB7AD'},
+  'Leisure Blue':      {n:6515,h:'#6A8EA1'},
+  'Languid Blue':      {n:6226,h:'#A4B7BD'},
+  'Mountain Air':      {n:6224,h:'#D8E0DF'},
+  'Warmth':            {n:6362,h:'#BB7748'},
+  'Quaint Peche':      {n:6330,h:'#EACDC1'},
+  'Cavern Clay':       {n:7701,h:'#AC6B53'},
+  'Creamy':            {n:7012,h:'#EFE8DB'},
+  'Wool Skein':        {n:6148,h:'#D9CFBA'},
+};
+
+// ── MATERIAL STANDARDS ────────────────────────────────────────────────────────
+const MAT={
+  // Ceiling tiles
+  CT1:{code:'CT-1',name:'Armstrong Cortega',    spec:'2×2 Tegular, 15/16" grid, White — clinical standard',   cat:'Ceiling Tile'},
+  CT2:{code:'CT-2',name:'Armstrong Optima',     spec:'2×2 Reveal Edge, 9/16" grid, Smooth White — premium',   cat:'Ceiling Tile'},
+  CT3:{code:'CT-3',name:'Armstrong Fine Fissured',spec:'2×4 Square Lay-in, 15/16" grid — back of house',     cat:'Ceiling Tile'},
+  CTG:{code:'CT-G',name:'Gypsum Board Ceiling', spec:'5/8" GWB, painted — vestibule soffits and feature areas',cat:'Ceiling'},
+  // Flooring
+  RT1:{code:'RT-1',name:'Resilient Tile — Field',spec:'12×24 LVT, commercial healthcare, warm neutral field',  cat:'Flooring'},
+  RT2:{code:'RT-2',name:'Resilient Tile — Accent',spec:'12×24 LVT, commercial healthcare, cool accent tone',  cat:'Flooring'},
+  C1: {code:'C-1', name:'Carpet Tile — Corridor',spec:'24×24 modular, solution-dyed nylon, cool neutral, healthcare backing',cat:'Carpet'},
+  C2: {code:'C-2', name:'Carpet Tile — Alternate',spec:'24×24 modular, solution-dyed nylon, warm neutral, healthcare backing',cat:'Carpet'},
+  C3: {code:'C-3', name:'Carpet Tile — Gallery',  spec:'24×24 modular, pattern/texture, gallery and waiting areas',cat:'Carpet'},
+  C4: {code:'C-4', name:'Carpet Tile — Office',   spec:'24×24 modular, low-pile, solution-dyed nylon, office areas',cat:'Carpet'},
+  PT: {code:'PT-1',name:'Porcelain Tile',          spec:'12×24 rectified porcelain, floor and base — restrooms and vestibule',cat:'Tile'},
+  WO: {code:'C-WO',name:'Walk-Off Carpet',         spec:'Recessed walk-off entry mat, 3/8" pile — entry threshold',cat:'Carpet'},
+  SC: {code:'SC-1',name:'Sealed Concrete',          spec:'Mechanically polished and sealed — MEP, housekeeping, storage',cat:'Flooring'},
+  // Base
+  VB1:{code:'VB-1',name:'Rubber Cove Base — Black',    spec:'4" cove, 1/8" thick, Black 01, Burke or equal',          cat:'Vinyl Base'},
+  VB2:{code:'VB-2',name:'Rubber Cove Base — Tan',      spec:'4" cove, 1/8" thick, Warm Tan/Sandstone, Burke or equal', cat:'Vinyl Base'},
+  VB3:{code:'VB-3',name:'Rubber Straight Base — Gray', spec:'4" straight, 1/8" thick, Charcoal Gray, Burke or equal',  cat:'Vinyl Base'},
+  TB: {code:'TB-1',name:'Tile Base',                   spec:'4" porcelain tile base to match floor — restrooms',       cat:'Base'},
+  // Wall protection
+  WP1:{code:'WP-1',name:'Acrovyn Full Protection',spec:'Corner guards + 34" crash rail, Charcoal, CS Group or equal — high-traffic clinical',cat:'Wall Protection'},
+  WP2:{code:'WP-2',name:'Acrovyn Corner Guards', spec:'Corner guards only, Putty, CS Group or equal — moderate traffic',cat:'Wall Protection'},
+  WP3:{code:'WP-3',name:'No Wall Protection',    spec:'Paint-only — administrative and low-traffic office interiors',  cat:'Wall Protection'},
+  // Accent wall surfaces
+  CT6:{code:'CT-6A',name:'Ceramic Subway Tile',  spec:'3×6 white ceramic, brick pattern to 5\'6" AFF — restroom wet walls',cat:'Wall Tile'},
+};
+
+// ── PALETTE DEFINITIONS ───────────────────────────────────────────────────────
+// Organized by care setting + functional zone
+// Keys: {setting}_{zone}
+// Colors: w=base wall, a1-a4=accents
+// Mercy-informed: Navajo White field, cool blue-green accents clinical, green staff
+
+const P={
+
+  // ── RETAIL CLINIC ──────────────────────────────────────────────────────────
+  retail_arrival:{w:'Eider White',a1:'Smoky Azurite',a2:'Sleepy Hollow',a3:'Navajo White',a4:'Pure White',
+    rh:'Retail clinics must read immediately as welcoming and approachable — more coffee shop than hospital. The Mercy framework uses Eider White as the retail field color, accented with Smoky Azurite at reception to signal the clinical check-in moment without institutional heaviness.',
+    ri:[{l:'PT-1 Base — Eider White SW 7014',t:'Retail field color per Mercy standards. Warmer than Pure White, less clinical than Navajo White. Creates a residential quality appropriate for leased retail environments.'},{l:'PT-2 — Smoky Azurite SW 9148',t:'Accent at reception desk wall and check-in moment. Signals the clinical function within a retail environment without feeling institutional.'},{l:'PT-3 — Sleepy Hollow SW 9145',t:'Secondary accent for seating nook and corridor transition walls. Light blue-gray maintains calm and approachability.'},{l:'PT-4 — Navajo White SW 6126',t:'Transition field color where retail waiting blends into clinical corridor. Bridges the palette toward the clinical zones.'},{l:'PT-5 — Pure White SW 7005',t:'Ceilings, soffits, and trim throughout. Maximizes perceived height in often lower-ceiling retail spaces.'}],
+    mat:{ct:'CT1',fl:'C3',fl2:'RT1',vb:'VB2',wp:'WP2'}},
+
+  retail_exam:{w:'Eider White',a1:'Softened Green',a2:'Sleepy Hollow',a3:'Navajo White',a4:'Pure White',
+    rh:'Retail exam rooms must feel clean and professional without clinical harshness. Mercy uses Softened Green and Sleepy Hollow as alternating exam room accents in retail settings, creating visual differentiation between rooms while maintaining a coherent palette.',
+    ri:[{l:'PT-1 Base — Eider White SW 7014',t:'Retail field color consistent with gallery. Creates continuity as patients move from waiting to exam.'},{l:'PT-2 — Softened Green SW 6177',t:'Accent wall behind exam table. Evidence-based calming tone. Alternates with Sleepy Hollow across exam rooms per Mercy standard.'},{l:'PT-3 — Sleepy Hollow SW 9145',t:'Alternate exam room accent. Soft blue-gray. Rotates with Softened Green to differentiate adjacent rooms while maintaining palette coherence.'},{l:'PT-4 — Navajo White SW 6126',t:'Three remaining walls in all exam rooms. Consistent field, warm enough to feel non-institutional.'},{l:'PT-5 — Pure White SW 7005',t:'Ceiling throughout. Maintains maximum brightness in exam lighting conditions.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'RT2',vb:'VB2',wp:'WP2'}},
+
+  retail_ma:{w:'Eider White',a1:'Softened Green',a2:'Agreeable Gray',a3:'Pure White',a4:'Creamy',
+    rh:'The MA work area in retail clinics is compact and integrated. Mercy uses Softened Green as the accent in the MA work zone — the bright color draws patient attention to find staff in an emergency and signals the clinical core within the retail environment.',
+    ri:[{l:'PT-1 Base — Eider White SW 7014',t:'Consistent with retail field color throughout.'},{l:'PT-2 — Softened Green SW 6177',t:'Accent wall in MA work area. Mercy specifically notes the bright color draws attention for patients to locate staff in emergencies.'},{l:'PT-3 — Agreeable Gray SW 7029',t:'Intake alcove walls and adjacent clinical support. Warm gray differentiates the intake zone from the primary corridor without breaking the retail palette.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling throughout MA zone.'},{l:'PT-5 — Creamy SW 7012',t:'Sub-work alcove and back-of-house staff passage walls. Warm off-white — a step lighter than the field for visual hierarchy.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'C4',vb:'VB1',wp:'WP2'}},
+
+  retail_lab:{w:'Eider White',a1:'Navajo White',a2:'Pure White',a3:'Agreeable Gray',a4:'Creamy',
+    rh:'Retail labs are compact single-zone spaces. Mercy keeps the lab palette intentionally neutral — the visual interest comes from equipment and materiality, not wall color. Clean and clinical without drama.',
+    ri:[{l:'PT-1 Base — Eider White SW 7014',t:'Retail lab field standard. Consistent with surrounding spaces — the visual language comes from equipment and materiality, not wall color.'},{l:'PT-2 — Navajo White SW 6126',t:'Primary wall field on three sides. Warm neutral background allows clinical equipment and specimen colors to read clearly under lab lighting.'},{l:'PT-3 — Pure White SW 7005',t:'Ceiling — 2×2 ACT6. Maximum brightness for specimen accuracy.'},{l:'PT-4 — Agreeable Gray SW 7029',t:'Blood draw alcove walls. Warm gray differentiates the patient-facing draw zone from the clinical work bench without introducing color.'},{l:'PT-5 — Creamy SW 7012',t:'Soffit above workstation, if provided. Warm off-white — subtle visual separation overhead.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'RT1',vb:'VB1',wp:'WP2'}},
+
+  retail_staff:{w:'Eider White',a1:'Smoky Azurite',a2:'Navajo White',a3:'Pure White',a4:'Creamy',
+    rh:'Retail staff break rooms are small and often share finishes with the clinical suite. A touch of Smoky Azurite on the feature wall provides psychological separation from the clinical environment without a full palette shift.',
+    ri:[{l:'PT-1 Base — Eider White SW 7014',t:'Retail field standard, consistent with surrounding spaces.'},{l:'PT-2 — Smoky Azurite SW 9148',t:'Feature wall accent. Provides visual separation from clinical zone — signals "this is staff territory."'},{l:'PT-3 — Navajo White SW 6126',t:'Remaining break room walls. Warm neutral consistent with clinical zone field.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling.'},{l:'PT-5 — Creamy SW 7012',t:'Adjacent housekeeping and storage walls. Slightly warmer than field — distinguishes back-of-house from patient areas.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'RT1',vb:'VB2',wp:'WP3'}},
+
+  retail_office:{w:'Eider White',a1:'Smoky Azurite',a2:'Navajo White',a3:'Pure White',a4:'Creamy',
+    rh:'Retail navigator and consult offices are small, often combined with other functions. Smoky Azurite accent creates a professional tone appropriate for confidential patient consultations.',
+    ri:[{l:'PT-1 Base — Eider White SW 7014',t:'Consistent retail field.'},{l:'PT-2 — Smoky Azurite SW 9148',t:'Feature wall accent behind desk. Professionalism within the retail environment.'},{l:'PT-3 — Navajo White SW 6126',t:'Remaining office walls. Warm neutral maintains a non-institutional quality in the consult setting.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling.'},{l:'PT-5 — Creamy SW 7012',t:'Transition walls toward corridor. Slightly warmer than the field — softens the threshold between office and public zone.'}],
+    mat:{ct:'CT1',fl:'C4',fl2:'RT1',vb:'VB2',wp:'WP3'}},
+
+  retail_corridor:{w:'Eider White',a1:'Sleepy Hollow',a2:'Navajo White',a3:'Pure White',a4:'Creamy',
+    rh:'Retail corridors must maintain the welcoming retail character while providing clear clinical wayfinding. Sleepy Hollow as the corridor accent creates a calm transition from public waiting to clinical exam rooms.',
+    ri:[{l:'PT-1 Base — Eider White SW 7014',t:'Main field color consistent with retail standard.'},{l:'PT-2 — Sleepy Hollow SW 9145',t:'Accent wall at alcoves and secondary corridor walls. Mercy uses this tone as the retail corridor accent.'},{l:'PT-3 — Navajo White SW 6126',t:'Service corridor walls. Warm neutral consistent with clinical zone standard.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling throughout.'},{l:'PT-5 — Creamy SW 7012',t:'Back-of-house corridor walls. Warmer than patient-facing surfaces — distinguishes staff passage from patient areas.'}],
+    mat:{ct:'CT1',fl:'C1',fl2:'RT1',vb:'VB2',wp:'WP2'}},
+
+  retail_support:{w:'Navajo White',a1:'Pure White',a2:'Agreeable Gray',a3:'Eider White',a4:'Creamy',
+    rh:'Building support spaces are utilitarian. Navajo White field with sealed concrete floor and exposed or minimal ceiling. No accent color — these spaces should disappear visually.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Standard field for primary support space walls — MEP, data, housekeeping.'},{l:'PT-2 — Pure White SW 7005',t:'Ceiling — exposed structure or painted deck where no ACT.'},{l:'PT-3 — Agreeable Gray SW 7029',t:'Mechanical and electrical room walls. Warm gray differentiates high-equipment zones and aids readability of labels and equipment.'},{l:'PT-4 — Eider White SW 7014',t:'Painted soffit where provided. Slightly warmer than the ceiling deck.'},{l:'PT-5 — Creamy SW 7012',t:'Walk-in storage and housekeeping room walls. Warm off-white for lower-use ancillary spaces.'} ],
+    mat:{ct:'CT3',fl:'SC',fl2:'SC',vb:'VB1',wp:'WP2'}},
+
+  // ── 1-POD PRIMARY CARE ─────────────────────────────────────────────────────
+  pod1_arrival:{w:'Navajo White',a1:'Naval',a2:'Halcyon Green',a3:'Eider White',a4:'Pure White',
+    rh:'The 1-Pod gallery serves as both waiting room and main circulation spine. Mercy\'s gallery standard uses Navajo White as the primary field color, with Halcyon Green as the accent at the reception drop-down soffit — a beacon that draws patients to check-in.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Universal field color for all freestanding clinic public spaces per Mercy standard. Warm, clean, non-institutional.'},{l:'PT-2 — Naval SW 6244',t:'System identity wall at primary reception backdrop and building entry. Grounds the space with system identity.'},{l:'PT-3 — Halcyon Green SW 6213',t:'Drop soffit above reception desk, painted per Mercy standard. The green beacon draws patients to check-in and creates the gallery\'s primary visual moment.'},{l:'PT-4 — Eider White SW 7014',t:'Seating alcove return walls and secondary gallery surfaces. Slightly cooler than the main field — provides subtle variation within the waiting zone without breaking palette continuity.'},{l:'PT-5 — Pure White SW 7005',t:'Ceiling throughout gallery and vestibule. Maximum brightness and perceived height.'}],
+    mat:{ct:'CT2',fl:'C3',fl2:'PT',vb:'VB2',wp:'WP1'}},
+
+  pod1_exam:{w:'Navajo White',a1:'Rainwashed',a2:'Softened Green',a3:'Eider White',a4:'Pure White',
+    rh:'Mercy\'s exam room standard uses Navajo White as the field with Rainwashed and Softened Green as alternating accent walls coordinated with the resilient tile selection. This creates visual differentiation between adjacent rooms while maintaining a coherent palette across the pod.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Field wall color on three walls of every exam room. Warm enough to feel residential without compromising clinical function.'},{l:'PT-2 — Rainwashed SW 6211',t:'Accent wall behind exam table — coordinates with RT1X resilient tile in corridor. Cool blue-green supports patient calm during examination.'},{l:'PT-3 — Softened Green SW 6177',t:'Alternate exam room accent — coordinates with RT2X resilient tile. Rotates with Rainwashed across adjacent rooms.'},{l:'PT-4 — Eider White SW 7014',t:'Door wall and third wall in all exam rooms. Slightly cooler than the main field — reduces monotony in a small space while maintaining palette cohesion.'},{l:'PT-5 — Pure White SW 7005',t:'Ceiling. 2×2 ACT6 standard clinical tile throughout exam zone.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'RT2',vb:'VB1',wp:'WP1'}},
+
+  pod1_ma:{w:'Navajo White',a1:'Ryegrass',a2:'Agreeable Gray',a3:'Pure White',a4:'Creamy',
+    rh:'The MA work area is the clinical core of the pod. Mercy uses Ryegrass at the dropped soffit above the MA work counter to distinguish the off-stage staff zone from the patient corridor. The bright sage-green soffit creates a visual beacon staff can see from anywhere in the pod.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Primary field on MA work area walls, consistent with clinical zone standard.'},{l:'PT-2 — Ryegrass SW 6423',t:'Dropped soffit above MA work counter. Sage-green distinctively marks the staff zone and draws attention for emergency patient-to-staff communication.'},{l:'PT-3 — Agreeable Gray SW 7029',t:'Intake alcove and sub-work station walls. Warm gray differentiates the patient-facing intake moment from the primary work corridor.'},{l:'PT-4 — Pure White SW 7005',t:'Main ceiling above MA zone — 2×2 ACT6.'},{l:'PT-5 — Creamy SW 7012',t:'Back corridor walls adjacent to staff support zone. Warm off-white — subtly lighter than the field for visual separation in the staff passage.'}],
+    mat:{ct:'CT1',fl:'C4',fl2:'RT1',vb:'VB1',wp:'WP1'}},
+
+  pod1_lab:{w:'Navajo White',a1:'Alabaster',a2:'Pure White',a3:'Agreeable Gray',a4:'Eider White',
+    rh:'Lab and blood draw spaces are highly technical environments. Mercy keeps wall color intentionally neutral — the visual language comes from materiality: solid surface countertops, resilient tile, and white subway tile at wet walls. Color serves function, not aesthetics.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Standard field on primary lab walls. Neutral background ensures clinical equipment and specimen colors read accurately under lab lighting.'},{l:'PT-2 — Alabaster SW 7008',t:'Secondary lab wall field. Slightly warmer than Navajo White — provides a subtle tonal shift between the work bench wall and primary walls while maintaining clinical neutrality.'},{l:'PT-3 — Pure White SW 7005',t:'Ceiling — 2×2 ACT6. Maximum brightness for specimen accuracy.'},{l:'PT-4 — Agreeable Gray SW 7029',t:'Blood draw alcove walls. Warm gray differentiates the patient-facing draw zone and provides a calmer backdrop for the venipuncture moment.'},{l:'PT-5 — Eider White SW 7014',t:'Soffit at blood draw workstation, if provided. Cooler than the field — subtly marks the overhead boundary of the work zone.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'RT1',vb:'VB1',wp:'WP1'}},
+
+  pod1_imaging:{w:'Navajo White',a1:'Rainwashed',a2:'Agreeable Gray',a3:'Pure White',a4:'Eider White',
+    rh:'X-ray and imaging spaces require lead shielding coordination. Wall color is kept simple — Navajo White field with Rainwashed accent at the technician workstation wall to differentiate the control zone from the procedure zone.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Standard field — imaging room procedure area walls.'},{l:'PT-2 — Rainwashed SW 6211',t:'Accent at technician workstation wall. Differentiates control zone from procedure zone. Matches exam room palette for staff moving between spaces.'},{l:'PT-3 — Agreeable Gray SW 7029',t:'Remaining procedure room walls. Warm gray maintains neutrality while differentiating from the patient-facing entry wall — aids rapid spatial orientation in the procedure environment.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling — 2×2 ACT6. Note: coordinate all ceiling penetrations with lead shielding requirements.'},{l:'PT-5 — Eider White SW 7014',t:'X-ray sub-wait area walls. Slightly cooler than the clinical field — provides a transitional quality appropriate for the patient waiting moment.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'RT1',vb:'VB1',wp:'WP1'}},
+
+  pod1_staff:{w:'Navajo White',a1:'Halcyon Green',a2:'Creamy',a3:'Pure White',a4:'Agreeable Gray',
+    rh:'Mercy uses Halcyon Green as the staff break room accent — matching the gallery reception soffit color to create a visual connection between the two staff-facing moments in the building. The green signals restoration and separation from the clinical environment.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Field color consistent with clinical zone. Staff support spaces maintain the same base for simplicity.'},{l:'PT-2 — Halcyon Green SW 6213',t:'Accent wall in staff break room per Mercy standard. Creates psychological break from clinical environment. Matches gallery soffit color — intentional visual echo.'},{l:'PT-3 — Creamy SW 7012',t:'Remaining break room and locker area walls. Warm off-white — a touch warmer than the clinical field, reinforcing that staff have entered a different zone.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling — 2×4 light fixture zone.'},{l:'PT-5 — Agreeable Gray SW 7029',t:'Housekeeping and soiled utility walls. Warm gray differentiates back-of-house service spaces from the staff lounge.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'RT1',vb:'VB1',wp:'WP2'}},
+
+  pod1_office:{w:'Navajo White',a1:'Eider White',a2:'Pure White',a3:'Agreeable Gray',a4:'Creamy',
+    rh:'Shared provider offices in the 1-Pod clinic are small (76 SF each) and shared by 2 providers. Mercy allows an optional office accent color (PX) as a choice offered to occupants. Base palette is intentionally neutral to allow personalization within a defined framework.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Standard field on primary walls. Maintains the building field color consistency.'},{l:'PT-2 — Eider White SW 7014',t:'One accent wall — slightly cooler than the field. Provides subtle visual separation behind the workstation without requiring an occupant color decision.'},{l:'PT-3 — Pure White SW 7005',t:'Ceiling — 2×4 light fixture zone. Maximum brightness for task lighting.'},{l:'PT-4 — Agreeable Gray SW 7029',t:'Manager office walls. Warm gray reads more intentional in a private enclosed office — slightly warmer and more settled than the open-plan standard.'},{l:'PT-5 — Creamy SW 7012',t:'Pocket office and secondary support office walls adjacent to MA work area. Warm off-white transitions between the MA zone and the provider office cluster.'}],
+    mat:{ct:'CT1',fl:'C4',fl2:'C4',vb:'VB2',wp:'WP3'}},
+
+  pod1_corridor:{w:'Navajo White',a1:'Rainwashed',a2:'Agreeable Gray',a3:'Pure White',a4:'Creamy',
+    rh:'Mercy\'s corridor standard is precise: Navajo White field with Rainwashed as the accent at defined alcove locations. Carpet alternates between C1A and C2A to reinforce section breaks in the corridor — each section can be replaced independently over time.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Main patient corridor field. Applied to all primary patient corridor walls.'},{l:'PT-2 — Rainwashed SW 6211',t:'Accent wall at designated alcove locations per finish plan. Accent only at alcoves — not on straight corridor runs — to avoid visual monotony.'},{l:'PT-3 — Agreeable Gray SW 7029',t:'Staff back corridor walls (5\'0" wide). Warm gray distinguishes the off-stage staff passage from the patient-facing clinical corridor — subtle but perceptible wayfinding.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling — 2×2 ACT6 at 8\'6" AFF.'},{l:'PT-5 — Creamy SW 7012',t:'Vestibule walls at 11\'0" painted GWB ceiling zone. Warm off-white provides a transitional quality at the building threshold.'}],
+    mat:{ct:'CT1',fl:'C1',fl2:'C2',vb:'VB1',wp:'WP1'}},
+
+  pod1_support:{w:'Navajo White',a1:'Pure White',a2:'Agreeable Gray',a3:'Eider White',a4:'Creamy',
+    rh:'Building support spaces — mechanical, electrical, data, housekeeping — use the simplest finish standard. Exposed structure (EXP) per Mercy standard, Navajo White on walls, sealed concrete floor. These spaces should require zero design attention.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Standard field on primary support space walls — MEP, electrical, data rooms.'},{l:'PT-2 — Pure White SW 7005',t:'Painted deck or exposed structure ceiling per EXP standard.'},{l:'PT-3 — Agreeable Gray SW 7029',t:'Mechanical and electrical room walls. Warm gray differentiates high-equipment zones and improves readability of conduit and panel labels.'},{l:'PT-4 — Eider White SW 7014',t:'Painted soffit where provided. Slightly warmer than the ceiling deck.'},{l:'PT-5 — Creamy SW 7012',t:'Walk-in storage and biohazard storage walls. Warm off-white for lower-use ancillary spaces.'}],
+    mat:{ct:'CT3',fl:'SC',fl2:'SC',vb:'VB1',wp:'WP2'}},
+
+  // ── 2-POD PRIMARY CARE ─────────────────────────────────────────────────────
+  pod2_arrival:{w:'Navajo White',a1:'Naval',a2:'Halcyon Green',a3:'Eider White',a4:'Pure White',
+    rh:'The 2-Pod gallery is larger and serves two reception desks. Navy anchors the building identity wall at the primary entrance. Halcyon Green soffits mark both reception desks — the double gallery creates two visual moments, both using the same palette.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Field color throughout gallery and vestibule. Consistent with 1-Pod standard for system-wide coherence.'},{l:'PT-2 — Naval SW 6244',t:'Primary building identity wall at entry vestibule. System identity wall.'},{l:'PT-3 — Halcyon Green SW 6213',t:'Drop soffits above both reception desks. Gallery\'s visual beacon — consistent with 1-Pod gallery standard.'},{l:'PT-4 — Eider White SW 7014',t:'Seating alcove return walls and secondary gallery surfaces. Slightly cooler than the main field — adds tonal variation within the expanded waiting area.'},{l:'PT-5 — Pure White SW 7005',t:'Gallery ceiling — 2×2 ACT1A premium tile.'}],
+    mat:{ct:'CT2',fl:'C3',fl2:'PT',vb:'VB2',wp:'WP1'}},
+
+  pod2_exam:{w:'Navajo White',a1:'Rainwashed',a2:'Softened Green',a3:'Eider White',a4:'Pure White',
+    rh:'Same exam room standard as 1-Pod but applied across 18 standard and 6 large exam rooms. Rainwashed and Softened Green alternate systematically — rooms with RT1X flooring get Rainwashed accent, rooms with RT2X get Softened Green. Color codes space.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Three walls in all exam rooms — standard and large.'},{l:'PT-2 — Rainwashed SW 6211',t:'Accent wall behind exam table in RT1X rooms. Cool blue-green — evidence-based for patient anxiety reduction.'},{l:'PT-3 — Softened Green SW 6177',t:'Accent wall behind exam table in RT2X rooms. Alternates with Rainwashed. Provides room-to-room differentiation.'},{l:'PT-4 — Eider White SW 7014',t:'Door wall and third wall in all exam rooms. Slightly cooler tonal shift — reduces monotony in a small space while maintaining palette coherence.'},{l:'PT-5 — Pure White SW 7005',t:'Ceiling — 2×2 ACT6 at 9\'0" AFF.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'RT2',vb:'VB1',wp:'WP1'}},
+
+  pod2_ma:{w:'Navajo White',a1:'Ryegrass',a2:'Agreeable Gray',a3:'Pure White',a4:'Creamy',
+    rh:'Two MA work areas in the 2-Pod — one per pod. Ryegrass soffit standard applied to both. The dual MA cores are the operational heart of the building. Consistent color makes them immediately identifiable from any point in the building.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Primary field on all MA area walls in both pods.'},{l:'PT-2 — Ryegrass SW 6423',t:'Dropped soffit above MA work counters in both pods. Sage-green distinctively marks both staff zones throughout the building.'},{l:'PT-3 — Agreeable Gray SW 7029',t:'Intake alcove walls and sub-work station walls. Warm gray differentiates the patient-facing intake zone from the primary work corridor.'},{l:'PT-4 — Pure White SW 7005',t:'Main ceiling above MA zone — 2×2 ACT6.'},{l:'PT-5 — Creamy SW 7012',t:'Back corridor walls adjacent to staff support. Warm off-white subtly lighter than the field for visual separation in the staff passage.'}],
+    mat:{ct:'CT1',fl:'C4',fl2:'RT1',vb:'VB1',wp:'WP1'}},
+
+  pod2_lab:{w:'Navajo White',a1:'Alabaster',a2:'Pure White',a3:'Agreeable Gray',a4:'Eider White',
+    rh:'Two-zone lab in the 2-Pod. Same neutral standard as 1-Pod. The lab is centrally located between the two pods for equal access. Materiality and equipment are the visual language here — not color.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Standard field on primary lab walls in both work zones.'},{l:'PT-2 — Alabaster SW 7008',t:'Secondary wall field at bench and instrument walls. Slightly warmer than Navajo White — provides subtle tonal differentiation while maintaining clinical neutrality.'},{l:'PT-3 — Pure White SW 7005',t:'Ceiling — 2×2 ACT6. Maximum brightness for specimen accuracy.'},{l:'PT-4 — Agreeable Gray SW 7029',t:'Blood draw area walls. Warm gray differentiates the patient-facing draw zone from the clinical work bench.'},{l:'PT-5 — Eider White SW 7014',t:'Soffit above workstation. Cooler than the field — subtly marks the overhead boundary of the work zone.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'RT1',vb:'VB1',wp:'WP1'}},
+
+  pod2_imaging:{w:'Navajo White',a1:'Rainwashed',a2:'Agreeable Gray',a3:'Pure White',a4:'Eider White',
+    rh:'X-ray optional in 2-Pod — displaces 2 exam rooms. Same palette as imaging standard. Lead shielding coordination required at all walls, doors, and windows.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Procedure room field — all walls.'},{l:'PT-2 — Rainwashed SW 6211',t:'Technician workstation accent wall.'},{l:'PT-3 — Agreeable Gray SW 7029',t:'Remaining procedure room walls. Warm gray maintains neutrality while differentiating from the technician zone wall.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling — 2×2 ACT6. Coordinate all penetrations with lead shielding requirements.'},{l:'PT-5 — Eider White SW 7014',t:'X-ray sub-wait area walls. Slightly cooler — a transitional tone appropriate for the patient waiting moment.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'RT1',vb:'VB1',wp:'WP1'}},
+
+  pod2_staff:{w:'Navajo White',a1:'Halcyon Green',a2:'Creamy',a3:'Pure White',a4:'Agreeable Gray',
+    rh:'Single staff break room serving both pods. Larger than 1-Pod equivalent. Halcyon Green accent is the restorative moment for staff across the full building — the one space that signals "you\'re off stage."',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Field consistent with clinical zone.'},{l:'PT-2 — Halcyon Green SW 6213',t:'Accent wall in break room. Restorative green. Matches gallery soffit — visual system coherence.'},{l:'PT-3 — Creamy SW 7012',t:'Remaining break room and locker area walls. Warm off-white — a touch warmer than the clinical field, reinforcing the off-stage character of the space.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling — 2×4 fixture zone.'},{l:'PT-5 — Agreeable Gray SW 7029',t:'Staff toilet walls. Warm gray differentiates the ancillary toilet from the primary break and lounge areas.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'RT1',vb:'VB1',wp:'WP2'}},
+
+  pod2_office:{w:'Navajo White',a1:'Eider White',a2:'Pure White',a3:'Agreeable Gray',a4:'Creamy',
+    rh:'Six shared provider offices and two manager offices in the 2-Pod. Same standard as 1-Pod — neutral field with optional accent wall. Shared offices accommodate 2 providers each.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Standard field on primary walls throughout the office cluster.'},{l:'PT-2 — Eider White SW 7014',t:'Accent wall — slightly cooler than the field. Provides tonal separation behind the workstation.'},{l:'PT-3 — Pure White SW 7005',t:'Ceiling — 2×4 light fixtures. Maximum brightness for task work.'},{l:'PT-4 — Agreeable Gray SW 7029',t:'Manager office walls. Warm gray reads more intentional in an enclosed private office — warmer and more settled than the shared office standard.'},{l:'PT-5 — Creamy SW 7012',t:'Secondary manager offices. Warm off-white transitions between the clinical zone field and the enclosed office cluster.'}],
+    mat:{ct:'CT1',fl:'C4',fl2:'C4',vb:'VB2',wp:'WP3'}},
+
+  pod2_corridor:{w:'Navajo White',a1:'Rainwashed',a2:'Agreeable Gray',a3:'Pure White',a4:'Creamy',
+    rh:'Two parallel patient corridors at 6\'0" width each. Carpet alternates between C1A and C2A per section to reinforce zone breaks and allow independent replacement. Rainwashed accent at alcoves only.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Primary and secondary patient corridor field color.'},{l:'PT-2 — Rainwashed SW 6211',t:'Accent at alcove locations only — not on straight corridor runs.'},{l:'PT-3 — Agreeable Gray SW 7029',t:'5\'0" staff back corridor walls. Warm gray distinguishes the off-stage staff passage from the patient-facing clinical corridor.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling — 2×2 ACT6 at 8\'6" AFF.'},{l:'PT-5 — Creamy SW 7012',t:'Cross-corridor connection walls between pods. Warm off-white provides a subtle palette shift at the transition between the two pod clusters.'}],
+    mat:{ct:'CT1',fl:'C1',fl2:'C2',vb:'VB1',wp:'WP1'}},
+
+  pod2_support:{w:'Navajo White',a1:'Pure White',a2:'Agreeable Gray',a3:'Eider White',a4:'Creamy',
+    rh:'Consistent building support standard across all clinic models.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Standard field on primary support space walls.'},{l:'PT-2 — Pure White SW 7005',t:'EXP ceiling — exposed structure.'},{l:'PT-3 — Agreeable Gray SW 7029',t:'Mechanical and electrical room walls. Warm gray differentiates high-equipment zones and aids label readability.'},{l:'PT-4 — Eider White SW 7014',t:'Painted soffit where provided.'},{l:'PT-5 — Creamy SW 7012',t:'Walk-in storage and ancillary support room walls.'}],
+    mat:{ct:'CT3',fl:'SC',fl2:'SC',vb:'VB1',wp:'WP2'}},
+
+  // ── MULTISPECIALTY CLINIC ──────────────────────────────────────────────────
+  multi_arrival:{w:'Navajo White',a1:'Naval',a2:'Halcyon Green',a3:'Secure Blue',a4:'Pure White',
+    rh:'Multispecialty clinic galleries are larger and more complex. Navy anchors the primary building identity. Halcyon Green marks primary reception. Secure Blue introduces a third color at secondary departmental reception desks — supporting wayfinding at scale.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Gallery field color — consistent with smaller clinic models for system coherence.'},{l:'PT-2 — Naval SW 6244',t:'Primary building identity wall and main reception backdrop.'},{l:'PT-3 — Halcyon Green SW 6213',t:'Primary reception soffit and drop ceiling — gallery visual beacon.'},{l:'PT-4 — Secure Blue SW 6508',t:'Secondary specialty reception areas — differentiates departments within the multi-tenant environment.'},{l:'PT-5 — Pure White SW 7005',t:'Gallery ceiling — higher volume 11\'0" zone with ACT1A premium tile.'}],
+    mat:{ct:'CT2',fl:'C3',fl2:'PT',vb:'VB2',wp:'WP1'}},
+
+  multi_exam:{w:'Navajo White',a1:'Rainwashed',a2:'Softened Green',a3:'Eider White',a4:'Pure White',
+    rh:'Same exam standard as smaller pods — system consistency is the goal. Staff moving between departments experience the same visual language in every exam room across the campus.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Universal field across all exam rooms regardless of specialty.'},{l:'PT-2 — Rainwashed SW 6211',t:'Accent wall — coordinates with RT1X corridor carpet. Applied consistently across primary care pods.'},{l:'PT-3 — Softened Green SW 6177',t:'Alternate accent — coordinates with RT2X. Specialty pods may use consistently for departmental identity.'},{l:'PT-4 — Eider White SW 7014',t:'Door wall and third wall in all exam rooms. Slightly cooler tonal shift maintains palette coherence while differentiating from the primary field.'},{l:'PT-5 — Pure White SW 7005',t:'Ceiling throughout.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'RT2',vb:'VB1',wp:'WP1'}},
+
+  multi_ma:{w:'Navajo White',a1:'Ryegrass',a2:'Agreeable Gray',a3:'Pure White',a4:'Creamy',
+    rh:'Ryegrass soffit standard applied across all MA work areas in every pod. In a multispecialty environment this creates a consistent visual system — staff from any department immediately recognize the MA zone.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Primary field on all MA work area walls throughout all pods.'},{l:'PT-2 — Ryegrass SW 6423',t:'Dropped soffit above all MA work counters — system-wide visual consistency standard. Staff from any department immediately recognize the MA zone.'},{l:'PT-3 — Agreeable Gray SW 7029',t:'Intake alcove walls. Warm gray differentiates the patient-facing intake zone across all pods.'},{l:'PT-4 — Pure White SW 7005',t:'Main ACT6 ceiling above MA zone.'},{l:'PT-5 — Creamy SW 7012',t:'Sub-work and back corridor walls. Warm off-white provides visual separation from the primary clinical corridor.'}],
+    mat:{ct:'CT1',fl:'C4',fl2:'RT1',vb:'VB1',wp:'WP1'}},
+
+  multi_lab:{w:'Navajo White',a1:'Alabaster',a2:'Pure White',a3:'Agreeable Gray',a4:'Eider White',
+    rh:'Central laboratory serving all pods. Larger footprint than single-pod labs but same neutral palette standard. Clinical accuracy depends on neutral visual environment.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Primary field on all central lab walls. Neutral background ensures clinical equipment and specimen colors read accurately.'},{l:'PT-2 — Alabaster SW 7008',t:'Secondary wall field at bench and instrument walls. Slightly warmer than Navajo White — subtle tonal differentiation without introducing color.'},{l:'PT-3 — Pure White SW 7005',t:'Ceiling — 2×2 ACT6. Maximum brightness for specimen accuracy.'},{l:'PT-4 — Agreeable Gray SW 7029',t:'Blood draw area walls. Warm gray differentiates the patient-facing draw zone from the clinical workbench.'},{l:'PT-5 — Eider White SW 7014',t:'Soffit above blood draw workstation. Cooler than the field — subtly marks the overhead boundary of the draw zone.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'RT1',vb:'VB1',wp:'WP1'}},
+
+  multi_imaging:{w:'Navajo White',a1:'Rainwashed',a2:'Agreeable Gray',a3:'Pure White',a4:'Eider White',
+    rh:'Full imaging suite — CT, MRI, ultrasound, X-ray. Larger and more complex than clinic imaging. MRI requires non-magnetic materials throughout. Palette remains simple to avoid visual distraction in a high-anxiety patient environment.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'All imaging room and procedure walls.'},{l:'PT-2 — Rainwashed SW 6211',t:'Accent at technician workstation walls — consistent with clinic standard.'},{l:'PT-3 — Agreeable Gray SW 7029',t:'Sub-wait and patient prep area walls. Warm gray differentiates the patient prep zone from the primary procedure corridor.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling — coordinate all penetrations with MRI shielding requirements.'},{l:'PT-5 — Eider White SW 7014',t:'Changing room and patient corridor walls. Slightly cooler — transitional quality between public and clinical zones.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'RT1',vb:'VB1',wp:'WP1'}},
+
+  multi_staff:{w:'Navajo White',a1:'Halcyon Green',a2:'Clary Sage',a3:'Pure White',a4:'Agreeable Gray',
+    rh:'Multispecialty staff zones are larger and may include multiple break rooms and team huddle spaces. Halcyon Green primary accent is supplemented by Clary Sage in secondary staff areas — both colors reinforce the restorative palette.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Field consistent with clinical zone.'},{l:'PT-2 — Halcyon Green SW 6213',t:'Primary staff break room accent — consistent with gallery soffit.'},{l:'PT-3 — Clary Sage SW 6178',t:'Secondary break rooms and staff huddle areas. Deeper sage adds variety at scale without breaking the system.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling.'},{l:'PT-5 — Agreeable Gray SW 7029',t:'Locker room and staff transition area walls. Warm gray distinguishes ancillary back-of-house from the primary lounge areas.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'C4',vb:'VB1',wp:'WP2'}},
+
+  multi_office:{w:'Navajo White',a1:'Eider White',a2:'Pure White',a3:'Agreeable Gray',a4:'Creamy',
+    rh:'Provider offices, manager offices, and conference rooms in the multispecialty setting. Optional accent wall per Mercy standard. Conference rooms may use Naval as a more intentional accent choice.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Standard field throughout the office zone — consistent with clinical zone field.'},{l:'PT-2 — Eider White SW 7014',t:'Accent wall in provider offices. Slightly cooler than the field — provides tonal separation behind the workstation without requiring a color decision.'},{l:'PT-3 — Pure White SW 7005',t:'Ceiling throughout. Maximum brightness for task work.'},{l:'PT-4 — Agreeable Gray SW 7029',t:'Conference room walls. Warm gray provides the sense of enclosure and gravitas appropriate for meeting and consultation spaces.'},{l:'PT-5 — Creamy SW 7012',t:'Community gathering and collaboration zone walls. Warm off-white — a step warmer than the clinical field to signal a more social environment.'}],
+    mat:{ct:'CT2',fl:'C4',fl2:'C4',vb:'VB2',wp:'WP3'}},
+
+  multi_corridor:{w:'Navajo White',a1:'Rainwashed',a2:'Secure Blue',a3:'Pure White',a4:'Agreeable Gray',
+    rh:'Multispecialty corridors add a third color — Secure Blue — at department identity nodes to support wayfinding at scale. Rainwashed remains the primary alcove accent. The system creates a clear hierarchy: Navajo White field, Rainwashed alcoves, Secure Blue department entries.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Primary patient corridor field — all straight runs.'},{l:'PT-2 — Rainwashed SW 6211',t:'Accent at alcove locations — consistent with smaller clinic standard.'},{l:'PT-3 — Secure Blue SW 6508',t:'Department identity walls at pod entries. Wayfinding color applied at key decision points.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling throughout.'},{l:'PT-5 — Agreeable Gray SW 7029',t:'Staff 5\'0" back corridor walls. Warm gray distinguishes the off-stage staff passage from the patient-facing primary corridor across the full campus.'}],
+    mat:{ct:'CT1',fl:'C1',fl2:'C2',vb:'VB1',wp:'WP1'}},
+
+  multi_support:{w:'Navajo White',a1:'Pure White',a2:'Agreeable Gray',a3:'Eider White',a4:'Creamy',
+    rh:'Consistent building support standard.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Primary support space walls throughout the campus.'},{l:'PT-2 — Pure White SW 7005',t:'EXP ceiling — exposed structure.'},{l:'PT-3 — Agreeable Gray SW 7029',t:'Mechanical and electrical room walls. Warm gray aids equipment readability and differentiates high-equipment zones.'},{l:'PT-4 — Eider White SW 7014',t:'Painted soffit where provided.'},{l:'PT-5 — Creamy SW 7012',t:'Walk-in storage and ancillary support room walls.'}],
+    mat:{ct:'CT3',fl:'SC',fl2:'SC',vb:'VB1',wp:'WP2'}},
+
+  // ── ASC ────────────────────────────────────────────────────────────────────
+  asc_arrival:{w:'Alabaster',a1:'Naval',a2:'Leisure Blue',a3:'Mountain Air',a4:'Pure White',
+    rh:'ASC arrival areas must balance hospitality with clinical precision. Alabaster is warmer than Navajo White, appropriate for a higher-acuity setting where patients arrive with significant anxiety. Naval anchors the building identity.',
+    ri:[{l:'PT-1 Base — Alabaster SW 7008',t:'Warm near-white. Warmer than the clinic standard, appropriate for higher-anxiety pre-surgical populations.'},{l:'PT-2 — Naval SW 6244',t:'Identity wall at primary reception.'},{l:'PT-3 — Leisure Blue SW 6515',t:'Secondary waiting and pre-op family waiting. Mid-tone blue supports calm in a higher-stakes environment.'},{l:'PT-4 — Mountain Air SW 6224',t:'Light blue-green for transition corridors from arrival to pre-op zone.'},{l:'PT-5 — Pure White SW 7005',t:'Ceilings throughout.'}],
+    mat:{ct:'CT2',fl:'C3',fl2:'PT',vb:'VB2',wp:'WP1'}},
+
+  asc_exam:{w:'Topsail',a1:'Distance',a2:'Meditative',a3:'Pure White',a4:'Mountain Air',
+    rh:'OR suites and procedure rooms require maximum clinical clarity. Topsail as the field color supports accurate skin tone assessment under surgical lighting. Distance anchors the control/scrub zones.',
+    ri:[{l:'PT-1 Base — Topsail SW 6217',t:'Light blue-green field. Evidence-based for surgical environments — supports accurate color assessment of patient skin tones under clinical lighting.'},{l:'PT-2 — Distance SW 6243',t:'Deep slate blue at scrub sink alcove and zone identity walls. High contrast supports rapid spatial orientation in high-acuity settings.'},{l:'PT-3 — Meditative SW 6227',t:'Pre-op bay accent walls. Softer than clinical OR — provides transition from arrival palette to surgical environment.'},{l:'PT-4 — Pure White SW 7005',t:'All OR and procedure room ceilings. Clinical standard.'},{l:'PT-5 — Mountain Air SW 6224',t:'PACU recovery bay field. Light blue-green — slightly softer than the OR field, providing a gentle visual transition from the surgical environment to the recovery zone.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'RT2',vb:'VB1',wp:'WP1'}},
+
+  asc_ma:{w:'Topsail',a1:'Navajo White',a2:'Alabaster',a3:'Mountain Air',a4:'Eider White',
+    rh:'Sterile processing and instrument prep areas are highly technical. Palette is intentionally minimal to maintain visual focus on instrument condition and sterility verification.',
+    ri:[{l:'PT-1 Base — Topsail SW 6217',t:'Primary clinical field consistent with OR and procedure zones.'},{l:'PT-2 — Navajo White SW 6126',t:'Clean corridor separation walls. Warm neutral distinguishes the clean-side circulation from the procedure room entry.'},{l:'PT-3 — Alabaster SW 7008',t:'Ceiling — slightly warmer than Pure White, maintaining high luminance while softening the sterile processing environment.'},{l:'PT-4 — Mountain Air SW 6224',t:'Sterile supply storage walls. Lighter blue-green — visually distinct from the primary Topsail field, aiding orientation within the sterile corridor.'},{l:'PT-5 — Eider White SW 7014',t:'Soiled corridor and instrument decontamination area walls. Warm gray-white differentiates the decontam zone from the clean and sterile sides.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'RT1',vb:'VB1',wp:'WP1'}},
+
+  asc_staff:{w:'Navajo White',a1:'Clary Sage',a2:'Creamy',a3:'Pure White',a4:'Agreeable Gray',
+    rh:'ASC staff spaces serve surgical teams with high psychological demands. Clary Sage provides restorative green in a space that serves staff between cases — deeper and more enveloping than the clinic standard to reflect the higher intensity of surgical work.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Standard field — transitions between clinical and staff zones.'},{l:'PT-2 — Clary Sage SW 6178',t:'Staff lounge feature wall. Deeper restorative green for high-acuity surgical staff.'},{l:'PT-3 — Creamy SW 7012',t:'Remaining lounge and locker area walls. Warm off-white — a step warmer than the clinical field, reinforcing the restorative quality of the staff zone.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling.'},{l:'PT-5 — Agreeable Gray SW 7029',t:'Staff corridor and sub-waiting area walls adjacent to the lounge. Warm gray transitions between the restorative staff zone and the clinical corridor.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'C4',vb:'VB1',wp:'WP2'}},
+
+  asc_office:{w:'Navajo White',a1:'Eider White',a2:'Pure White',a3:'Agreeable Gray',a4:'Creamy',
+    rh:'ASC administrative and physician offices use the standard neutral palette. These spaces are typically sparse — surgical staff spend minimal time in offices.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Standard field on primary office walls.'},{l:'PT-2 — Eider White SW 7014',t:'Accent wall behind workstation. Slightly cooler than the field — provides tonal separation without requiring a color choice.'},{l:'PT-3 — Pure White SW 7005',t:'Ceiling throughout. Maximum brightness for task work.'},{l:'PT-4 — Agreeable Gray SW 7029',t:'Conference and consultation room walls. Warm gray provides enclosure and gravitas appropriate for administrative and pre-op consultation.'},{l:'PT-5 — Creamy SW 7012',t:'Administrative support area walls. Warm off-white — a step warmer than the field, distinguishing support spaces from clinical-adjacent offices.'}],
+    mat:{ct:'CT1',fl:'C4',fl2:'C4',vb:'VB2',wp:'WP3'}},
+
+  asc_corridor:{w:'Alabaster',a1:'Distance',a2:'Meditative',a3:'Pure White',a4:'Creamy',
+    rh:'ASC corridors bridge two very different patient states: pre-surgical anxiety and post-surgical recovery. Alabaster field provides warmth in patient-facing corridors. Distance accent at zone transitions supports rapid staff orientation.',
+    ri:[{l:'PT-1 Base — Alabaster SW 7008',t:'Public and patient corridor field. Warmer than clinical zone — maintains human quality in circulation spaces.'},{l:'PT-2 — Distance SW 6243',t:'Zone identity accent at OR suite entries and clean/soiled corridor intersections.'},{l:'PT-3 — Meditative SW 6227',t:'Family waiting and PACU corridor walls. Calming transition.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling throughout.'},{l:'PT-5 — Creamy SW 7012',t:'Service and support corridor field. Slightly warmer than the patient-facing Alabaster — distinguishes back-of-house circulation from the public patient corridor.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'C1',vb:'VB1',wp:'WP1'}},
+
+  asc_support:{w:'Navajo White',a1:'Pure White',a2:'Agreeable Gray',a3:'Eider White',a4:'Creamy',
+    rh:'Standard building support specification.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Primary support space walls throughout the campus.'},{l:'PT-2 — Pure White SW 7005',t:'EXP ceiling — exposed structure.'},{l:'PT-3 — Agreeable Gray SW 7029',t:'Mechanical and electrical room walls. Warm gray aids equipment readability and differentiates high-equipment zones.'},{l:'PT-4 — Eider White SW 7014',t:'Painted soffit where provided.'},{l:'PT-5 — Creamy SW 7012',t:'Walk-in storage and ancillary support room walls.'}],
+    mat:{ct:'CT3',fl:'SC',fl2:'SC',vb:'VB1',wp:'WP2'}},
+
+  // ── MOB ────────────────────────────────────────────────────────────────────
+  mob_arrival:{w:'Greek Villa',a1:'Naval',a2:'Secure Blue',a3:'Colonnade Gray',a4:'Pure White',
+    rh:'MOB lobbies serve a professional multi-tenant environment. Greek Villa is warmer and more sophisticated than the clinic field color — appropriate for a setting that is more corporate than clinical. Naval provides system identity.',
+    ri:[{l:'PT-1 Base — Greek Villa SW 7551',t:'Elevated warm white. More sophisticated than Navajo White, appropriate for a professional medical office environment.'},{l:'PT-2 — Naval SW 6244',t:'Building identity wall at primary reception.'},{l:'PT-3 — Secure Blue SW 6508',t:'Secondary feature walls in elevator lobbies and tenant suite entries.'},{l:'PT-4 — Colonnade Gray SW 7641',t:'Warm gray for corridor and transition walls. Professional and durable.'},{l:'PT-5 — Pure White SW 7005',t:'Ceilings throughout.'}],
+    mat:{ct:'CT2',fl:'C3',fl2:'PT',vb:'VB2',wp:'WP2'}},
+
+  mob_exam:{w:'Navajo White',a1:'Rainwashed',a2:'Softened Green',a3:'Eider White',a4:'Pure White',
+    rh:'MOB exam rooms revert to the clinic standard — clinical spaces follow clinical rules regardless of building type. Staff moving between MOB and clinic settings should experience the same exam room palette.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Clinical field standard — consistent with all clinic exam rooms.'},{l:'PT-2 — Rainwashed SW 6211',t:'Accent wall behind exam table in RT1X rooms.'},{l:'PT-3 — Softened Green SW 6177',t:'Alternate accent — RT2X rooms.'},{l:'PT-4 — Eider White SW 7014',t:'Door wall and third wall in all exam rooms. Slightly cooler than the primary field — reduces monotony while maintaining palette coherence.'},{l:'PT-5 — Pure White SW 7005',t:'Ceiling.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'RT2',vb:'VB2',wp:'WP2'}},
+
+  mob_ma:{w:'Navajo White',a1:'Ryegrass',a2:'Agreeable Gray',a3:'Pure White',a4:'Creamy',
+    rh:'MOB clinical work cores use the same Ryegrass soffit standard as clinic MA areas — clinical consistency across building types supports staff working in multiple settings.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Primary field on all MA/clinical workcore walls in MOB settings.'},{l:'PT-2 — Ryegrass SW 6423',t:'Dropped soffit above work counter. Consistent MA zone identifier across clinic and MOB settings.'},{l:'PT-3 — Agreeable Gray SW 7029',t:'Intake alcove walls. Warm gray differentiates the patient-facing intake moment from the primary work corridor.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling.'},{l:'PT-5 — Creamy SW 7012',t:'Back-of-suite corridor walls. Warm off-white provides visual separation between the clinical workcore and the back corridor.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'C4',vb:'VB2',wp:'WP2'}},
+
+  mob_lab:{w:'Navajo White',a1:'Alabaster',a2:'Pure White',a3:'Agreeable Gray',a4:'Eider White',
+    rh:'Point-of-care lab in MOB setting — same neutral standard as clinic. Clinical accuracy depends on neutral visual environment.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Primary field on all central lab walls. Neutral background ensures clinical equipment and specimen colors read accurately.'},{l:'PT-2 — Alabaster SW 7008',t:'Secondary wall field at bench and instrument walls. Slightly warmer than Navajo White — subtle tonal differentiation without introducing color.'},{l:'PT-3 — Pure White SW 7005',t:'Ceiling — 2×2 ACT6. Maximum brightness for specimen accuracy.'},{l:'PT-4 — Agreeable Gray SW 7029',t:'Blood draw area walls. Warm gray differentiates the patient-facing draw zone from the clinical workbench.'},{l:'PT-5 — Eider White SW 7014',t:'Soffit above blood draw workstation. Cooler than the field — subtly marks the overhead boundary of the draw zone.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'RT1',vb:'VB2',wp:'WP2'}},
+
+  mob_staff:{w:'Greek Villa',a1:'Haven',a2:'Svelte Sage',a3:'Pure White',a4:'Creamy',
+    rh:'MOB staff break rooms use a lighter green palette appropriate to the professional office environment. Haven and Svelte Sage create a restorative moment within a less clinically intense setting.',
+    ri:[{l:'PT-1 Base — Greek Villa SW 7551',t:'Warm cream consistent with MOB field. Staff spaces maintain building palette.'},{l:'PT-2 — Haven SW 6437',t:'Feature wall in staff break area. Light restorative sage.'},{l:'PT-3 — Svelte Sage SW 6164',t:'Secondary accent in workroom or lounge alcoves.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling.'},{l:'PT-5 — Creamy SW 7012',t:'Storage and adjacent ancillary room walls. Slightly warmer than the building field — distinguishes back-of-house from the primary break and lounge area.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'C4',vb:'VB2',wp:'WP3'}},
+
+  mob_office:{w:'Greek Villa',a1:'Naval',a2:'Colonnade Gray',a3:'Pure White',a4:'Creamy',
+    rh:'Professional office suites in the MOB. Greek Villa field creates a sophisticated environment appropriate for physician-facing professional space. Naval provides gravitas in conference rooms.',
+    ri:[{l:'PT-1 Base — Greek Villa SW 7551',t:'Professional office field throughout.'},{l:'PT-2 — Naval SW 6244',t:'Conference room feature wall. Professional authority.'},{l:'PT-3 — Colonnade Gray SW 7641',t:'Private office accent wall option. Warm neutral — professional without being clinical.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling.'},{l:'PT-5 — Creamy SW 7012',t:'Reception and waiting areas within tenant suites. Warm off-white — slightly warmer than the Greek Villa field, providing a welcoming threshold quality at suite entries.'}],
+    mat:{ct:'CT2',fl:'C4',fl2:'C4',vb:'VB3',wp:'WP3'}},
+
+  mob_corridor:{w:'Greek Villa',a1:'Colonnade Gray',a2:'Naval',a3:'Pure White',a4:'Creamy',
+    rh:'MOB corridors are more professional than clinical. Greek Villa field with Colonnade Gray at base creates a refined, hotel-adjacent quality appropriate for physician office buildings.',
+    ri:[{l:'PT-1 Base — Greek Villa SW 7551',t:'Primary corridor field. Professional, warm, non-clinical.'},{l:'PT-2 — Colonnade Gray SW 7641',t:'Base wall below chair rail at 36" AFF. Durability at contact zone with a warm professional tone.'},{l:'PT-3 — Naval SW 6244',t:'Building identity at elevator lobbies and main intersections.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling throughout.'},{l:'PT-5 — Creamy SW 7012',t:'Tenant corridor spur walls. Warm off-white provides a subtle palette shift at the transition from the main MOB corridor into individual tenant suites.'}],
+    mat:{ct:'CT2',fl:'C1',fl2:'RT1',vb:'VB3',wp:'WP2'}},
+
+  mob_support:{w:'Navajo White',a1:'Pure White',a2:'Agreeable Gray',a3:'Eider White',a4:'Creamy',
+    rh:'Standard building support specification.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Primary support space walls.'},{l:'PT-2 — Pure White SW 7005',t:'EXP or painted ceiling.'},{l:'PT-3 — Agreeable Gray SW 7029',t:'Mechanical and electrical room walls.'},{l:'PT-4 — Eider White SW 7014',t:'Painted soffit where provided.'},{l:'PT-5 — Creamy SW 7012',t:'Walk-in storage and ancillary support walls.'}],
+    mat:{ct:'CT3',fl:'SC',fl2:'SC',vb:'VB3',wp:'WP3'}},
+
+  // ── INPATIENT ──────────────────────────────────────────────────────────────
+  inpatient_arrival:{w:'Alabaster',a1:'Naval',a2:'Secure Blue',a3:'Languid Blue',a4:'Pure White',
+    rh:'Hospital arrival sequences set the emotional tone for the entire patient journey. Alabaster reduces the institutional quality of a pure white without sacrificing cleanliness. Navy grounds the system identity. The blue gradient — Navy, Secure Blue, Languid Blue — guides visitors toward care zones.',
+    ri:[{l:'PT-1 Base — Alabaster SW 7008',t:'Warm near-white. Research supports warm base tones for reducing patient stress at point of entry in inpatient settings.'},{l:'PT-2 — Naval SW 6244',t:'Deep navy for primary reception backdrop and feature walls. Brand anchor in the highest-visibility space.'},{l:'PT-3 — Secure Blue SW 6508',t:'Secondary feature walls at elevator lobbies and wayfinding nodes.'},{l:'PT-4 — Languid Blue SW 6226',t:'Seating alcoves and secondary waiting areas. Soft blue-gray — calming and restful.'},{l:'PT-5 — Pure White SW 7005',t:'Ceilings throughout lobby and arrival zone.'}],
+    mat:{ct:'CT2',fl:'C3',fl2:'PT',vb:'VB2',wp:'WP1'}},
+
+  inpatient_exam:{w:'Sea Salt',a1:'Rocky River',a2:'Rainwashed',a3:'Topsail',a4:'Pure White',
+    rh:'Inpatient patient rooms require an extended-stay palette. Sea Salt as the field color — a muted sage-green — is evidence-based for reducing patient-reported anxiety in medical-surgical environments. Rocky River as the headwall anchor provides visual focus and unit identity.',
+    ri:[{l:'PT-1 Base — Sea Salt SW 6204',t:'Extended-stay patient room field. Research supports muted blue-green tones for reducing anxiety and perceived pain in inpatient environments.'},{l:'PT-2 — Rocky River SW 6215',t:'Headwall panel and feature wall behind patient bed. Provides visual focus and unit identity differentiation.'},{l:'PT-3 — Rainwashed SW 6211',t:'Window wall and family seating zone. Lighter tone reduces visual fatigue during long stays.'},{l:'PT-4 — Topsail SW 6217',t:'Window wall and bathroom entry zone. Slightly cooler and lighter than Sea Salt — a subtle tonal shift that brightens the window wall and differentiates the bathroom threshold.'},{l:'PT-5 — Pure White SW 7005',t:'Ceiling throughout patient rooms.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'RT2',vb:'VB1',wp:'WP1'}},
+
+  inpatient_ma:{w:'Navajo White',a1:'Ryegrass',a2:'Agreeable Gray',a3:'Pure White',a4:'Creamy',
+    rh:'Inpatient nurse stations and clinical work cores. Ryegrass soffit standard applied — consistent with outpatient clinic. Staff moving between inpatient and outpatient settings experience the same work zone identifier.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Primary nurse station and clinical workcore field.'},{l:'PT-2 — Ryegrass SW 6423',t:'Dropped soffit above nurse station counter. Consistent MA/nurse station identifier across all care settings.'},{l:'PT-3 — Agreeable Gray SW 7029',t:'Clean utility and medication room walls. Warm gray differentiates these functional rooms from the primary work corridor — aiding orientation at high-acuity pace.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling throughout.'},{l:'PT-5 — Creamy SW 7012',t:'Sub-nurse station and charting alcove walls. Warm off-white provides visual separation between the primary nurse station and secondary charting positions.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'C4',vb:'VB1',wp:'WP1'}},
+
+  inpatient_lab:{w:'Navajo White',a1:'Alabaster',a2:'Pure White',a3:'Agreeable Gray',a4:'Eider White',
+    rh:'Point-of-care lab, blood draw, and specimen collection on inpatient units. Same neutral standard as outpatient. Clinical accuracy and perceived cleanliness are the design goals.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Primary lab and blood draw wall field.'},{l:'PT-2 — Alabaster SW 7008',t:'Secondary wall field at bench surfaces. Slightly warmer — subtle tonal differentiation without introducing accent color.'},{l:'PT-3 — Pure White SW 7005',t:'Ceiling — maximum brightness for specimen accuracy.'},{l:'PT-4 — Agreeable Gray SW 7029',t:'Soiled utility and dirty corridor walls. Warm gray visually distinguishes the soiled zone from the clean lab environment.'},{l:'PT-5 — Eider White SW 7014',t:'Soffit above blood draw workstation. Cooler than the field — marks the overhead boundary of the draw zone.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'RT1',vb:'VB1',wp:'WP1'}},
+
+  inpatient_imaging:{w:'Topsail',a1:'Georgian Bay',a2:'Meditative',a3:'Pure White',a4:'Mountain Air',
+    rh:'Inpatient imaging — portable and departmental. Same clinical blue-green standard as ASC. Staff consistency across care settings is the primary driver.',
+    ri:[{l:'PT-1 Base — Topsail SW 6217',t:'Clinical imaging field — all procedure areas.'},{l:'PT-2 — Georgian Bay SW 6509',t:'Technician zone and zone identity accent.'},{l:'PT-3 — Meditative SW 6227',t:'Patient waiting and holding areas adjacent to imaging.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling.'},{l:'PT-5 — Mountain Air SW 6224',t:'Control room walls. Lighter blue-green than the procedure field — provides visual relief for technicians working long shifts at control stations.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'RT1',vb:'VB1',wp:'WP1'}},
+
+  inpatient_staff:{w:'Navajo White',a1:'Clary Sage',a2:'Basil',a3:'Pure White',a4:'Agreeable Gray',
+    rh:'Inpatient staff spaces serve teams with the highest-acuity patient loads in the system. Clary Sage and Basil create the most restorative staff palette in the system — deeper and more enveloping than outpatient equivalents.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Field consistent with clinical zone.'},{l:'PT-2 — Clary Sage SW 6178',t:'Primary staff lounge feature wall. Restorative sage — deeper than outpatient clinic standard.'},{l:'PT-3 — Basil SW 6194',t:'Secondary lounge accent wall or alcove. Deeper sage creates enclosure and psychological separation from the clinical environment.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling.'},{l:'PT-5 — Agreeable Gray SW 7029',t:'Staff toilet and locker area walls. Warm gray differentiates ancillary back-of-house spaces from the primary restorative lounge zone.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'C4',vb:'VB1',wp:'WP2'}},
+
+  inpatient_office:{w:'Navajo White',a1:'Naval',a2:'Agreeable Gray',a3:'Pure White',a4:'Creamy',
+    rh:'Inpatient unit offices, case management, and social work. Naval as conference room accent brings system identity into the clinical office environment.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Standard field throughout.'},{l:'PT-2 — Naval SW 6244',t:'Unit conference room feature wall. Leadership and gravitas in a high-acuity clinical setting.'},{l:'PT-3 — Agreeable Gray SW 7029',t:'Individual unit office walls. Warm gray provides a more settled, enclosed quality for private offices adjacent to the clinical unit.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling.'},{l:'PT-5 — Creamy SW 7012',t:'Consultation, social work, and case management office walls. Warm off-white creates a more approachable, less clinical quality appropriate for sensitive patient-family conversations.'}],
+    mat:{ct:'CT1',fl:'C4',fl2:'C4',vb:'VB1',wp:'WP2'}},
+
+  inpatient_corridor:{w:'Navajo White',a1:'Rainwashed',a2:'Sea Salt',a3:'Pure White',a4:'Creamy',
+    rh:'Inpatient unit corridors are high-traffic, high-acuity environments. Navajo White field with Rainwashed alcoves follows clinic standard. Sea Salt introduced at unit-specific accent walls creates departmental identity within the corridor — connecting the patient room palette to the shared corridor.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Primary patient and staff corridor field — consistent with clinic standard.'},{l:'PT-2 — Rainwashed SW 6211',t:'Alcove accent consistent with clinic corridor standard.'},{l:'PT-3 — Sea Salt SW 6204',t:'Unit identity accent walls — connects to patient room field color, reinforces unit-level wayfinding.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling throughout.'},{l:'PT-5 — Creamy SW 7012',t:'Service and utility corridor walls. Slightly warmer than the patient-facing field — subtly differentiates the service pass from the primary clinical corridor.'}],
+    mat:{ct:'CT1',fl:'RT1',fl2:'C1',vb:'VB1',wp:'WP1'}},
+
+  inpatient_support:{w:'Navajo White',a1:'Pure White',a2:'Agreeable Gray',a3:'Eider White',a4:'Creamy',
+    rh:'Standard building support specification.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Primary support space walls.'},{l:'PT-2 — Pure White SW 7005',t:'EXP ceiling — exposed structure.'},{l:'PT-3 — Agreeable Gray SW 7029',t:'Mechanical and electrical room walls.'},{l:'PT-4 — Eider White SW 7014',t:'Painted soffit where provided.'},{l:'PT-5 — Creamy SW 7012',t:'Walk-in storage and ancillary support walls.'}],
+    mat:{ct:'CT3',fl:'SC',fl2:'SC',vb:'VB1',wp:'WP2'}},
+
+  // ── ADMIN ──────────────────────────────────────────────────────────────────
+  admin_arrival:{w:'Greek Villa',a1:'Naval',a2:'Intellectual Gray',a3:'Repose Gray',a4:'Pure White',
+    rh:'Administrative headquarters lobby: clean, confident, brand-forward. Greek Villa creates an elevated first impression. Naval anchors brand identity without clinical associations.',
+    ri:[{l:'PT-1 Base — Greek Villa SW 7551',t:'Elevated warm white. Corporate quality appropriate for system headquarters.'},{l:'PT-2 — Naval SW 6244',t:'Full Full navy for feature walls and reception backdrop.'},{l:'PT-3 — Intellectual Gray SW 7045',t:'Secondary feature walls and elevator lobbies. Sophisticated warm gray.'},{l:'PT-4 — Repose Gray SW 7015',t:'Transition corridor walls. Lighter cool gray — professional and modern.'},{l:'PT-5 — Pure White SW 7005',t:'Ceilings throughout.'}],
+    mat:{ct:'CT2',fl:'C3',fl2:'C3',vb:'VB3',wp:'WP3'}},
+
+  admin_staff:{w:'Greek Villa',a1:'Clary Sage',a2:'Haven',a3:'Pure White',a4:'Creamy',
+    rh:'Administrative staff break rooms use the same restorative green palette as clinical settings — system-wide commitment to staff wellbeing regardless of clinical role.',
+    ri:[{l:'PT-1 Base — Greek Villa SW 7551',t:'Warm cream consistent with admin building palette.'},{l:'PT-2 — Clary Sage SW 6178',t:'Feature wall — restorative sage standard applied across all facilities.'},{l:'PT-3 — Haven SW 6437',t:'Secondary accent for lounge seating zones.'},{l:'PT-4 — Pure White SW 7005',t:'Ceiling.'},{l:'PT-5 — Creamy SW 7012',t:'Remaining break room and adjacent storage walls. Slightly warmer than the Greek Villa field — a subtle shift that distinguishes back-of-house from the primary lounge.'}],
+    mat:{ct:'CT1',fl:'C4',fl2:'RT1',vb:'VB3',wp:'WP3'}},
+
+  admin_office:{w:'Repose Gray',a1:'Naval',a2:'Dovetail',a3:'Pure White',a4:'Mindful Gray',
+    rh:'Standard corporate office suite. Repose Gray is the industry-standard cool gray for modern open office environments. Naval brings brand into the workspace. Dovetail warms private offices.',
+    ri:[{l:'PT-1 Base — Repose Gray SW 7015',t:'Industry-standard cool gray for open office. Modern, professional, maintenance-friendly.'},{l:'PT-2 — Naval SW 6244',t:'Conference room feature walls and leadership office accent.'},{l:'PT-3 — Dovetail SW 7018',t:'Private office accent wall option. Warmer than open office field — more intimate.'},{l:'PT-4 — Pure White SW 7005',t:'Ceilings throughout.'},{l:'PT-5 — Mindful Gray SW 7016',t:'Collaboration zone and breakout area walls. Slightly warmer and more beige-toned than Repose Gray — distinguishes informal collaboration spaces from the primary open office field without breaking the gray palette.'}],
+    mat:{ct:'CT2',fl:'C4',fl2:'C4',vb:'VB3',wp:'WP3'}},
+
+  admin_corridor:{w:'Repose Gray',a1:'Naval',a2:'Intellectual Gray',a3:'Pure White',a4:'Mindful Gray',
+    rh:'Corporate corridor standard. Repose Gray field with Naval at building entries. Efficient, clean, professional.',
+    ri:[{l:'PT-1 Base — Repose Gray SW 7015',t:'Corporate corridor field. Clean and modern.'},{l:'PT-2 — Naval SW 6244',t:'Building entries and elevator lobbies.'},{l:'PT-3 — Intellectual Gray SW 7045',t:'Service corridor differentiation.'},{l:'PT-4 — Pure White SW 7005',t:'Ceilings.'},{l:'PT-5 — Mindful Gray SW 7016',t:'Transition zones and informal collaboration corridor walls. Slightly warmer than the primary corridor field — a subtle distinction between formal and informal circulation within the corporate environment.'}],
+    mat:{ct:'CT2',fl:'C4',fl2:'C4',vb:'VB3',wp:'WP3'}},
+
+  admin_support:{w:'Navajo White',a1:'Pure White',a2:'Agreeable Gray',a3:'Eider White',a4:'Creamy',
+    rh:'Standard building support specification.',
+    ri:[{l:'PT-1 Base — Navajo White SW 6126',t:'Primary support space walls.'},{l:'PT-2 — Pure White SW 7005',t:'EXP ceiling — exposed structure.'},{l:'PT-3 — Agreeable Gray SW 7029',t:'Mechanical and electrical room walls.'},{l:'PT-4 — Eider White SW 7014',t:'Painted soffit where provided.'},{l:'PT-5 — Creamy SW 7012',t:'Walk-in storage and ancillary support walls.'}],
+    mat:{ct:'CT3',fl:'SC',fl2:'SC',vb:'VB3',wp:'WP3'}},
+};
+
+// Helper: get mat objects for a palette
+function getMats(m){
+  return [
+    MAT[m.ct]||null,
+    MAT[m.fl]||null,
+    MAT[m.fl2]||null,
+    MAT[m.vb]||null,
+    MAT[m.wp]||null,
+  ].filter(Boolean);
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let selCare=null, selZone=null;
+let playbook=[];
+let floors=[{id:'f1',name:'Level 1'}];
+let activeFloor='f1';
+let collapsed={};
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+function init(){
+  const sel=document.getElementById('careSelect');
+  CARE.forEach(c=>{
+    const o=document.createElement('option');
+    o.value=c.id; o.textContent=c.label;
+    sel.appendChild(o);
+  });
+  // zones built on demand in onCareChange
+  renderFloorSidebar();
+}
+
+function onCareChange(){
+  const v=document.getElementById('careSelect').value;
+  selCare=v||null;
+  selZone=null;
+  const c=CARE.find(x=>x.id===v);
+  document.getElementById('careDesc').textContent=c?c.desc:'';
+
+  // Build zone buttons now that a care setting is selected
+  const zg=document.getElementById('zoneGroup');
+  zg.innerHTML='';
+  if(selCare){
+    document.getElementById('zoneLabel').style.display='block';
+    ZONES.forEach(z=>{
+      const b=document.createElement('button');
+      b.className='opt';
+      b.innerHTML=`${z.label}<div class="sub">${z.sub}</div>`;
+      b.onclick=()=>{
+        selZone=z.id;
+        zg.querySelectorAll('.opt').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+        renderBrowse();
+      };
+      zg.appendChild(b);
+    });
+  } else {
+    document.getElementById('zoneLabel').style.display='none';
+  }
+  renderBrowse();
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['browse','playbook'][i]===tab));
+  document.getElementById('browsePanel').classList.toggle('active',tab==='browse');
+  document.getElementById('playbookPanel').classList.toggle('active',tab==='playbook');
+  if(tab==='playbook')renderPlaybook();
+}
+
+// ── BROWSE ────────────────────────────────────────────────────────────────────
+function renderBrowse(){
+  const el=document.getElementById('browseContent');
+  if(!selCare||!selZone){
+    el.innerHTML='<div class="empty"><div class="ico">🎨</div><p>Select a care setting and functional zone to view the standard finish palette and material specifications.</p></div>';
+    return;
+  }
+  const key=`${selCare}_${selZone}`;
+  const data=P[key];
+  if(!data){
+    el.innerHTML='<div class="empty"><div class="ico">🚧</div><p>This combination is coming soon. Contact BSA to discuss custom palette development for this setting.</p></div>';
+    return;
+  }
+  const cL=CARE.find(c=>c.id===selCare)?.label||'';
+  const zL=ZONES.find(z=>z.id===selZone)?.label||'';
+  const alreadyAdded=playbook.some(z=>z.key===key);
+  const roles=[{k:'w',r:'PT-1 Base'},{k:'a1',r:'PT-2'},{k:'a2',r:'PT-3'},{k:'a3',r:'PT-4'},{k:'a4',r:'PT-5'}];
+
+  const swHtml=roles.map(({k,r})=>{
+    const n=data[k]; const s=SW[n]; if(!s)return'';
+    return`<div class="sw-card"><div class="sw-color" style="background:${s.h}"><div class="sw-role">${r}</div></div><div class="sw-info"><div class="sw-name">${n}</div><div class="sw-num">SW ${s.n}</div><div class="sw-hex" onclick="copyHex('${s.h}',this)">${s.h}</div></div></div>`;
+  }).join('');
+
+  const mats=getMats(data.mat);
+  const matHtml=mats.map(m=>`<div class="mat-card"><div class="mat-code">${m.code}</div><div class="mat-name">${m.name}</div><div class="mat-spec">${m.cat} — ${m.spec}</div></div>`).join('');
+  const ratHtml=data.ri.map(i=>`<div class="rat-item"><div class="rat-label">${i.l}</div><p>${i.t}</p></div>`).join('');
+
+  el.innerHTML=`
+    <div class="pal-hdr">
+      <div><div class="fac-tag">${cL}</div><h2>${zL}</h2><p>${data.rh}</p></div>
+      <button class="add-btn${alreadyAdded?' added':''}" onclick="addToProject('${key}','${escJ(cL)}','${escJ(zL)}')">${alreadyAdded?'✓ Added':'+ Add to Project'}</button>
+    </div>
+    <div class="swatches-grid">${swHtml}</div>
+    <div class="mat-section"><div class="sec-title">Material Specifications — ${cL} · ${zL}</div><div class="mat-grid">${matHtml}</div></div>
+    <div class="rat-section"><div class="sec-title">Design Rationale</div><div class="rat-grid">${ratHtml}</div></div>`;
+}
+
+function escJ(s){return s.replace(/'/g,"\\'");}
+
+function addToProject(key,cL,zL){
+  const name=prompt(`Name this zone in your playbook:\n(e.g. "Suite 200 Exam", "Level 1 Gallery")`,zL)||zL;
+  playbook.push({key,careLabel:cL,zoneLabel:zL,customName:name,floorId:activeFloor});
+  updateCount();
+  renderBrowse();
+}
+
+function updateCount(){
+  document.getElementById('zoneCount').textContent=`${playbook.length} zone${playbook.length!==1?'s':''} added`;
+}
+
+// ── PLAYBOOK ──────────────────────────────────────────────────────────────────
+function addFloor(){
+  const name=prompt('Name this floor or zone:',`Level ${floors.length+1}`);
+  if(!name)return;
+  const id='f'+Date.now();
+  floors.push({id,name}); activeFloor=id;
+  renderPlaybook();
+}
+
+function deleteFloor(id){
+  if(!confirm('Delete this floor and all its zones?'))return;
+  floors=floors.filter(f=>f.id!==id);
+  playbook=playbook.filter(z=>z.floorId!==id);
+  if(!floors.find(f=>f.id===activeFloor)) activeFloor=floors[0]?.id||null;
+  if(!floors.length){floors=[{id:'f1',name:'Level 1'}];activeFloor='f1';}
+  updateCount(); renderPlaybook();
+}
+
+function reassignZone(idx,fid){playbook[idx].floorId=fid;renderPlaybook();}
+
+function removeZone(idx){
+  if(!confirm('Remove this zone from the playbook?'))return;
+  playbook.splice(idx,1); updateCount(); renderPlaybook();
+}
+
+function toggleFloor(id){collapsed[id]=!collapsed[id];renderPlaybook();}
+
+function renderFloorSidebar(){
+  const list=document.getElementById('pbFloorList');
+  list.innerHTML='';
+  floors.forEach(f=>{
+    const div=document.createElement('div');
+    div.className='pb-floor-item'+(f.id===activeFloor?' active-floor':'');
+
+    // Editable name input
+    const inp=document.createElement('input');
+    inp.value=f.name;
+    inp.style.cssText='border:none;background:transparent;font-size:12px;font-weight:700;color:inherit;width:100%;outline:none;cursor:pointer;min-width:0;';
+    inp.title='Click to rename';
+    inp.onclick=e=>{
+      e.stopPropagation();
+      activeFloor=f.id;
+      renderFloorSidebar();
+      // re-focus the input after re-render
+      setTimeout(()=>{
+        const inputs=document.querySelectorAll('#pbFloorList input');
+        const idx=floors.findIndex(x=>x.id===f.id);
+        if(inputs[idx]) inputs[idx].focus();
+      },10);
+    };
+    inp.oninput=e=>{
+      f.name=e.target.value||'Unnamed Floor';
+      renderPlaybook();
+    };
+    inp.onkeydown=e=>{if(e.key==='Enter')inp.blur();};
+
+    const del=document.createElement('button');
+    del.className='pb-floor-del';
+    del.textContent='✕';
+    del.title='Delete floor';
+    del.onclick=e=>{e.stopPropagation();deleteFloor(f.id);};
+
+    div.appendChild(inp);
+    div.appendChild(del);
+    div.onclick=()=>{activeFloor=f.id;renderFloorSidebar();};
+    list.appendChild(div);
+  });
+}
+
+function renderPlaybook(){
+  renderFloorSidebar();
+  const main=document.getElementById('pbMain');
+  if(!playbook.length){
+    main.innerHTML='<div class="pb-empty"><div class="ico">📋</div><p>Your playbook is empty. Browse palettes and click "Add to Project" to build your finish schedule.</p></div>';
+    return;
+  }
+  const projName=document.getElementById('pbName').value||'Untitled Project';
+  const projNum=document.getElementById('pbNum').value||'—';
+  const arch=document.getElementById('pbArch').value||'BSA';
+
+  let html=`<div class="pb-proj-hdr">
+    <div class="pb-proj-eyebrow">Project Finish Playbook</div>
+    <div class="pb-proj-name">${projName}</div>
+    <div class="pb-proj-sub">Project No. ${projNum} &nbsp;·&nbsp; ${arch} &nbsp;·&nbsp; Interior Finish Standards</div>
+  </div>`;
+
+  floors.forEach(floor=>{
+    const zones=playbook.map((z,i)=>({...z,idx:i})).filter(z=>z.floorId===floor.id);
+    if(!zones.length)return;
+    const col=collapsed[floor.id];
+    html+=`<div class="pb-floor-sec">
+      <div class="pb-floor-hdr" onclick="toggleFloor('${floor.id}')">
+        <h3>${floor.name}</h3>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="zc">${zones.length} zone${zones.length!==1?'s':''}</span>
+          <span class="pb-floor-toggle${col?' col':''}">▾</span>
+        </div>
+      </div>
+      <div class="pb-floor-body" ${col?'style="display:none"':''}>`;
+
+    zones.forEach(zone=>{
+      const data=P[zone.key]; if(!data)return;
+      const floorOpts=floors.map(f=>`<option value="${f.id}"${f.id===zone.floorId?' selected':''}>${f.name}</option>`).join('');
+      const roles=[{k:'w',r:'PT-1'},{k:'a1',r:'PT-2'},{k:'a2',r:'PT-3'},{k:'a3',r:'PT-4'},{k:'a4',r:'PT-5'}];
+      const paintRows=roles.map(({k,r})=>{
+        const n=data[k]; const s=SW[n]; if(!s)return'';
+        return`<div class="fs-row"><div class="fs-code">${r}</div><div class="fs-color-cell"><div class="fs-dot" style="background:${s.h}"></div><span class="fs-name">${n}</span></div><div class="fs-spec">SW ${s.n}</div><div class="fs-spec">${s.h}</div></div>`;
+      }).join('');
+      const mats=getMats(data.mat);
+      const matRows=mats.map(m=>`<div class="fs-row"><div class="fs-code">${m.code}</div><div class="fs-name">${m.name}</div><div class="fs-spec">${m.cat}</div><div class="fs-spec">${m.spec}</div></div>`).join('');
+
+      html+=`<div class="pb-zone">
+        <div class="pb-zone-hdr">
+          <div><div class="pb-zone-title">${zone.customName}</div><div class="pb-zone-sub">${zone.careLabel} · ${zone.zoneLabel}</div></div>
+          <div class="pb-zone-actions">
+            <span class="move-label">Move to:</span>
+            <select class="move-select" onchange="reassignZone(${zone.idx},this.value)">${floorOpts}</select>
+            <button class="zone-del" onclick="removeZone(${zone.idx})">Remove</button>
+          </div>
+        </div>
+        <div class="fs-table">
+          <div class="fs-head"><div>Code</div><div>Color / Material</div><div>Reference</div><div>Specification</div></div>
+          ${paintRows}
+          <div class="fs-head fs-spacer"><div>Code</div><div>Material</div><div>Category</div><div>Specification</div></div>
+          ${matRows}
+        </div>
+      </div>`;
+    });
+    html+=`</div></div>`;
+  });
+  main.innerHTML=html;
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function copyHex(hex,el){
+  navigator.clipboard.writeText(hex).then(()=>{const o=el.textContent;el.textContent='Copied!';setTimeout(()=>el.textContent=o,1200);}).catch(()=>{});
+}
+
+init();
+</script>
+</body>
+</html>
