@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Doodle Engine V0.1</title>
+<style>
+  :root{
+    --bg:#f6f3ed;
+    --panel:#fffdf8;
+    --ink:#191919;
+    --muted:#6d6a64;
+    --line:#d8d2c8;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+  }
+  .app{
+    min-height:100vh;
+    display:grid;
+    grid-template-columns:320px 1fr;
+  }
+  .panel{
+    background:var(--panel);
+    border-right:1px solid var(--line);
+    padding:24px 22px;
+    overflow:auto;
+  }
+  .brand{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:22px;
+  }
+  h1{
+    margin:0;
+    font-size:24px;
+    line-height:1;
+    letter-spacing:-0.04em;
+  }
+  .version{
+    font-size:11px;
+    border:1px solid var(--line);
+    padding:4px 7px;
+    border-radius:999px;
+    color:var(--muted);
+  }
+  .intro{
+    margin:0 0 22px;
+    font-size:13px;
+    line-height:1.45;
+    color:var(--muted);
+  }
+  .group{
+    border-top:1px solid var(--line);
+    padding-top:16px;
+    margin-top:16px;
+  }
+  .group h2{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.14em;
+    color:var(--muted);
+    margin:0 0 14px;
+  }
+  .control{
+    margin:0 0 15px;
+  }
+  .label-row{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    font-size:12px;
+    margin-bottom:7px;
+  }
+  .value{
+    color:var(--muted);
+    font-variant-numeric:tabular-nums;
+  }
+  input[type="range"]{
+    width:100%;
+    accent-color:#1a1a1a;
+  }
+  .buttons{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-top:18px;
+  }
+  button{
+    appearance:none;
+    border:1px solid var(--ink);
+    background:var(--ink);
+    color:white;
+    border-radius:10px;
+    padding:11px 12px;
+    font-weight:650;
+    cursor:pointer;
+    font-size:12px;
+  }
+  button.secondary{
+    background:transparent;
+    color:var(--ink);
+  }
+  button:hover{transform:translateY(-1px)}
+  .note{
+    margin-top:14px;
+    font-size:11px;
+    color:var(--muted);
+    line-height:1.4;
+  }
+  .stage-wrap{
+    position:relative;
+    min-width:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:22px;
+  }
+  .stage-card{
+    width:min(100%,1100px);
+    height:min(88vh,900px);
+    min-height:620px;
+    background:white;
+    border:1px solid var(--line);
+    border-radius:18px;
+    box-shadow:0 12px 40px rgba(0,0,0,.06);
+    overflow:hidden;
+    position:relative;
+  }
+  svg{width:100%;height:100%;display:block}
+  .hud{
+    position:absolute;
+    left:18px;
+    bottom:15px;
+    font-size:11px;
+    color:#777;
+    background:rgba(255,255,255,.82);
+    backdrop-filter:blur(8px);
+    border:1px solid #ece7dd;
+    border-radius:999px;
+    padding:7px 10px;
+    pointer-events:none;
+  }
+  @media (max-width: 860px){
+    .app{grid-template-columns:1fr}
+    .panel{border-right:0;border-bottom:1px solid var(--line)}
+    .stage-wrap{padding:12px}
+    .stage-card{height:72vh;min-height:520px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="panel">
+    <div class="brand">
+      <h1>Doodle Engine</h1>
+      <span class="version">V0.1</span>
+    </div>
+    <p class="intro">
+      A generative sketch system built from a simple nested petal gesture, radial repetition,
+      and controlled human imperfection.
+    </p>
+
+    <div class="group">
+      <h2>Gesture</h2>
+
+      <div class="control">
+        <div class="label-row"><span>Petals</span><span class="value" id="petalsVal"></span></div>
+        <input id="petals" type="range" min="5" max="12" value="8" step="1">
+      </div>
+
+      <div class="control">
+        <div class="label-row"><span>Nesting</span><span class="value" id="nestingVal"></span></div>
+        <input id="nesting" type="range" min="1" max="5" value="3" step="1">
+      </div>
+
+      <div class="control">
+        <div class="label-row"><span>Petal Length</span><span class="value" id="lengthVal"></span></div>
+        <input id="length" type="range" min="55" max="120" value="85" step="1">
+      </div>
+
+      <div class="control">
+        <div class="label-row"><span>Petal Width</span><span class="value" id="widthVal"></span></div>
+        <input id="width" type="range" min="18" max="48" value="30" step="1">
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>Field</h2>
+
+      <div class="control">
+        <div class="label-row"><span>Spacing</span><span class="value" id="spacingVal"></span></div>
+        <input id="spacing" type="range" min="130" max="235" value="175" step="1">
+      </div>
+
+      <div class="control">
+        <div class="label-row"><span>Scale Drift</span><span class="value" id="scaleVal"></span></div>
+        <input id="scale" type="range" min="0" max="30" value="10" step="1">
+      </div>
+
+      <div class="control">
+        <div class="label-row"><span>Rotation Drift</span><span class="value" id="rotationVal"></span></div>
+        <input id="rotation" type="range" min="0" max="24" value="6" step="1">
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>Personality</h2>
+
+      <div class="control">
+        <div class="label-row"><span>Wobble</span><span class="value" id="wobbleVal"></span></div>
+        <input id="wobble" type="range" min="0" max="18" value="6" step="1">
+      </div>
+
+      <div class="control">
+        <div class="label-row"><span>Color Variation</span><span class="value" id="colorVal"></span></div>
+        <input id="color" type="range" min="0" max="100" value="75" step="1">
+      </div>
+
+      <div class="control">
+        <div class="label-row"><span>Human ↔ Geometric</span><span class="value" id="humanVal"></span></div>
+        <input id="human" type="range" min="0" max="100" value="38" step="1">
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button id="regen">Regenerate</button>
+      <button id="evolve" class="secondary">Evolve</button>
+      <button id="exportSvg" class="secondary">Export SVG</button>
+      <button id="reset" class="secondary">Reset</button>
+    </div>
+
+    <div class="note">
+      <strong>Regenerate</strong> creates a new composition from the current rules.
+      <strong>Evolve</strong> makes a small mutation of the current system.
+    </div>
+  </aside>
+
+  <main class="stage-wrap">
+    <div class="stage-card">
+      <svg id="art" viewBox="0 0 1000 820" xmlns="http://www.w3.org/2000/svg" aria-label="Generated doodle pattern"></svg>
+      <div class="hud">nested gesture → radial module → tiled field → controlled drift</div>
+    </div>
+  </main>
+</div>
+
+<script>
+const svg = document.getElementById('art');
+const NS = "http://www.w3.org/2000/svg";
+
+const controls = {
+  petals: document.getElementById('petals'),
+  nesting: document.getElementById('nesting'),
+  length: document.getElementById('length'),
+  width: document.getElementById('width'),
+  spacing: document.getElementById('spacing'),
+  scale: document.getElementById('scale'),
+  rotation: document.getElementById('rotation'),
+  wobble: document.getElementById('wobble'),
+  color: document.getElementById('color'),
+  human: document.getElementById('human')
+};
+
+const defaults = {
+  petals:8, nesting:3, length:85, width:30,
+  spacing:175, scale:10, rotation:6, wobble:6,
+  color:75, human:38
+};
+
+let seed = Math.floor(Math.random()*1e9);
+
+const palette = [
+  "#f6bf73", "#f3a6a6", "#c8b2ef", "#9dd478",
+  "#69d1ef", "#efe36b", "#c7dfbf", "#efc8c8"
+];
+
+function mulberry32(a){
+  return function(){
+    let t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  }
+}
+
+function el(name, attrs={}){
+  const node = document.createElementNS(NS,name);
+  for(const [k,v] of Object.entries(attrs)) node.setAttribute(k,v);
+  return node;
+}
+
+function getVals(){
+  const o={};
+  for(const [k,c] of Object.entries(controls)) o[k]=+c.value;
+  return o;
+}
+
+function updateLabels(){
+  const v=getVals();
+  document.getElementById('petalsVal').textContent=v.petals;
+  document.getElementById('nestingVal').textContent=v.nesting;
+  document.getElementById('lengthVal').textContent=v.length+" px";
+  document.getElementById('widthVal').textContent=v.width+" px";
+  document.getElementById('spacingVal').textContent=v.spacing+" px";
+  document.getElementById('scaleVal').textContent=v.scale+"%";
+  document.getElementById('rotationVal').textContent=v.rotation+"°";
+  document.getElementById('wobbleVal').textContent=v.wobble;
+  document.getElementById('colorVal').textContent=v.color+"%";
+  document.getElementById('humanVal').textContent=v.human+"%";
+}
+
+function jitter(rng, amount){
+  return (rng()-.5)*2*amount;
+}
+
+function petalPath(L,W,wob,rng){
+  // Pointing upward from origin.
+  const j = wob;
+  const p0=[0,0];
+  const c1=[-W*.62+jitter(rng,j), -L*.24+jitter(rng,j)];
+  const c2=[-W*.42+jitter(rng,j), -L*.78+jitter(rng,j)];
+  const tip=[jitter(rng,j*.4), -L+jitter(rng,j)];
+  const c3=[W*.40+jitter(rng,j), -L*.78+jitter(rng,j)];
+  const c4=[W*.62+jitter(rng,j), -L*.24+jitter(rng,j)];
+  return `M ${p0[0]} ${p0[1]}
+          C ${c1[0]} ${c1[1]}, ${c2[0]} ${c2[1]}, ${tip[0]} ${tip[1]}
+          C ${c3[0]} ${c3[1]}, ${c4[0]} ${c4[1]}, 0 0`;
+}
+
+function drawRosette(x,y,scale,rotationDeg,rng,v){
+  const group=el("g",{transform:`translate(${x} ${y}) rotate(${rotationDeg}) scale(${scale})`});
+  const angle=360/v.petals;
+
+  for(let i=0;i<v.petals;i++){
+    const pg=el("g",{transform:`rotate(${i*angle + jitter(rng, v.rotation*(v.human/100))})`});
+
+    for(let n=0;n<v.nesting;n++){
+      const t = v.nesting===1 ? 0 : n/(v.nesting-1);
+      const inset = 1 - t*.34;
+      const localHuman = v.human/100;
+      const wobble = v.wobble * localHuman * (1-t*.35);
+
+      const path = el("path",{
+        d:petalPath(v.length*inset, v.width*inset, wobble, rng),
+        fill:"none",
+        stroke:"#151515",
+        "stroke-width": 2.15 - n*.18,
+        "stroke-linecap":"round",
+        "stroke-linejoin":"round",
+        opacity: .95
+      });
+      pg.appendChild(path);
+
+      if(n===0){
+        const colorChance = v.color/100;
+        if(rng()<colorChance){
+          const halo = el("path",{
+            d:petalPath(v.length*1.02, v.width*1.10, wobble*1.2, rng),
+            fill:"none",
+            stroke:palette[Math.floor(rng()*palette.length)],
+            "stroke-width": 9 + rng()*7,
+            "stroke-linecap":"round",
+            opacity:.22 + rng()*.12
+          });
+          pg.insertBefore(halo, pg.firstChild);
+        }
+      }
+    }
+    group.appendChild(pg);
+  }
+
+  const c=el("circle",{
+    cx:0, cy:0, r:5.5,
+    fill:"white", stroke:"#161616", "stroke-width":2
+  });
+  group.appendChild(c);
+  svg.appendChild(group);
+}
+
+function render(){
+  updateLabels();
+  svg.innerHTML="";
+  const v=getVals();
+  const rng=mulberry32(seed);
+
+  const bg=el("rect",{x:0,y:0,width:1000,height:820,fill:"#fff"});
+  svg.appendChild(bg);
+
+  const s=v.spacing;
+  const rowH=s*.84;
+  const cols=Math.ceil(1000/s)+2;
+  const rows=Math.ceil(820/rowH)+2;
+
+  for(let r=-1;r<rows;r++){
+    for(let c=-1;c<cols;c++){
+      const offset=(r%2)*s*.5;
+      let x=c*s+offset;
+      let y=r*rowH;
+
+      const human=v.human/100;
+      x += jitter(rng, 13*human);
+      y += jitter(rng, 13*human);
+
+      const scaleDrift=(v.scale/100)*human;
+      const sc=1 + jitter(rng,scaleDrift);
+      const rot=jitter(rng,v.rotation*human);
+
+      drawRosette(x,y,sc,rot,rng,v);
+    }
+  }
+}
+
+function regenerate(){
+  seed=Math.floor(Math.random()*1e9);
+  render();
+}
+
+function evolve(){
+  const rng=mulberry32(seed ^ 0xABCDEF);
+  const keys=["length","width","spacing","scale","rotation","wobble","color","human"];
+  const key=keys[Math.floor(rng()*keys.length)];
+  const c=controls[key];
+  const min=+c.min, max=+c.max;
+  const range=max-min;
+  let val=+c.value + (rng()-.5)*range*.12;
+  val=Math.max(min,Math.min(max,Math.round(val)));
+  c.value=val;
+  seed += Math.floor(rng()*100000)+1;
+  render();
+}
+
+function exportSVG(){
+  const clone=svg.cloneNode(true);
+  clone.setAttribute("xmlns","http://www.w3.org/2000/svg");
+  const data='<?xml version="1.0" encoding="UTF-8"?>\n'+clone.outerHTML;
+  const blob=new Blob([data],{type:"image/svg+xml"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="doodle-engine-v01.svg";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+document.getElementById('regen').addEventListener('click',regenerate);
+document.getElementById('evolve').addEventListener('click',evolve);
+document.getElementById('exportSvg').addEventListener('click',exportSVG);
+document.getElementById('reset').addEventListener('click',()=>{
+  for(const [k,v] of Object.entries(defaults)) controls[k].value=v;
+  regenerate();
+});
+for(const c of Object.values(controls)){
+  c.addEventListener('input',render);
+}
+
+render();
+</script>
+</body>
+</html>
